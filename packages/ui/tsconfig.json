@@ -1,9 +1,6 @@
 {
-  "extends": "../config/typescript/base.json",
+  "extends": "@vavito/typescript-config/library.json",
   "compilerOptions": {
-    "declaration": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "outDir": "dist",
     "rootDir": "src"
   },

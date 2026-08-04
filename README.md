@@ -22,10 +22,13 @@ O projeto usa um único `pnpm-lock.yaml`, mantido na raiz.
 ```bash
 pnpm dev        # inicia API e web em modo de desenvolvimento
 pnpm build      # compila todos os workspaces que possuem build
-pnpm lint       # coordena o lint (as regras entram na Task 1.2)
+pnpm lint       # executa o ESLint em todos os workspaces
+pnpm lint:fix   # corrige automaticamente os problemas compatíveis
+pnpm format     # formata os arquivos com Prettier
+pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
-pnpm check      # executa lint, typecheck, test e build
+pnpm check      # executa format check, lint, typecheck, test e build
 ```
 
 Para executar apenas uma aplicação:
@@ -46,10 +49,20 @@ apps/
   web/          aplicação Next.js com App Router
 packages/
   api-client/   cliente tipado da API (gerado em task futura)
-  config/       configurações compartilhadas
+  eslint-config/ configuração compartilhada do ESLint
+  typescript-config/ configurações compartilhadas do TypeScript
   ui/           componentes compartilhados de interface
 tests/
   e2e/          testes de ponta a ponta do monorepo
 ```
 
 A documentação de produto e arquitetura está em `docs/product`.
+
+## Qualidade e aliases
+
+- `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
+- `packages/typescript-config` centraliza as configurações TypeScript base, NestJS, Next.js e bibliotecas.
+- A API usa o alias `@api/*` para arquivos de `apps/api/src`.
+- O frontend usa o alias `@web/*` para arquivos de `apps/web/src`.
+- Uma aplicação não pode importar arquivos internos da outra; código compartilhado deve ficar em `packages`.
+- As recomendações de ESLint e Prettier para o VS Code estão versionadas em `.vscode`.

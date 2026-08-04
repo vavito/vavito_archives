@@ -1,9 +1,0 @@
-{
-  "name": "@vavito/config",
-  "version": "0.0.0",
-  "private": true,
-  "files": ["typescript"],
-  "exports": {
-    "./typescript/base.json": "./typescript/base.json"
-  }
-}

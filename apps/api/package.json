@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && tsc-alias -p tsconfig.build.json",
+    "lint": "eslint . --max-warnings=0",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
@@ -17,8 +18,12 @@
     "rxjs": "7.8.2"
   },
   "devDependencies": {
+    "@vavito/eslint-config": "workspace:*",
+    "@vavito/typescript-config": "workspace:*",
     "@nestjs/cli": "11.0.24",
     "@types/node": "24.13.3",
+    "eslint": "9.39.5",
+    "tsc-alias": "1.9.1",
     "typescript": "5.9.3"
   }
 }
