@@ -1,0 +1,24 @@
+{
+  "name": "vavito-archives",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "pnpm": ">=11.0.0 <12"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "dev": "turbo run dev",
+    "dev:api": "pnpm --filter @vavito/api start:dev",
+    "dev:web": "pnpm --filter @vavito/web dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "2.10.8",
+    "typescript": "5.9.3"
+  }
+}
