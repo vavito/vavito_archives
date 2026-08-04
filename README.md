@@ -17,6 +17,14 @@ pnpm install
 
 O projeto usa um único `pnpm-lock.yaml`, mantido na raiz.
 
+Crie o arquivo local de ambiente antes de iniciar a API:
+
+```bash
+cp .env.example .env
+```
+
+No PowerShell, use `Copy-Item .env.example .env`. O arquivo `.env` não deve ser versionado e os placeholders devem ser substituídos por credenciais reais apenas no ambiente apropriado.
+
 ## Comandos principais
 
 ```bash
