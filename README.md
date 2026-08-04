@@ -49,6 +49,16 @@ pnpm dev:web
 - Web: `http://localhost:3000`
 - API: `http://localhost:3001`
 
+## API e OpenAPI
+
+As rotas da API usam o prefixo global `/api/v1`. Em desenvolvimento, os principais endereços são:
+
+- Health: `http://localhost:3001/api/v1/health`
+- Swagger UI: `http://localhost:3001/docs`
+- Contrato OpenAPI JSON: `http://localhost:3001/openapi.json`
+
+O Swagger é habilitado por padrão em desenvolvimento e teste. Em produção, permanece desabilitado por padrão e só é publicado quando `SWAGGER_ENABLED=true` for definido explicitamente no ambiente.
+
 ## Estrutura
 
 ```text

@@ -24,6 +24,11 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   SUPABASE_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .required(),
+  SWAGGER_ENABLED: Joi.boolean().when('NODE_ENV', {
+    is: 'production',
+    otherwise: Joi.boolean().default(true),
+    then: Joi.boolean().default(false),
+  }),
 });
 
 const secretVariableNames = [

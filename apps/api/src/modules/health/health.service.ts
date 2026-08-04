@@ -2,23 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { ApplicationConfig } from '@api/core/config/app.config';
-
-export interface HealthResponse {
-  checks: {
-    api: {
-      status: 'up';
-    };
-  };
-  status: 'ok';
-  timestamp: string;
-  version: string;
-}
+import type { HealthResponseDto } from '@api/modules/health/dto/health-response.dto';
 
 @Injectable()
 export class HealthService {
   constructor(private readonly configService: ConfigService<ApplicationConfig, true>) {}
 
-  check(): HealthResponse {
+  check(): HealthResponseDto {
     return {
       checks: {
         api: {

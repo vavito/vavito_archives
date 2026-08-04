@@ -1,5 +1,6 @@
 process.env.NODE_ENV = 'test';
 process.env.APP_VERSION = '1.2.3-test';
+process.env.SWAGGER_ENABLED = 'true';
 process.env.FRONTEND_URL = 'http://localhost:3000';
 process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/vavito_test';
 process.env.SUPABASE_URL = 'http://127.0.0.1:54321';

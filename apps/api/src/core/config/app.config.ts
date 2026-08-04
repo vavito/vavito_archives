@@ -7,6 +7,7 @@ export interface ApplicationConfig {
     environment: AppEnvironment;
     frontendUrl: string;
     port: number;
+    swaggerEnabled: boolean;
     version: string;
   };
   database: {
@@ -34,4 +35,5 @@ export interface EnvironmentVariables {
   REVALIDATION_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   SUPABASE_URL: string;
+  SWAGGER_ENABLED: boolean;
 }

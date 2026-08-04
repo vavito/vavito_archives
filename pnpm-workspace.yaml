@@ -3,6 +3,9 @@ packages:
   - packages/*
   - tests/*
 allowBuilds:
+  # Telemetria opcional de dependência transitiva do Swagger UI; não é
+  # necessária para instalar, gerar ou servir o contrato OpenAPI.
+  '@scarf/scarf': false
   # Dependência transitiva do resolver de imports do Next.js; o postinstall
   # apenas seleciona o binding N-API correspondente à plataforma.
   unrs-resolver: true
