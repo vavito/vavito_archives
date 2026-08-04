@@ -36,6 +36,7 @@ export default function configuration(): ApplicationConfig {
       environment: requiredEnvironmentValue('NODE_ENV') as AppEnvironment,
       frontendUrl: requiredEnvironmentValue('FRONTEND_URL'),
       port: Number(requiredEnvironmentValue('PORT')),
+      version: requiredEnvironmentValue('APP_VERSION'),
     },
     database: {
       url: requiredEnvironmentValue('DATABASE_URL'),

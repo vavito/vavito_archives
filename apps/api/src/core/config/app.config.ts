@@ -7,6 +7,7 @@ export interface ApplicationConfig {
     environment: AppEnvironment;
     frontendUrl: string;
     port: number;
+    version: string;
   };
   database: {
     url: string;
@@ -24,6 +25,7 @@ export interface ApplicationConfig {
 }
 
 export interface EnvironmentVariables {
+  APP_VERSION: string;
   DATABASE_URL: string;
   FRONTEND_URL: string;
   NODE_ENV: AppEnvironment;

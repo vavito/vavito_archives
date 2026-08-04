@@ -1,0 +1,8 @@
+process.env.NODE_ENV = 'test';
+process.env.APP_VERSION = '1.2.3-test';
+process.env.FRONTEND_URL = 'http://localhost:3000';
+process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/vavito_test';
+process.env.SUPABASE_URL = 'http://127.0.0.1:54321';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test_service_role_key_value';
+process.env.RESEND_API_KEY = 're_test_api_key';
+process.env.REVALIDATION_SECRET = 'test_revalidation_secret_at_least_32_characters';
