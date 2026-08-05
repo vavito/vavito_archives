@@ -6,7 +6,11 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   APP_VERSION: Joi.string()
     .pattern(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
     .default('0.0.0'),
+  DATABASE_CONNECT_ON_START: Joi.boolean().default(true),
   DATABASE_URL: Joi.string()
+    .uri({ scheme: ['postgres', 'postgresql'] })
+    .required(),
+  DIRECT_URL: Joi.string()
     .uri({ scheme: ['postgres', 'postgresql'] })
     .required(),
   FRONTEND_URL: Joi.string()

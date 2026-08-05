@@ -9,6 +9,6 @@
     },
     "incremental": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["prisma.config.ts", "src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
