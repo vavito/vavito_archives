@@ -1,0 +1,24 @@
+packages:
+  - apps/*
+  - packages/*
+  - tests/*
+allowBuilds:
+  # Telemetria opcional de dependência transitiva do Swagger UI; não é
+  # necessária para instalar, gerar ou servir o contrato OpenAPI.
+  '@scarf/scarf': false
+  # Dependência transitiva do resolver de imports do Next.js; o postinstall
+  # apenas seleciona o binding N-API correspondente à plataforma.
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@next/env@16.3.0'
+  - '@next/swc-darwin-arm64@16.3.0'
+  - '@next/swc-darwin-x64@16.3.0'
+  - '@next/swc-linux-arm64-gnu@16.3.0'
+  - '@next/swc-linux-arm64-musl@16.3.0'
+  - '@next/swc-linux-x64-gnu@16.3.0'
+  - '@next/swc-linux-x64-musl@16.3.0'
+  - '@next/swc-win32-arm64-msvc@16.3.0'
+  - '@next/swc-win32-x64-msvc@16.3.0'
+  - next@16.3.0
+  - '@next/eslint-plugin-next@16.3.0'
+  - eslint-config-next@16.3.0

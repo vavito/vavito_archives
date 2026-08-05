@@ -1,0 +1,11 @@
+.git/
+.next/
+.turbo/
+coverage/
+dist/
+node_modules/
+docs/
+docs_personal/
+pnpm-lock.yaml
+next-env.d.ts
+*.svg

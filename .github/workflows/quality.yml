@@ -1,0 +1,90 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  cancel-in-progress: true
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+  NEXT_TELEMETRY_DISABLED: 1
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  api:
+    name: Quality / API
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js e pnpm
+        uses: pnpm/setup@v1
+        with:
+          cache: true
+          install: false
+          runtime: node@24.18.0
+
+      - name: Restaurar cache do Turborepo
+        uses: actions/cache@v4
+        with:
+          key: turbo-${{ runner.os }}-api-${{ github.sha }}
+          path: .turbo
+          restore-keys: |
+            turbo-${{ runner.os }}-api-
+            turbo-${{ runner.os }}-
+
+      - name: Instalar dependências do monorepo
+        run: pnpm install --frozen-lockfile
+
+      - name: Validar formatação
+        run: pnpm format:check
+
+      # Os testes atuais da API não acessam o banco. O serviço PostgreSQL deve
+      # ser adicionado somente ao job que receber testes de integração reais.
+      - name: Validar API e dependências internas
+        run: pnpm turbo run lint typecheck test build --filter=@vavito/api...
+
+  web:
+    name: Quality / Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js e pnpm
+        uses: pnpm/setup@v1
+        with:
+          cache: true
+          install: false
+          runtime: node@24.18.0
+
+      - name: Restaurar cache do Turborepo
+        uses: actions/cache@v4
+        with:
+          key: turbo-${{ runner.os }}-web-${{ github.sha }}
+          path: .turbo
+          restore-keys: |
+            turbo-${{ runner.os }}-web-
+            turbo-${{ runner.os }}-
+
+      - name: Instalar dependências do monorepo
+        run: pnpm install --frozen-lockfile
+
+      - name: Validar formatação
+        run: pnpm format:check
+
+      - name: Validar Web e dependências internas
+        run: pnpm turbo run lint typecheck test build --filter=@vavito/web...
