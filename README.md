@@ -76,6 +76,8 @@ tests/
 
 A documentação de produto e arquitetura está em `docs/product`.
 
+A configuração e as instruções da CI estão em `docs/development/continuous-integration.md`.
+
 ## Qualidade e aliases
 
 - `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
