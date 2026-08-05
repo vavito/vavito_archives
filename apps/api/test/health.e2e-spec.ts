@@ -1,25 +1,17 @@
 import type { Server } from 'node:http';
 
 import type { INestApplication } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Test } from '@nestjs/testing';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import request from 'supertest';
 
-import { AppModule } from '@api/app.module';
-import type { ApplicationConfig } from '@api/core/config/app.config';
-import { setupOpenApi } from '@api/core/openapi/setup-openapi';
+import { createApplication } from '@api/bootstrap';
 import type { HealthResponseDto } from '@api/modules/health/dto/health-response.dto';
 
-describe('HealthModule (e2e)', () => {
+describe('Bootstrap e health (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api/v1');
-    setupOpenApi(app, app.get(ConfigService<ApplicationConfig, true>));
+    app = await createApplication();
     await app.init();
   });
 

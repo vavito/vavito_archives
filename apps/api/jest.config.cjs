@@ -7,7 +7,7 @@ module.exports = {
   rootDir: '.',
   setupFiles: ['<rootDir>/test/setup-env.ts'],
   testEnvironment: 'node',
-  testRegex: '.*\\.e2e-spec\\.ts$',
+  testRegex: '.*\\.(e2e-)?spec\\.ts$',
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
   },
