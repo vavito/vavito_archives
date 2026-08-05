@@ -52,6 +52,8 @@ describe('Bootstrap e health (e2e)', () => {
     expect(document.info.title).toBe('Vavito Archives API');
     expect(document.info.version).toBe('1.2.3-test');
     expect(document.paths['/api/v1/health']?.get?.responses?.['200']).toBeDefined();
+    expect(document.paths['/api/v1/health/ready']?.get?.responses?.['200']).toBeDefined();
+    expect(document.paths['/api/v1/health/ready']?.get?.responses?.['503']).toBeDefined();
     expect(document.components?.securitySchemes?.['supabase-jwt']).toBeDefined();
   });
 });
