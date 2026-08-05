@@ -5,6 +5,7 @@ import { AppController } from '@api/app.controller';
 import { AppModule } from '@api/app.module';
 import { AppService } from '@api/app.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
+import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/health.controller';
 import { HealthService } from '@api/modules/health/health.service';
 
@@ -24,9 +25,11 @@ describe('AppModule', () => {
 
     expect(moduleRef.get(AppController)).toBeInstanceOf(AppController);
     expect(moduleRef.get(AppService)).toBeInstanceOf(AppService);
+    expect(moduleRef.get(PrismaService)).toBeDefined();
     expect(moduleRef.get(HealthController)).toBeInstanceOf(HealthController);
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
     expect(configService.get('app.environment', { infer: true })).toBe('test');
     expect(configService.get('app.version', { infer: true })).toBe('1.2.3-test');
+    expect(configService.get('database.connectOnStart', { infer: true })).toBe(false);
   });
 });

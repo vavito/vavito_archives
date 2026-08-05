@@ -12,6 +12,7 @@ export function configureApplication(
   app: INestApplication,
   configService: ConfigService<ApplicationConfig, true>,
 ): INestApplication {
+  app.enableShutdownHooks();
   app.setGlobalPrefix(globalApiPrefix);
   setupOpenApi(app, configService);
 
