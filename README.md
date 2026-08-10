@@ -59,6 +59,10 @@ As rotas da API usam o prefixo global `/api/v1`. Em desenvolvimento, os principa
 
 O Swagger é habilitado por padrão em desenvolvimento e teste. Em produção, permanece desabilitado por padrão e só é publicado quando `SWAGGER_ENABLED=true` for definido explicitamente no ambiente.
 
+## Banco de dados
+
+As migrations e o seed administrativo ficam em `apps/api/prisma`. Os comandos seguros para consultar, aplicar e popular o banco estão documentados em `docs/development/database.md`.
+
 ## Estrutura
 
 ```text
@@ -77,6 +81,8 @@ tests/
 A documentação de produto e arquitetura está em `docs/product`.
 
 A configuração e as instruções da CI estão em `docs/development/continuous-integration.md`.
+
+As instruções de migrations e do seed administrativo estão em `docs/development/database.md`.
 
 ## Qualidade e aliases
 
