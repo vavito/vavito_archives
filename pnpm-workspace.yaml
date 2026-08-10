@@ -8,6 +8,8 @@ allowBuilds:
   # Binários oficiais usados pelo CLI para gerar o Prisma Client.
   '@prisma/engines': true
   '@scarf/scarf': false
+  # Binário usado pelo tsx para executar o seed TypeScript.
+  esbuild: true
   prisma: true
   # Dependência transitiva do resolver de imports do Next.js; o postinstall
   # apenas seleciona o binding N-API correspondente à plataforma.

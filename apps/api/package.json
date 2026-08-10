@@ -7,6 +7,9 @@
     "lint": "eslint . --max-warnings=0",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:status": "prisma migrate status",
+    "prisma:seed": "prisma db seed",
     "prisma:validate": "prisma validate",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -43,6 +46,7 @@
     "supertest": "7.2.2",
     "ts-jest": "29.4.12",
     "tsc-alias": "1.9.1",
+    "tsx": "4.21.0",
     "typescript": "5.9.3"
   }
 }
