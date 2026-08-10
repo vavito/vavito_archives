@@ -7,3 +7,363 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+  SPAM
+  DELETED
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+enum MediaAssetStatus {
+  UPLOADING
+  READY
+  FAILED
+  ORPHANED
+}
+
+enum MediaUsageType {
+  COVER
+  CONTENT
+}
+
+enum SubscriberStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+enum EmailDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  DELIVERY_DELAYED
+  BOUNCED
+  COMPLAINED
+  FAILED
+  SUPPRESSED
+}
+
+enum ContactMessageStatus {
+  RECEIVED
+  READ
+  ARCHIVED
+}
+
+model Profile {
+  id          String    @id @db.Uuid
+  displayName String    @db.VarChar(120)
+  avatarPath  String?   @db.VarChar(1024)
+  role        UserRole  @default(USER)
+  deletedAt   DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+  posts          Post[]          @relation("PostAuthor")
+  postRevisions  PostRevision[]  @relation("PostRevisionEditor")
+  comments       Comment[]       @relation("CommentAuthor")
+  reactions      Reaction[]
+  bookmarks      Bookmark[]
+  mediaAssets    MediaAsset[]    @relation("MediaAssetCreator")
+  emailCampaigns EmailCampaign[] @relation("EmailCampaignCreator")
+}
+
+model Post {
+  id                   String     @id @default(uuid()) @db.Uuid
+  authorId             String     @db.Uuid
+  title                String     @db.VarChar(200)
+  excerpt              String?    @db.Text
+  content              Json       @db.JsonB
+  contentSchemaVersion Int        @default(1)
+  status               PostStatus @default(DRAFT)
+  seoTitle             String?    @db.VarChar(70)
+  seoDescription       String?    @db.VarChar(160)
+  readingTimeMinutes   Int        @default(0)
+  viewsCount           Int        @default(0)
+  publishedAt          DateTime?  @db.Timestamptz(3)
+  archivedAt           DateTime?  @db.Timestamptz(3)
+  editedAt             DateTime?  @db.Timestamptz(3)
+  createdAt            DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime   @updatedAt @db.Timestamptz(3)
+
+  author         Profile          @relation("PostAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  slugs          PostSlug[]
+  revisions      PostRevision[]
+  tags           PostTag[]
+  mediaAssets    PostMediaAsset[]
+  comments       Comment[]
+  reactions      Reaction[]
+  bookmarks      Bookmark[]
+  views          PostView[]
+  emailCampaigns EmailCampaign[]
+
+  @@index([status, publishedAt(sort: Desc), id])
+  @@index([status, viewsCount(sort: Desc), id])
+}
+
+model PostSlug {
+  id        String    @id @default(uuid()) @db.Uuid
+  postId    String    @db.Uuid
+  slug      String    @unique @db.VarChar(255)
+  isCurrent Boolean   @default(true)
+  retiredAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, isCurrent])
+}
+
+model PostRevision {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  editorId  String   @db.Uuid
+  version   Int
+  snapshot  Json     @db.JsonB
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  post   Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor Profile @relation("PostRevisionEditor", fields: [editorId], references: [id], onDelete: Restrict)
+
+  @@unique([postId, version])
+  @@index([postId, createdAt])
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  posts PostTag[]
+}
+
+model PostTag {
+  postId String @db.Uuid
+  tagId  String @db.Uuid
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model MediaAsset {
+  id            String           @id @default(uuid()) @db.Uuid
+  createdById   String           @db.Uuid
+  storagePath   String           @unique @db.VarChar(1024)
+  mimeType      String           @db.VarChar(127)
+  sizeBytes     BigInt
+  width         Int?
+  height        Int?
+  altText       String           @db.Text
+  status        MediaAssetStatus @default(UPLOADING)
+  failureReason String?          @db.Text
+  orphanedAt    DateTime?        @db.Timestamptz(3)
+  createdAt     DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime         @updatedAt @db.Timestamptz(3)
+
+  createdBy Profile          @relation("MediaAssetCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  posts     PostMediaAsset[]
+
+  @@index([status, orphanedAt])
+}
+
+model PostMediaAsset {
+  postId       String         @db.Uuid
+  mediaAssetId String         @db.Uuid
+  usage        MediaUsageType
+  createdAt    DateTime       @default(now()) @db.Timestamptz(3)
+
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)
+
+  @@id([postId, mediaAssetId, usage])
+  @@index([mediaAssetId])
+}
+
+model Comment {
+  id               String        @id @default(uuid()) @db.Uuid
+  postId           String        @db.Uuid
+  authorId         String?       @db.Uuid
+  parentId         String?       @db.Uuid
+  content          String?       @db.Text
+  status           CommentStatus @default(VISIBLE)
+  moderationReason String?       @db.Text
+  editedAt         DateTime?     @db.Timestamptz(3)
+  deletedAt        DateTime?     @db.Timestamptz(3)
+  createdAt        DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime      @updatedAt @db.Timestamptz(3)
+
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Restrict)
+  author  Profile?  @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId, postId], references: [id, postId], onDelete: Restrict)
+  replies Comment[] @relation("CommentReplies")
+
+  @@unique([id, postId])
+  @@index([postId, parentId, createdAt, id])
+  @@index([status, createdAt])
+}
+
+model Reaction {
+  id        String       @id @default(uuid()) @db.Uuid
+  profileId String       @db.Uuid
+  postId    String       @db.Uuid
+  type      ReactionType
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, postId])
+  @@index([postId, type])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid()) @db.Uuid
+  profileId String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, postId])
+  @@index([profileId, createdAt(sort: Desc), id])
+}
+
+model PostView {
+  id              String   @id @default(uuid()) @db.Uuid
+  postId          String   @db.Uuid
+  fingerprintHash String   @db.VarChar(128)
+  bucketDate      DateTime @db.Date
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, fingerprintHash, bucketDate])
+  @@index([createdAt])
+}
+
+model NewsletterSubscriber {
+  id                    String           @id @default(uuid()) @db.Uuid
+  email                 String           @unique @db.VarChar(320)
+  status                SubscriberStatus @default(PENDING)
+  consentSource         String           @db.VarChar(32)
+  consentedAt           DateTime         @db.Timestamptz(3)
+  confirmationTokenHash String?          @unique @db.VarChar(128)
+  confirmationExpiresAt DateTime?        @db.Timestamptz(3)
+  unsubscribeTokenHash  String           @unique @db.VarChar(128)
+  confirmedAt           DateTime?        @db.Timestamptz(3)
+  unsubscribedAt        DateTime?        @db.Timestamptz(3)
+  bouncedAt             DateTime?        @db.Timestamptz(3)
+  complainedAt          DateTime?        @db.Timestamptz(3)
+  createdAt             DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @db.Timestamptz(3)
+
+  deliveries EmailDelivery[]
+
+  @@index([status, createdAt, id])
+}
+
+model EmailCampaign {
+  id             String         @id @default(uuid()) @db.Uuid
+  postId         String         @db.Uuid
+  createdById    String         @db.Uuid
+  subject        String         @db.VarChar(255)
+  previewText    String         @db.VarChar(255)
+  htmlSnapshot   String         @db.Text
+  postSnapshot   Json           @db.JsonB
+  status         CampaignStatus @default(DRAFT)
+  audienceCount  Int            @default(0)
+  idempotencyKey String?        @unique @db.Uuid
+  resendId       String?        @unique @db.VarChar(255)
+  failureReason  String?        @db.Text
+  sendStartedAt  DateTime?      @db.Timestamptz(3)
+  sentAt         DateTime?      @db.Timestamptz(3)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @db.Timestamptz(3)
+
+  post       Post            @relation(fields: [postId], references: [id], onDelete: Restrict)
+  createdBy  Profile         @relation("EmailCampaignCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  deliveries EmailDelivery[]
+
+  @@index([status, createdAt, id])
+}
+
+model EmailDelivery {
+  id              String              @id @default(uuid()) @db.Uuid
+  campaignId      String              @db.Uuid
+  subscriberId    String              @db.Uuid
+  providerEmailId String?             @unique @db.VarChar(255)
+  status          EmailDeliveryStatus @default(QUEUED)
+  lastEventAt     DateTime?           @db.Timestamptz(3)
+  failureCode     String?             @db.VarChar(100)
+  failureReason   String?             @db.Text
+  createdAt       DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime            @updatedAt @db.Timestamptz(3)
+
+  campaign   EmailCampaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriber NewsletterSubscriber @relation(fields: [subscriberId], references: [id], onDelete: Restrict)
+  events     WebhookEvent[]
+
+  @@unique([campaignId, subscriberId])
+  @@index([campaignId, status])
+  @@index([subscriberId, createdAt])
+}
+
+model WebhookEvent {
+  id              String    @id @default(uuid()) @db.Uuid
+  providerEventId String    @unique @db.VarChar(255)
+  deliveryId      String?   @db.Uuid
+  type            String    @db.VarChar(100)
+  occurredAt      DateTime  @db.Timestamptz(3)
+  payloadHash     String    @db.VarChar(128)
+  processedAt     DateTime? @db.Timestamptz(3)
+  processingError String?   @db.Text
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
+
+  delivery EmailDelivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+}
+
+model ContactMessage {
+  id         String               @id @default(uuid()) @db.Uuid
+  name       String               @db.VarChar(120)
+  email      String               @db.VarChar(320)
+  subject    String               @db.VarChar(255)
+  message    String               @db.Text
+  status     ContactMessageStatus @default(RECEIVED)
+  readAt     DateTime?            @db.Timestamptz(3)
+  archivedAt DateTime?            @db.Timestamptz(3)
+  createdAt  DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime             @updatedAt @db.Timestamptz(3)
+
+  @@index([status, createdAt, id])
+}
