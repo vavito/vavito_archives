@@ -19,8 +19,8 @@ loadEnvironment({
 
 export default defineConfig({
   datasource: {
-    // `generate` não acessa o banco; o fallback permite gerar o client no CI
-    // antes de a Task 2.6 disponibilizar o PostgreSQL de integração.
+    // `generate` não acessa o banco; o fallback permite gerar o client em
+    // checks estáticos que não precisam de uma conexão ativa.
     url: process.env.DIRECT_URL ?? 'postgresql://postgres:postgres@localhost:5432/vavito_archives',
   },
   migrations: {
