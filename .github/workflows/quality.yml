@@ -23,6 +23,24 @@ jobs:
     name: Quality / API
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vavito_integration
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/vavito_integration
+      INTEGRATION_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vavito_integration
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_DB: vavito_integration
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres -d vavito_integration"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout
@@ -50,8 +68,12 @@ jobs:
       - name: Validar formatação
         run: pnpm format:check
 
-      # Os testes atuais da API não acessam o banco. O serviço PostgreSQL deve
-      # ser adicionado somente ao job que receber testes de integração reais.
+      - name: Aplicar migrations no PostgreSQL de integração
+        run: pnpm --filter @vavito/api prisma:migrate:deploy
+
+      - name: Testar persistência no PostgreSQL de integração
+        run: pnpm --filter @vavito/api test:integration
+
       - name: Validar API e dependências internas
         run: pnpm turbo run lint typecheck test build --filter=@vavito/api...
 

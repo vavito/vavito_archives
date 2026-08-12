@@ -11,6 +11,8 @@ export interface ApplicationConfig {
     version: string;
   };
   database: {
+    connectOnStart: boolean;
+    directUrl: string;
     url: string;
   };
   resend: {
@@ -27,7 +29,9 @@ export interface ApplicationConfig {
 
 export interface EnvironmentVariables {
   APP_VERSION: string;
+  DATABASE_CONNECT_ON_START: boolean;
   DATABASE_URL: string;
+  DIRECT_URL: string;
   FRONTEND_URL: string;
   NODE_ENV: AppEnvironment;
   PORT: number;

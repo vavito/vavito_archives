@@ -2,6 +2,7 @@ import { validateEnvironment } from '@api/core/config/env.validation';
 
 function validEnvironment(): Record<string, unknown> {
   return {
+    DIRECT_URL: 'postgresql://postgres:postgres@localhost:5432/vavito_test',
     DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/vavito_test',
     FRONTEND_URL: 'http://localhost:3000',
     RESEND_API_KEY: 're_valid_test_key',
@@ -17,6 +18,7 @@ describe('validateEnvironment', () => {
 
     expect(environment).toMatchObject({
       APP_VERSION: '0.0.0',
+      DATABASE_CONNECT_ON_START: true,
       NODE_ENV: 'development',
       PORT: 3001,
       SWAGGER_ENABLED: true,
@@ -26,6 +28,7 @@ describe('validateEnvironment', () => {
   it('rejeita configuração obrigatória ausente ou inválida', () => {
     const environment = validEnvironment();
     delete environment.DATABASE_URL;
+    delete environment.DIRECT_URL;
     environment.FRONTEND_URL = 'endereco-invalido';
     environment.PORT = 70_000;
 
@@ -36,6 +39,7 @@ describe('validateEnvironment', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
       expect((error as Error).message).toContain('DATABASE_URL');
+      expect((error as Error).message).toContain('DIRECT_URL');
       expect((error as Error).message).toContain('FRONTEND_URL');
       expect((error as Error).message).toContain('PORT');
     }

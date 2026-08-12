@@ -40,6 +40,8 @@ export default function configuration(): ApplicationConfig {
       version: requiredEnvironmentValue('APP_VERSION'),
     },
     database: {
+      connectOnStart: requiredEnvironmentValue('DATABASE_CONNECT_ON_START') === 'true',
+      directUrl: requiredEnvironmentValue('DIRECT_URL'),
       url: requiredEnvironmentValue('DATABASE_URL'),
     },
     resend: {

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from '@api/app.module';
+import { setupErrorHandling } from '@api/common/errors/setup-error-handling';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { setupOpenApi } from '@api/core/openapi/setup-openapi';
 
@@ -12,7 +13,9 @@ export function configureApplication(
   app: INestApplication,
   configService: ConfigService<ApplicationConfig, true>,
 ): INestApplication {
+  app.enableShutdownHooks();
   app.setGlobalPrefix(globalApiPrefix);
+  setupErrorHandling(app);
   setupOpenApi(app, configService);
 
   return app;

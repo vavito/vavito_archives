@@ -5,7 +5,12 @@ packages:
 allowBuilds:
   # Telemetria opcional de dependência transitiva do Swagger UI; não é
   # necessária para instalar, gerar ou servir o contrato OpenAPI.
+  # Binários oficiais usados pelo CLI para gerar o Prisma Client.
+  '@prisma/engines': true
   '@scarf/scarf': false
+  # Binário usado pelo tsx para executar o seed TypeScript.
+  esbuild: true
+  prisma: true
   # Dependência transitiva do resolver de imports do Next.js; o postinstall
   # apenas seleciona o binding N-API correspondente à plataforma.
   unrs-resolver: true
