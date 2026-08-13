@@ -42,7 +42,9 @@ O `SupabaseAuthGuard` é registrado globalmente, portanto uma rota nova exige JW
 - `@Roles(...roles)` registra as roles de `Profile` aceitas para leitura posterior pelo `RolesGuard`;
 - `@CurrentUser()` extrai de `request.user` o `AuthenticatedUser` produzido pela validação do JWT.
 
-`@Roles()` apenas declara metadados nesta etapa. A consulta da role confiável no `Profile` e a resposta `403 FORBIDDEN` pertencem ao `RolesGuard`; nunca se usa `user_metadata` para essa decisão.
+`@Roles()` declara os metadados interpretados pelo `RolesGuard`. O guard consulta a role persistida de um `Profile` ativo e responde `403 FORBIDDEN` quando o perfil não existe, está excluído ou não possui uma das roles aceitas. A decisão nunca usa `user_metadata` nem outras claims controláveis pelo cliente.
+
+O `RolesGuard` é executado globalmente depois do `SupabaseAuthGuard`. Rotas sem `@Roles()` exigem apenas autenticação; rotas públicas ignoram ambos os controles. A consulta de role não usa cache nesta etapa, evitando manter permissões desatualizadas após uma alteração administrativa. Um cache curto e com invalidação explícita poderá ser avaliado posteriormente se houver necessidade comprovada.
 
 Endpoints protegidos também usam `@ApiBearerAuth('supabase-jwt')` para que o Swagger mostre o esquema de autenticação. Exemplo:
 
