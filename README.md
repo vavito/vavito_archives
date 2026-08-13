@@ -68,6 +68,15 @@ As migrations e o seed administrativo ficam em `apps/api/prisma`. Os comandos se
 ```text
 apps/
   api/          API NestJS
+    src/
+      core/     infraestrutura transversal: auth, config, database, HTTP e OpenAPI
+      modules/  capacidades de negócio organizadas por domínio
+    test/
+      unit/     testes unitários organizados por módulo
+      integration/ testes com PostgreSQL organizados por módulo
+      e2e/      testes HTTP organizados por módulo
+      helpers/  utilitários compartilhados das suítes
+      setup/    preparação global do ambiente de testes
   web/          aplicação Next.js com App Router
 packages/
   api-client/   cliente tipado da API (gerado em task futura)
