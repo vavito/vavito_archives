@@ -4,6 +4,9 @@ import { APP_GUARD } from '@nestjs/core';
 
 import { SUPABASE_JWKS } from '@api/core/auth/auth.constants';
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
+import { RolesGuard } from '@api/core/auth/guards/roles.guard';
+import { PrismaProfileAuthorizationRepository } from '@api/core/auth/repositories/prisma-profile-authorization.repository';
+import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { createSupabaseJwks } from '@api/core/auth/supabase-jwks';
 import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
@@ -18,11 +21,20 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
     },
     SupabaseJwtService,
     SupabaseAuthGuard,
+    RolesGuard,
+    {
+      provide: ProfileAuthorizationRepository,
+      useClass: PrismaProfileAuthorizationRepository,
+    },
     {
       provide: APP_GUARD,
       useExisting: SupabaseAuthGuard,
     },
+    {
+      provide: APP_GUARD,
+      useExisting: RolesGuard,
+    },
   ],
-  exports: [SupabaseJwtService, SupabaseAuthGuard],
+  exports: [SupabaseJwtService, SupabaseAuthGuard, RolesGuard],
 })
 export class AuthModule {}
