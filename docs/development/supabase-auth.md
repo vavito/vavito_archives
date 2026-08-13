@@ -34,6 +34,32 @@ As chaves JWKS ficam em cache na instância da API por até 10 minutos, com time
 
 Após a validação, a API disponibiliza apenas `sub` como `AuthenticatedUser.id` e a claim `email` como `AuthenticatedUser.email`. Claims de metadata não concedem autorização; a role de negócio continua sendo lida do `Profile`.
 
+## Proteção de rotas e decorators
+
+O `SupabaseAuthGuard` é registrado globalmente, portanto uma rota nova exige JWT válido por padrão. Os decorators de autenticação deixam as exceções e necessidades de autorização explícitas no controller:
+
+- `@Public()` dispensa a autenticação da rota ou de todo o controller;
+- `@Roles(...roles)` registra as roles de `Profile` aceitas para leitura posterior pelo `RolesGuard`;
+- `@CurrentUser()` extrai de `request.user` o `AuthenticatedUser` produzido pela validação do JWT.
+
+`@Roles()` apenas declara metadados nesta etapa. A consulta da role confiável no `Profile` e a resposta `403 FORBIDDEN` pertencem ao `RolesGuard`; nunca se usa `user_metadata` para essa decisão.
+
+Endpoints protegidos também usam `@ApiBearerAuth('supabase-jwt')` para que o Swagger mostre o esquema de autenticação. Exemplo:
+
+```ts
+@ApiBearerAuth('supabase-jwt')
+@Roles(UserRole.ADMIN)
+@Post(':id/publish')
+publish(
+  @Param('id', ParseUUIDPipe) id: string,
+  @CurrentUser() user: AuthenticatedUser,
+) {
+  return this.postsService.publish(id, user.id);
+}
+```
+
+Rotas públicas usam `@Public()` e não declaram `@ApiBearerAuth`, mantendo o contrato OpenAPI sem requisito de Bearer token para aquela operação.
+
 ## Profile criado no cadastro
 
 O cadastro pode enviar o nome público no metadata `display_name`. Após a criação de uma identidade em `auth.users`, um trigger versionado cria o `Profile` correspondente com o mesmo UUID.
