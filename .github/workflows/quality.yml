@@ -68,6 +68,9 @@ jobs:
       - name: Validar formatação
         run: pnpm format:check
 
+      - name: Preparar schema do Supabase Auth para integração
+        run: pnpm --filter @vavito/api test:integration:prepare
+
       - name: Aplicar migrations no PostgreSQL de integração
         run: pnpm --filter @vavito/api prisma:migrate:deploy
 
