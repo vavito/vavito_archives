@@ -6,6 +6,7 @@ import { AppService } from '@api/app.service';
 import configuration, { environmentFilePaths } from '@api/core/config/configuration';
 import { validateEnvironment } from '@api/core/config/env.validation';
 import { PrismaModule } from '@api/core/database/prisma.module';
+import { AuthModule } from '@api/modules/auth/auth.module';
 import { HealthModule } from '@api/modules/health/health.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { HealthModule } from '@api/modules/health/health.module';
       validate: validateEnvironment,
     }),
     PrismaModule,
+    AuthModule,
     HealthModule,
   ],
   controllers: [AppController],
