@@ -1,4 +1,4 @@
-import { requireIntegrationDatabaseUrl } from './integration/database-url';
+import { requireIntegrationDatabaseUrl } from '../../helpers/database-url';
 
 describe('URL do PostgreSQL de integração', () => {
   it('aceita somente o banco local reservado para integração', () => {

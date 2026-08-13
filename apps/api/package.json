@@ -16,7 +16,7 @@
     "start:prod": "node dist/main.js",
     "test": "jest --runInBand",
     "test:integration": "jest --config jest.integration.config.cjs --runInBand",
-    "test:integration:prepare": "tsx test/integration/prepare-auth-schema.ts",
+    "test:integration:prepare": "tsx test/helpers/prepare-auth-schema.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

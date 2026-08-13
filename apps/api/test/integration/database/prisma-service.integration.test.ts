@@ -3,7 +3,7 @@ import type { ConfigService } from '@nestjs/config';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 
-import { requireIntegrationDatabaseUrl } from './integration/database-url';
+import { requireIntegrationDatabaseUrl } from '../../helpers/database-url';
 
 const connectionString = requireIntegrationDatabaseUrl();
 

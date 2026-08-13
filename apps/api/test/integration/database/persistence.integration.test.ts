@@ -4,7 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient, UserRole } from '@api/generated/prisma/client';
 
-import { requireIntegrationDatabaseUrl } from './integration/database-url';
+import { requireIntegrationDatabaseUrl } from '../../helpers/database-url';
 
 const connectionString = requireIntegrationDatabaseUrl();
 const prisma = new PrismaClient({

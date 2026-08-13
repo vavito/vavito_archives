@@ -5,7 +5,7 @@ module.exports = {
     '^@api/(.*)$': '<rootDir>/src/$1',
   },
   rootDir: '.',
-  setupFiles: ['<rootDir>/test/setup-env.ts'],
+  setupFiles: ['<rootDir>/test/setup/setup-env.ts'],
   testEnvironment: 'node',
   testRegex: '.*\\.(e2e-)?spec\\.ts$',
   transform: {
