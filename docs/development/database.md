@@ -2,6 +2,14 @@
 
 O Prisma administra somente as tabelas da aplicação no schema PostgreSQL `public`. As identidades, emails e senhas continuam sob responsabilidade do Supabase Auth no schema `auth`.
 
+## Criação automática de Profile
+
+A migration `20260813101000_create_auth_user_profile_trigger` instala um trigger em `auth.users`. Cada nova identidade cria, na mesma transação, um `Profile` com o mesmo UUID e a role padrão `USER`.
+
+O trigger aceita somente `raw_user_meta_data.display_name` textual, normaliza espaços e limita o valor a 120 caracteres. Metadata ausente, vazio ou de outro tipo produz o nome seguro `Leitor`. Campos de autorização presentes no metadata, como `role`, são ignorados.
+
+A função usa `SECURITY DEFINER` com `search_path` vazio e referências de schema explícitas. Sua execução direta é revogada de `PUBLIC`; ela é chamada apenas pelo trigger. Se a criação do `Profile` falhar, a inserção em `auth.users` participa do mesmo rollback e o cadastro não fica incompleto.
+
 ## Migrations
 
 Consulte o estado das migrations sem alterar o banco:

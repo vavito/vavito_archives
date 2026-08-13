@@ -20,6 +20,12 @@ Em **Authentication → Sessions**:
 
 O refresh token mantém a sessão e permite renovar o access token. As configurações mais restritivas de sessão podem ser reavaliadas após existir telemetria de uso.
 
+## Profile criado no cadastro
+
+O cadastro pode enviar o nome público no metadata `display_name`. Após a criação de uma identidade em `auth.users`, um trigger versionado cria o `Profile` correspondente com o mesmo UUID.
+
+O metadata é tratado apenas como origem do nome público: não é fonte confiável de autorização. A role do `Profile` sempre nasce do padrão `USER` definido no banco, mesmo que o cliente envie um campo `role` no cadastro. Nomes ausentes ou inválidos recebem o fallback `Leitor` e podem ser alterados posteriormente pelo endpoint de perfil.
+
 ## URLs autorizadas
 
 Durante o desenvolvimento, a **Site URL** é:
