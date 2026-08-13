@@ -2,10 +2,9 @@
   "extends": "@vavito/typescript-config/nestjs.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "baseUrl": ".",
     "esModuleInterop": true,
     "paths": {
-      "@api/*": ["src/*"]
+      "@api/*": ["./src/*"]
     },
     "incremental": true
   },
