@@ -1,5 +1,7 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
+import { PUBLIC_ROUTE_METADATA_KEY } from '@api/core/auth/auth.constants';
 import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
 import type { AuthenticatedRequest } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
@@ -20,9 +22,21 @@ function bearerTokenFrom(authorization: string | string[] | undefined): string {
 
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
-  constructor(private readonly supabaseJwtService: SupabaseJwtService) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly supabaseJwtService: SupabaseJwtService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(PUBLIC_ROUTE_METADATA_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const accessToken = bearerTokenFrom(request.headers.authorization);
 
@@ -31,4 +45,3 @@ export class SupabaseAuthGuard implements CanActivate {
     return true;
   }
 }
-
