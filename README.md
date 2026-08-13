@@ -84,6 +84,8 @@ A configuração e as instruções da CI estão em `docs/development/continuous-
 
 As instruções de migrations e do seed administrativo estão em `docs/development/database.md`.
 
+A configuração de providers, URLs, sessões e política de senha do Supabase Auth está em `docs/development/supabase-auth.md`.
+
 ## Qualidade e aliases
 
 - `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
