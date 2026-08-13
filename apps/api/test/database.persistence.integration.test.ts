@@ -113,6 +113,9 @@ describe('Persistência PostgreSQL', () => {
     expect(migrations.map(({ migration_name: migrationName }) => migrationName)).toContain(
       '20260810190000_initial_schema',
     );
+    expect(migrations.map(({ migration_name: migrationName }) => migrationName)).toContain(
+      '20260813101000_create_auth_user_profile_trigger',
+    );
     expect(tables.map(({ table_name: tableName }) => tableName)).toEqual(expectedApplicationTables);
     expect(checkConstraints).toHaveLength(14);
   });
