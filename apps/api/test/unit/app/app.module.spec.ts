@@ -5,6 +5,7 @@ import { AppController } from '@api/app.controller';
 import { AppModule } from '@api/app.module';
 import { AppService } from '@api/app.service';
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
+import { RolesGuard } from '@api/core/auth/guards/roles.guard';
 import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
@@ -30,6 +31,7 @@ describe('AppModule', () => {
     expect(moduleRef.get(PrismaService)).toBeDefined();
     expect(moduleRef.get(SupabaseJwtService)).toBeInstanceOf(SupabaseJwtService);
     expect(moduleRef.get(SupabaseAuthGuard)).toBeInstanceOf(SupabaseAuthGuard);
+    expect(moduleRef.get(RolesGuard)).toBeInstanceOf(RolesGuard);
     expect(moduleRef.get(HealthController)).toBeInstanceOf(HealthController);
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
     expect(configService.get('app.environment', { infer: true })).toBe('test');

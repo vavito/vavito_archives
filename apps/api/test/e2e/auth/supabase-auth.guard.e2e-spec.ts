@@ -12,7 +12,9 @@ import { Public } from '@api/core/auth/decorators/public.decorator';
 import { Roles } from '@api/core/auth/decorators/roles.decorator';
 import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
+import { RolesGuard } from '@api/core/auth/guards/roles.guard';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
+import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 import { UserRole } from '@api/generated/prisma/client';
@@ -23,6 +25,7 @@ const AUTHENTICATED_USER: AuthenticatedUser = {
 };
 
 let controllerCalls = 0;
+let adminControllerCalls = 0;
 
 @Controller('auth-fixture')
 class AuthFixtureController {
@@ -39,6 +42,7 @@ class AuthFixtureController {
   @ApiOperation({ summary: 'Exemplo de endpoint administrativo' })
   @Roles(UserRole.ADMIN)
   adminRoute(this: void, @CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
+    adminControllerCalls += 1;
     return user;
   }
 
@@ -54,14 +58,21 @@ describe('SupabaseAuthGuard (e2e)', () => {
   let app: INestApplication;
   let moduleRef: TestingModule;
   const verify = jest.fn<Promise<AuthenticatedUser>, [string]>();
+  const findActiveRoleByProfileId = jest.fn<Promise<UserRole | null>, [string]>();
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       controllers: [AuthFixtureController],
       providers: [
         SupabaseAuthGuard,
+        RolesGuard,
         { provide: SupabaseJwtService, useValue: { verify } },
+        {
+          provide: ProfileAuthorizationRepository,
+          useValue: { findActiveRoleByProfileId },
+        },
         { provide: APP_GUARD, useExisting: SupabaseAuthGuard },
+        { provide: APP_GUARD, useExisting: RolesGuard },
       ],
     }).compile();
     app = moduleRef.createNestApplication();
@@ -71,7 +82,9 @@ describe('SupabaseAuthGuard (e2e)', () => {
 
   beforeEach(() => {
     controllerCalls = 0;
+    adminControllerCalls = 0;
     verify.mockReset();
+    findActiveRoleByProfileId.mockReset();
   });
 
   afterAll(async () => {
@@ -117,6 +130,53 @@ describe('SupabaseAuthGuard (e2e)', () => {
 
     expect(response.body).toEqual(AUTHENTICATED_USER);
     expect(controllerCalls).toBe(1);
+    expect(findActiveRoleByProfileId).not.toHaveBeenCalled();
+  });
+
+  it('responde 403 para USER em endpoint administrativo', async () => {
+    verify.mockResolvedValueOnce(AUTHENTICATED_USER);
+    findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.USER);
+
+    const response = await request(app.getHttpServer() as Server)
+      .get('/auth-fixture/admin')
+      .set('authorization', 'Bearer jwt-valido')
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      code: 'FORBIDDEN',
+      details: null,
+      message: 'Acesso não autorizado.',
+      path: '/auth-fixture/admin',
+      statusCode: 403,
+    });
+    expect(findActiveRoleByProfileId).toHaveBeenCalledWith(AUTHENTICATED_USER.id);
+    expect(adminControllerCalls).toBe(0);
+  });
+
+  it('permite ADMIN em endpoint administrativo', async () => {
+    verify.mockResolvedValueOnce(AUTHENTICATED_USER);
+    findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.ADMIN);
+
+    const response = await request(app.getHttpServer() as Server)
+      .get('/auth-fixture/admin')
+      .set('authorization', 'Bearer jwt-valido')
+      .expect(200);
+
+    expect(response.body).toEqual(AUTHENTICATED_USER);
+    expect(findActiveRoleByProfileId).toHaveBeenCalledWith(AUTHENTICATED_USER.id);
+    expect(adminControllerCalls).toBe(1);
+  });
+
+  it('responde 403 quando não existe Profile ativo', async () => {
+    verify.mockResolvedValueOnce(AUTHENTICATED_USER);
+    findActiveRoleByProfileId.mockResolvedValueOnce(null);
+
+    await request(app.getHttpServer() as Server)
+      .get('/auth-fixture/admin')
+      .set('authorization', 'Bearer jwt-valido')
+      .expect(403);
+
+    expect(adminControllerCalls).toBe(0);
   });
 
   it('libera endpoint com @Public sem tentar validar um token', async () => {
@@ -126,6 +186,7 @@ describe('SupabaseAuthGuard (e2e)', () => {
 
     expect(response.body).toEqual({ status: 'public' });
     expect(verify).not.toHaveBeenCalled();
+    expect(findActiveRoleByProfileId).not.toHaveBeenCalled();
   });
 
   it('expõe as roles declaradas para leitura pelo Reflector', () => {
