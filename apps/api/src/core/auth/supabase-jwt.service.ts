@@ -2,11 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose';
 
+import { SUPABASE_JWKS, SUPABASE_JWT_AUDIENCE } from '@api/core/auth/auth.constants';
+import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
+import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
+import { supabaseIssuer } from '@api/core/auth/supabase-jwks';
 import type { ApplicationConfig } from '@api/core/config/app.config';
-import { SUPABASE_JWKS, SUPABASE_JWT_AUDIENCE } from '@api/modules/auth/auth.constants';
-import type { AuthenticatedUser } from '@api/modules/auth/authenticated-user';
-import { supabaseIssuer } from '@api/modules/auth/supabase-jwks';
-import { UnauthenticatedException } from '@api/modules/auth/unauthenticated.exception';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

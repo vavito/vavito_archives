@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { SUPABASE_JWKS } from '@api/core/auth/auth.constants';
+import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
+import { createSupabaseJwks } from '@api/core/auth/supabase-jwks';
+import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
-import { SUPABASE_JWKS } from '@api/modules/auth/auth.constants';
-import { AuthGuard } from '@api/modules/auth/auth.guard';
-import { createSupabaseJwks } from '@api/modules/auth/supabase-jwks';
-import { SupabaseJwtService } from '@api/modules/auth/supabase-jwt.service';
 
 @Module({
   providers: [
@@ -16,9 +16,9 @@ import { SupabaseJwtService } from '@api/modules/auth/supabase-jwt.service';
         createSupabaseJwks(configService),
     },
     SupabaseJwtService,
-    AuthGuard,
+    SupabaseAuthGuard,
   ],
-  exports: [SupabaseJwtService, AuthGuard],
+  exports: [SupabaseJwtService, SupabaseAuthGuard],
 })
 export class AuthModule {}
 

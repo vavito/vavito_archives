@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { ErrorDetailDto, ErrorResponseDto } from '@api/common/errors/dto/error-response.dto';
+import { ErrorDetailDto, ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 
 export function setupOpenApi(

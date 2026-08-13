@@ -10,14 +10,14 @@ import {
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 
+import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
+import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
 import type {
   AuthenticatedRequest,
   AuthenticatedUser,
-} from '@api/modules/auth/authenticated-user';
-import { AuthGuard } from '@api/modules/auth/auth.guard';
-import { SupabaseJwtService } from '@api/modules/auth/supabase-jwt.service';
-import { UnauthenticatedException } from '@api/modules/auth/unauthenticated.exception';
-import { setupErrorHandling } from '@api/common/errors/setup-error-handling';
+} from '@api/core/auth/interfaces/authenticated-user.interface';
+import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
+import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 
 const AUTHENTICATED_USER: AuthenticatedUser = {
   email: 'leitor@vavitoarchives.com.br',
@@ -27,7 +27,7 @@ const AUTHENTICATED_USER: AuthenticatedUser = {
 let controllerCalls = 0;
 
 @Controller('auth-fixture')
-@UseGuards(AuthGuard)
+@UseGuards(SupabaseAuthGuard)
 class AuthFixtureController {
   @Get()
   guardedRoute(@Req() request: AuthenticatedRequest): AuthenticatedUser | undefined {
@@ -36,7 +36,7 @@ class AuthFixtureController {
   }
 }
 
-describe('AuthGuard (e2e)', () => {
+describe('SupabaseAuthGuard (e2e)', () => {
   let app: INestApplication;
   let moduleRef: TestingModule;
   const verify = jest.fn<Promise<AuthenticatedUser>, [string]>();
@@ -44,7 +44,7 @@ describe('AuthGuard (e2e)', () => {
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       controllers: [AuthFixtureController],
-      providers: [AuthGuard, { provide: SupabaseJwtService, useValue: { verify } }],
+      providers: [SupabaseAuthGuard, { provide: SupabaseJwtService, useValue: { verify } }],
     }).compile();
     app = moduleRef.createNestApplication();
     setupErrorHandling(app);

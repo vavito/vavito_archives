@@ -9,9 +9,9 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { ApplicationException } from '@api/common/errors/application.exception';
-import type { ErrorResponseDto } from '@api/common/errors/dto/error-response.dto';
-import { errorCodeForStatus } from '@api/common/errors/error-codes';
+import type { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { errorCodeForStatus } from '@api/core/http/error-codes';
+import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 
 interface HttpRequest {
   headers?: Record<string, string | string[] | undefined>;

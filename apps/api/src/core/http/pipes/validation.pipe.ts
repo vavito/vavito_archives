@@ -1,8 +1,8 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import type { ValidationError } from 'class-validator';
 
-import { ApplicationException } from '@api/common/errors/application.exception';
-import type { ErrorDetailDto } from '@api/common/errors/dto/error-response.dto';
+import type { ErrorDetailDto } from '@api/core/http/dto/error-response.dto';
+import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 
 const reasonByConstraint: Readonly<Record<string, string>> = {
   isDefined: 'REQUIRED',

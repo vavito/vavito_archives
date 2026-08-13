@@ -1,6 +1,6 @@
 import { HttpException, type HttpExceptionOptions, type HttpStatus } from '@nestjs/common';
 
-import type { ErrorDetailDto } from '@api/common/errors/dto/error-response.dto';
+import type { ErrorDetailDto } from '@api/core/http/dto/error-response.dto';
 
 export interface ApplicationExceptionOptions {
   code: string;

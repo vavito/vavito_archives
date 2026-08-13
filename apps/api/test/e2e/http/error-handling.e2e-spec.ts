@@ -14,9 +14,9 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import request from 'supertest';
 
-import { ApplicationException } from '@api/common/errors/application.exception';
-import type { ErrorResponseDto } from '@api/common/errors/dto/error-response.dto';
-import { setupErrorHandling } from '@api/common/errors/setup-error-handling';
+import type { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { ApplicationException } from '@api/core/http/exceptions/application.exception';
+import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 
 class ValidationFixtureDto {
   @IsEmail()

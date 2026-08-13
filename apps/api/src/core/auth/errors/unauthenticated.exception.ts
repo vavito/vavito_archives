@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 
-import { ApplicationException } from '@api/common/errors/application.exception';
+import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 
 export class UnauthenticatedException extends ApplicationException {
   constructor(cause?: unknown) {

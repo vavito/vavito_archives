@@ -1,8 +1,8 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 
-import type { AuthenticatedRequest } from '@api/modules/auth/authenticated-user';
-import { SupabaseJwtService } from '@api/modules/auth/supabase-jwt.service';
-import { UnauthenticatedException } from '@api/modules/auth/unauthenticated.exception';
+import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
+import type { AuthenticatedRequest } from '@api/core/auth/interfaces/authenticated-user.interface';
+import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
 
 function bearerTokenFrom(authorization: string | string[] | undefined): string {
   if (typeof authorization !== 'string') {
@@ -19,7 +19,7 @@ function bearerTokenFrom(authorization: string | string[] | undefined): string {
 }
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class SupabaseAuthGuard implements CanActivate {
   constructor(private readonly supabaseJwtService: SupabaseJwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
