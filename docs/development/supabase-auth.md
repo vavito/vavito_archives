@@ -20,6 +20,20 @@ Em **Authentication → Sessions**:
 
 O refresh token mantém a sessão e permite renovar o access token. As configurações mais restritivas de sessão podem ser reavaliadas após existir telemetria de uso.
 
+## Validação dos access tokens na API
+
+A API valida o access token recebido em `Authorization: Bearer <token>` usando o endpoint JWKS público do Supabase. A validação exige:
+
+- assinatura correspondente a uma chave pública do projeto;
+- `iss` igual a `<SUPABASE_URL>/auth/v1`;
+- `aud` e `role` iguais a `authenticated`;
+- token dentro do período de validade definido por `exp`;
+- `sub` no formato UUID e `email` presentes.
+
+As chaves JWKS ficam em cache na instância da API por até 10 minutos, com timeout de 5 segundos na consulta ao Supabase. Tokens ausentes, malformados, expirados ou inválidos recebem `401 UNAUTHENTICATED` e não alcançam o controller protegido.
+
+Após a validação, a API disponibiliza apenas `sub` como `AuthenticatedUser.id` e a claim `email` como `AuthenticatedUser.email`. Claims de metadata não concedem autorização; a role de negócio continua sendo lida do `Profile`.
+
 ## Profile criado no cadastro
 
 O cadastro pode enviar o nome público no metadata `display_name`. Após a criação de uma identidade em `auth.users`, um trigger versionado cria o `Profile` correspondente com o mesmo UUID.
