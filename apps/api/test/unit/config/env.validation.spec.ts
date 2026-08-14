@@ -21,6 +21,7 @@ describe('validateEnvironment', () => {
       DATABASE_CONNECT_ON_START: true,
       NODE_ENV: 'development',
       PORT: 3001,
+      SUPABASE_AVATARS_BUCKET: 'avatars',
       SWAGGER_ENABLED: true,
     });
   });

@@ -51,6 +51,7 @@ export default function configuration(): ApplicationConfig {
       revalidationSecret: requiredEnvironmentValue('REVALIDATION_SECRET'),
     },
     supabase: {
+      avatarsBucket: requiredEnvironmentValue('SUPABASE_AVATARS_BUCKET'),
       serviceRoleKey: requiredEnvironmentValue('SUPABASE_SERVICE_ROLE_KEY'),
       url: requiredEnvironmentValue('SUPABASE_URL'),
     },
