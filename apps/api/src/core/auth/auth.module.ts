@@ -8,10 +8,14 @@ import { RolesGuard } from '@api/core/auth/guards/roles.guard';
 import { PrismaProfileAuthorizationRepository } from '@api/core/auth/repositories/prisma-profile-authorization.repository';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { createSupabaseJwks } from '@api/core/auth/providers/supabase-jwks.provider';
+import { AuthAdminService } from '@api/core/auth/services/auth-admin.service';
+import { SupabaseAuthAdminService } from '@api/core/auth/services/supabase-auth-admin.service';
 import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
+import { SupabaseModule } from '@api/core/supabase/supabase.module';
 
 @Module({
+  imports: [SupabaseModule],
   providers: [
     {
       provide: SUPABASE_JWKS,
@@ -20,6 +24,10 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
         createSupabaseJwks(configService),
     },
     SupabaseJwtService,
+    {
+      provide: AuthAdminService,
+      useClass: SupabaseAuthAdminService,
+    },
     SupabaseAuthGuard,
     RolesGuard,
     {
@@ -35,6 +43,6 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
       useExisting: RolesGuard,
     },
   ],
-  exports: [SupabaseJwtService, SupabaseAuthGuard, RolesGuard],
+  exports: [AuthAdminService, SupabaseJwtService, SupabaseAuthGuard, RolesGuard],
 })
 export class AuthModule {}
