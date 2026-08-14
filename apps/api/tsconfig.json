@@ -3,10 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist",
     "esModuleInterop": true,
+    "isolatedModules": true,
     "paths": {
       "@api/*": ["./src/*"]
     },
-    "incremental": true
+    "incremental": true,
+    "types": ["jest", "multer", "node"]
   },
   "include": ["prisma.config.ts", "prisma/**/*.ts", "src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
