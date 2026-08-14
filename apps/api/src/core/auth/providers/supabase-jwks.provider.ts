@@ -26,4 +26,3 @@ export function createSupabaseJwks(
     timeoutDuration: JWKS_TIMEOUT_DURATION_MS,
   });
 }
-

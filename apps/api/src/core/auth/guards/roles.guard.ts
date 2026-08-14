@@ -1,7 +1,10 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { PUBLIC_ROUTE_METADATA_KEY, ROLES_METADATA_KEY } from '@api/core/auth/auth.constants';
+import {
+  PUBLIC_ROUTE_METADATA_KEY,
+  ROLES_METADATA_KEY,
+} from '@api/core/auth/constants/auth.constants';
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
 import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
 import type { AuthenticatedRequest } from '@api/core/auth/interfaces/authenticated-user.interface';

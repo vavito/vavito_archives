@@ -6,7 +6,7 @@ import { AppModule } from '@api/app.module';
 import { AppService } from '@api/app.service';
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
 import { RolesGuard } from '@api/core/auth/guards/roles.guard';
-import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
+import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/health.controller';

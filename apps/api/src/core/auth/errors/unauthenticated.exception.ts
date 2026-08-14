@@ -12,4 +12,3 @@ export class UnauthenticatedException extends ApplicationException {
     });
   }
 }
-

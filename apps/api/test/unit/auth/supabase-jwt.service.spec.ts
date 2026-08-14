@@ -4,10 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import { exportJWK, generateKeyPair, SignJWT, type JWK, type KeyLike } from 'jose';
 
 import type { ApplicationConfig } from '@api/core/config/app.config';
-import { SUPABASE_JWT_AUDIENCE } from '@api/core/auth/auth.constants';
+import { SUPABASE_JWT_AUDIENCE } from '@api/core/auth/constants/auth.constants';
 import type { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
-import { createSupabaseJwks, supabaseIssuer } from '@api/core/auth/supabase-jwks';
-import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
+import {
+  createSupabaseJwks,
+  supabaseIssuer,
+} from '@api/core/auth/providers/supabase-jwks.provider';
+import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 
 const USER_ID = '2cc721a8-2db5-4e7f-b68a-d807546b5206';
 const USER_EMAIL = 'leitor@vavitoarchives.com.br';

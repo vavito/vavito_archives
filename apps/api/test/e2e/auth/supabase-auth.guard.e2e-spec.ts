@@ -6,7 +6,7 @@ import { ApiBearerAuth, ApiOperation, DocumentBuilder, SwaggerModule } from '@ne
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 
-import { ROLES_METADATA_KEY } from '@api/core/auth/auth.constants';
+import { ROLES_METADATA_KEY } from '@api/core/auth/constants/auth.constants';
 import { CurrentUser } from '@api/core/auth/decorators/current-user.decorator';
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { Roles } from '@api/core/auth/decorators/roles.decorator';
@@ -15,7 +15,7 @@ import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
 import { RolesGuard } from '@api/core/auth/guards/roles.guard';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
-import { SupabaseJwtService } from '@api/core/auth/supabase-jwt.service';
+import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 import { UserRole } from '@api/generated/prisma/client';
 
