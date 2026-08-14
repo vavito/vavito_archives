@@ -3,7 +3,7 @@ import type { ConfigService } from '@nestjs/config';
 
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import type { PrismaService } from '@api/core/database/prisma.service';
-import { HealthService } from '@api/modules/health/health.service';
+import { HealthService } from '@api/modules/health/services/health.service';
 
 function createHealthService() {
   const configService = {

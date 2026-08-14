@@ -9,8 +9,8 @@ import { RolesGuard } from '@api/core/auth/guards/roles.guard';
 import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
-import { HealthController } from '@api/modules/health/health.controller';
-import { HealthService } from '@api/modules/health/health.service';
+import { HealthController } from '@api/modules/health/controllers/health.controller';
+import { HealthService } from '@api/modules/health/services/health.service';
 import { ProfilesController } from '@api/modules/profiles/controllers/profiles.controller';
 import { ProfilesService } from '@api/modules/profiles/services/profiles.service';
 

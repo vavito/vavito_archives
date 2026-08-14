@@ -9,7 +9,7 @@ import {
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { HealthResponseDto } from '@api/modules/health/dto/health-response.dto';
 import { ReadinessResponseDto } from '@api/modules/health/dto/readiness-response.dto';
-import { HealthService } from '@api/modules/health/health.service';
+import { HealthService } from '@api/modules/health/services/health.service';
 
 @ApiTags('Health')
 @Public()
