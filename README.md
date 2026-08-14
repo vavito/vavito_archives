@@ -95,6 +95,8 @@ As instruções de migrations e do seed administrativo estão em `docs/developme
 
 A configuração de providers, URLs, sessões e política de senha do Supabase Auth está em `docs/development/supabase-auth.md`.
 
+O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/development/profiles.md`.
+
 ## Qualidade e aliases
 
 - `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
