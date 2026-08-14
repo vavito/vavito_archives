@@ -11,6 +11,8 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/health.controller';
 import { HealthService } from '@api/modules/health/health.service';
+import { ProfilesController } from '@api/modules/profiles/controllers/profiles.controller';
+import { ProfilesService } from '@api/modules/profiles/services/profiles.service';
 
 describe('AppModule', () => {
   let moduleRef: TestingModule;
@@ -34,6 +36,8 @@ describe('AppModule', () => {
     expect(moduleRef.get(RolesGuard)).toBeInstanceOf(RolesGuard);
     expect(moduleRef.get(HealthController)).toBeInstanceOf(HealthController);
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
+    expect(moduleRef.get(ProfilesController)).toBeInstanceOf(ProfilesController);
+    expect(moduleRef.get(ProfilesService)).toBeInstanceOf(ProfilesService);
     expect(configService.get('app.environment', { infer: true })).toBe('test');
     expect(configService.get('app.version', { infer: true })).toBe('1.2.3-test');
     expect(configService.get('database.connectOnStart', { infer: true })).toBe(false);
