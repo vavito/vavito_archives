@@ -8,6 +8,7 @@ import configuration, { environmentFilePaths } from '@api/core/config/configurat
 import { validateEnvironment } from '@api/core/config/env.validation';
 import { PrismaModule } from '@api/core/database/prisma.module';
 import { HealthModule } from '@api/modules/health/health.module';
+import { ProfilesModule } from '@api/modules/profiles/profiles.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HealthModule } from '@api/modules/health/health.module';
     PrismaModule,
     AuthModule,
     HealthModule,
+    ProfilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
