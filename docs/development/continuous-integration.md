@@ -9,13 +9,16 @@ O workflow `.github/workflows/quality.yml` executa a qualidade do monorepo em pu
 
 Cada job usa Node.js 24.18.0 e a versão do pnpm declarada em `packageManager`, instala o monorepo pela raiz com `pnpm install --frozen-lockfile` e mantém caches separados do pnpm e do Turborepo.
 
-O job da API sobe um service container PostgreSQL exclusivo, aguarda o `pg_isready`, aplica as migrations versionadas com `prisma migrate deploy` e executa a suíte `test:integration`. O job da Web não sobe banco.
+O job da API sobe um service container PostgreSQL exclusivo, aguarda o `pg_isready`, prepara um fixture mínimo de `auth.users`, aplica as migrations versionadas com `prisma migrate deploy` e executa a suíte `test:integration`. O job da Web não sobe banco.
+
+O fixture existe apenas porque o PostgreSQL puro da CI não inclui o schema gerenciado pelo Supabase Auth. Ele contém somente as colunas consumidas pelo trigger de criação de `Profile`, é protegido pela mesma validação de URL local da suíte e nunca é aplicado ao Supabase.
 
 O banco de integração usa apenas `localhost`, possui o nome fixo `vavito_integration` e é descartado com o runner ao final da execução. O teste também remove os registros temporários em um bloco `finally`. Uma proteção no código recusa hosts remotos, inclusive URLs do Supabase, e recusa qualquer outro nome de banco.
 
 Para executar a suíte fora da CI, disponibilize um PostgreSQL local com o banco `vavito_integration`, aplique as migrations e informe a URL dedicada:
 
 ```bash
+INTEGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vavito_integration corepack pnpm --filter @vavito/api test:integration:prepare
 DIRECT_URL=postgresql://postgres:postgres@localhost:5432/vavito_integration corepack pnpm --filter @vavito/api prisma:migrate:deploy
 INTEGRATION_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vavito_integration corepack pnpm --filter @vavito/api test:integration
 ```

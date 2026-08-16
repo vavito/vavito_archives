@@ -22,6 +22,7 @@ export interface ApplicationConfig {
     revalidationSecret: string;
   };
   supabase: {
+    avatarsBucket: string;
     serviceRoleKey: string;
     url: string;
   };
@@ -38,6 +39,7 @@ export interface EnvironmentVariables {
   RESEND_API_KEY: string;
   REVALIDATION_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  SUPABASE_AVATARS_BUCKET: string;
   SUPABASE_URL: string;
   SWAGGER_ENABLED: boolean;
 }

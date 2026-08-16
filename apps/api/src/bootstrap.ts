@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from '@api/app.module';
-import { setupErrorHandling } from '@api/common/errors/setup-error-handling';
+import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { setupOpenApi } from '@api/core/openapi/setup-openapi';
 

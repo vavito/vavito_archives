@@ -2,12 +2,13 @@
   "extends": "@vavito/typescript-config/nestjs.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "baseUrl": ".",
     "esModuleInterop": true,
+    "isolatedModules": true,
     "paths": {
-      "@api/*": ["src/*"]
+      "@api/*": ["./src/*"]
     },
-    "incremental": true
+    "incremental": true,
+    "types": ["jest", "multer", "node"]
   },
   "include": ["prisma.config.ts", "prisma/**/*.ts", "src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]

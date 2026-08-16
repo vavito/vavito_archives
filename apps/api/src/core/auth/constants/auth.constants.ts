@@ -1,0 +1,7 @@
+export const SUPABASE_JWKS = Symbol('SUPABASE_JWKS');
+
+export const SUPABASE_JWT_AUDIENCE = 'authenticated';
+
+export const PUBLIC_ROUTE_METADATA_KEY = 'auth:public';
+
+export const ROLES_METADATA_KEY = 'auth:roles';
