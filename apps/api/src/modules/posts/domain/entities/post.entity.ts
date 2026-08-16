@@ -28,7 +28,7 @@ export interface UpdatePostContentProps {
   readingTimeMinutes: number;
 }
 
-interface PostProps {
+export interface RestorePostProps {
   archivedAt: Date | null;
   authorId: string;
   content: PostContent;
@@ -52,7 +52,7 @@ function cloneDate(date: Date): Date {
 }
 
 export class Post {
-  private constructor(private readonly props: PostProps) {}
+  private constructor(private readonly props: RestorePostProps) {}
 
   static create(props: CreatePostProps): Post {
     const readingTimeMinutes = props.readingTimeMinutes ?? 0;
@@ -78,6 +78,17 @@ export class Post {
       title: props.title,
       updatedAt: cloneDate(props.now),
       viewsCount: 0,
+    });
+  }
+
+  static restore(props: RestorePostProps): Post {
+    return new Post({
+      ...props,
+      archivedAt: props.archivedAt ? cloneDate(props.archivedAt) : null,
+      createdAt: cloneDate(props.createdAt),
+      editedAt: props.editedAt ? cloneDate(props.editedAt) : null,
+      publishedAt: props.publishedAt ? cloneDate(props.publishedAt) : null,
+      updatedAt: cloneDate(props.updatedAt),
     });
   }
 
