@@ -6,14 +6,13 @@ import {
   PostNotReadyForPublicationError,
   type PostPublicationField,
 } from '@api/modules/posts/domain/errors/post-not-ready-for-publication.error';
-
-export type PostContentDocument = Readonly<Record<string, unknown>>;
+import type { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
+import type { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 
 export interface CreatePostProps {
   authorId: string;
-  content: PostContentDocument;
-  contentSchemaVersion: number;
-  currentSlug: string | null;
+  content: PostContent;
+  currentSlug: Slug | null;
   excerpt: string | null;
   id: string;
   now: Date;
@@ -24,8 +23,7 @@ export interface CreatePostProps {
 }
 
 export interface UpdatePostContentProps {
-  content: PostContentDocument;
-  contentSchemaVersion: number;
+  content: PostContent;
   now: Date;
   readingTimeMinutes: number;
 }
@@ -33,10 +31,9 @@ export interface UpdatePostContentProps {
 interface PostProps {
   archivedAt: Date | null;
   authorId: string;
-  content: PostContentDocument;
-  contentSchemaVersion: number;
+  content: PostContent;
   createdAt: Date;
-  currentSlug: string | null;
+  currentSlug: Slug | null;
   editedAt: Date | null;
   excerpt: string | null;
   id: string;
@@ -54,43 +51,20 @@ function cloneDate(date: Date): Date {
   return new Date(date.getTime());
 }
 
-function cloneContent(content: PostContentDocument): PostContentDocument {
-  return structuredClone(content);
-}
-
-function isSupportedContent(content: PostContentDocument, schemaVersion: number): boolean {
-  return (
-    Number.isInteger(schemaVersion) &&
-    schemaVersion > 0 &&
-    content['type'] === 'doc' &&
-    Array.isArray(content['content'])
-  );
-}
-
-function hasVisibleContent(content: PostContentDocument): boolean {
-  const nodes = content['content'];
-  return Array.isArray(nodes) && nodes.length > 0;
-}
-
 export class Post {
   private constructor(private readonly props: PostProps) {}
 
   static create(props: CreatePostProps): Post {
     const readingTimeMinutes = props.readingTimeMinutes ?? 0;
 
-    if (
-      !isSupportedContent(props.content, props.contentSchemaVersion) ||
-      !Number.isInteger(readingTimeMinutes) ||
-      readingTimeMinutes < 0
-    ) {
+    if (!Number.isInteger(readingTimeMinutes) || readingTimeMinutes < 0) {
       throw new PostContentInvalidError();
     }
 
     return new Post({
       archivedAt: null,
       authorId: props.authorId,
-      content: cloneContent(props.content),
-      contentSchemaVersion: props.contentSchemaVersion,
+      content: props.content,
       createdAt: cloneDate(props.now),
       currentSlug: props.currentSlug,
       editedAt: null,
@@ -115,19 +89,19 @@ export class Post {
     return this.props.authorId;
   }
 
-  get content(): PostContentDocument {
-    return cloneContent(this.props.content);
+  get content(): PostContent {
+    return this.props.content;
   }
 
   get contentSchemaVersion(): number {
-    return this.props.contentSchemaVersion;
+    return this.props.content.schemaVersion;
   }
 
   get createdAt(): Date {
     return cloneDate(this.props.createdAt);
   }
 
-  get currentSlug(): string | null {
+  get currentSlug(): Slug | null {
     return this.props.currentSlug;
   }
 
@@ -218,16 +192,14 @@ export class Post {
     }
 
     if (
-      !isSupportedContent(props.content, props.contentSchemaVersion) ||
       !Number.isInteger(props.readingTimeMinutes) ||
       props.readingTimeMinutes < 0 ||
-      (this.props.status === PostStatus.PUBLISHED && !hasVisibleContent(props.content))
+      (this.props.status === PostStatus.PUBLISHED && props.content.isEmpty)
     ) {
       throw new PostContentInvalidError();
     }
 
-    this.props.content = cloneContent(props.content);
-    this.props.contentSchemaVersion = props.contentSchemaVersion;
+    this.props.content = props.content;
     this.props.readingTimeMinutes = props.readingTimeMinutes;
     this.props.updatedAt = cloneDate(props.now);
 
@@ -251,10 +223,10 @@ export class Post {
     if (!this.props.excerpt || this.props.excerpt.trim().length === 0) {
       missingFields.push('excerpt');
     }
-    if (!this.props.currentSlug || this.props.currentSlug.trim().length === 0) {
+    if (!this.props.currentSlug) {
       missingFields.push('slug');
     }
-    if (!hasVisibleContent(this.props.content)) {
+    if (this.props.content.isEmpty) {
       missingFields.push('content');
     }
 
