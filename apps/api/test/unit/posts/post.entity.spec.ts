@@ -4,20 +4,22 @@ import { InvalidPostStatusTransitionError } from '@api/modules/posts/domain/erro
 import { PostContentInvalidError } from '@api/modules/posts/domain/errors/post-content-invalid.error';
 import { PostEditNotAllowedError } from '@api/modules/posts/domain/errors/post-edit-not-allowed.error';
 import { PostNotReadyForPublicationError } from '@api/modules/posts/domain/errors/post-not-ready-for-publication.error';
+import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
+import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 
 const CREATED_AT = new Date('2026-08-16T10:00:00.000Z');
-const CONTENT = {
+const CONTENT_DOCUMENT = {
   content: [{ content: [{ text: 'Conteúdo', type: 'text' }], type: 'paragraph' }],
   type: 'doc',
 };
-const EMPTY_CONTENT = { content: [], type: 'doc' };
+const CONTENT = PostContent.create(CONTENT_DOCUMENT, 1);
+const EMPTY_CONTENT = PostContent.create({ content: [], type: 'doc' }, 1);
 
 function createPost(overrides: Partial<Parameters<typeof Post.create>[0]> = {}): Post {
   return Post.create({
     authorId: 'ad4ce1ef-339f-45dc-bb91-a2f7ffbf3026',
     content: CONTENT,
-    contentSchemaVersion: 1,
-    currentSlug: 'primeiro-artigo',
+    currentSlug: Slug.create('primeiro-artigo'),
     excerpt: 'Resumo do artigo.',
     id: '957c8388-cb96-4f0c-98b3-56b84c1fe67e',
     now: CREATED_AT,
@@ -117,13 +119,12 @@ describe('Post', () => {
 
     post.updateContent({
       content: CONTENT,
-      contentSchemaVersion: 2,
       now: updatedAt,
       readingTimeMinutes: 3,
     });
 
-    expect(post.content).toEqual(CONTENT);
-    expect(post.contentSchemaVersion).toBe(2);
+    expect(post.content.document).toEqual(CONTENT_DOCUMENT);
+    expect(post.contentSchemaVersion).toBe(1);
     expect(post.readingTimeMinutes).toBe(3);
     expect(post.updatedAt).toEqual(updatedAt);
     expect(post.editedAt).toBeNull();
@@ -135,11 +136,13 @@ describe('Post', () => {
     const editedAt = new Date('2026-08-16T13:00:00.000Z');
 
     post.updateContent({
-      content: {
-        content: [{ content: [{ text: 'Novo conteúdo', type: 'text' }], type: 'paragraph' }],
-        type: 'doc',
-      },
-      contentSchemaVersion: 1,
+      content: PostContent.create(
+        {
+          content: [{ content: [{ text: 'Novo conteúdo', type: 'text' }], type: 'paragraph' }],
+          type: 'doc',
+        },
+        1,
+      ),
       now: editedAt,
       readingTimeMinutes: 2,
     });
@@ -155,13 +158,12 @@ describe('Post', () => {
     expect(() =>
       post.updateContent({
         content: EMPTY_CONTENT,
-        contentSchemaVersion: 1,
         now: new Date('2026-08-16T13:00:00.000Z'),
         readingTimeMinutes: 0,
       }),
     ).toThrow(PostContentInvalidError);
 
-    expect(post.content).toEqual(CONTENT);
+    expect(post.content.document).toEqual(CONTENT_DOCUMENT);
     expect(post.editedAt).toBeNull();
   });
 
@@ -172,7 +174,6 @@ describe('Post', () => {
     expect(() =>
       post.updateContent({
         content: CONTENT,
-        contentSchemaVersion: 1,
         now: new Date('2026-08-16T13:00:00.000Z'),
         readingTimeMinutes: 1,
       }),
@@ -209,16 +210,17 @@ describe('Post', () => {
   });
 
   it('protege conteúdo e datas contra mutação externa', () => {
-    const content = structuredClone(CONTENT);
+    const contentDocument = structuredClone(CONTENT_DOCUMENT);
+    const content = PostContent.create(contentDocument, 1);
     const createdAt = new Date(CREATED_AT);
     const post = createPost({ content, now: createdAt });
 
-    (content.content[0] as { type: string }).type = 'heading';
+    contentDocument.content[0]!.type = 'heading';
     createdAt.setUTCFullYear(2030);
     const returnedCreatedAt = post.createdAt;
     returnedCreatedAt.setUTCFullYear(2031);
 
-    expect(post.content).toEqual(CONTENT);
+    expect(post.content.document).toEqual(CONTENT_DOCUMENT);
     expect(post.createdAt).toEqual(CREATED_AT);
   });
 });
