@@ -2,6 +2,7 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@api/(.*)$': '<rootDir>/src/$1',
   },
   rootDir: '.',
