@@ -1,13 +1,13 @@
 import type { Server } from 'node:http';
 
 import type { INestApplication } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 
-import type {
-  AuthenticatedRequest,
-  AuthenticatedUser,
-} from '@api/core/auth/interfaces/authenticated-user.interface';
+import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
+import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
+import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
 import { UserRole } from '@api/generated/prisma/client';
 import { ProfilesController } from '@api/modules/profiles/controllers/profiles.controller';
@@ -36,12 +36,16 @@ describe('ProfilesController (e2e)', () => {
   const uploadAvatar = jest.fn();
   const removeAvatar = jest.fn();
   const deleteAccount = jest.fn();
+  const verify = jest.fn<Promise<AuthenticatedUser>, [string]>();
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       controllers: [ProfilesController],
       providers: [
         AvatarFilePipe,
+        SupabaseAuthGuard,
+        { provide: SupabaseJwtService, useValue: { verify } },
+        { provide: APP_GUARD, useExisting: SupabaseAuthGuard },
         {
           provide: ProfilesService,
           useValue: { deleteAccount, getMe, removeAvatar, updateMe, uploadAvatar },
@@ -49,16 +53,13 @@ describe('ProfilesController (e2e)', () => {
       ],
     }).compile();
     app = moduleRef.createNestApplication();
-    app.use((request_: object, _response: unknown, next: () => void) => {
-      (request_ as unknown as AuthenticatedRequest).user = USER;
-      next();
-    });
     setupErrorHandling(app);
     await app.init();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    verify.mockResolvedValue(USER);
   });
 
   afterAll(async () => {
@@ -66,11 +67,34 @@ describe('ProfilesController (e2e)', () => {
     await moduleRef.close();
   });
 
+  it('protege todos os endpoints de perfil quando o Bearer está ausente', async () => {
+    const server = app.getHttpServer() as Server;
+    const unauthenticatedRequests = [
+      () => request(server).get('/profiles/me'),
+      () => request(server).patch('/profiles/me'),
+      () => request(server).put('/profiles/me/avatar'),
+      () => request(server).delete('/profiles/me/avatar'),
+      () => request(server).delete('/profiles/me'),
+    ];
+
+    for (const createUnauthenticatedRequest of unauthenticatedRequests) {
+      await createUnauthenticatedRequest().expect(401);
+    }
+
+    expect(getMe).not.toHaveBeenCalled();
+    expect(updateMe).not.toHaveBeenCalled();
+    expect(uploadAvatar).not.toHaveBeenCalled();
+    expect(removeAvatar).not.toHaveBeenCalled();
+    expect(deleteAccount).not.toHaveBeenCalled();
+    expect(verify).not.toHaveBeenCalled();
+  });
+
   it('consulta o perfil autenticado', async () => {
     getMe.mockResolvedValueOnce(PROFILE_RESPONSE);
 
     const response = await request(app.getHttpServer() as Server)
       .get('/profiles/me')
+      .set('authorization', 'Bearer jwt-valido')
       .expect(200);
 
     expect(response.body).toEqual(PROFILE_RESPONSE);
@@ -82,6 +106,7 @@ describe('ProfilesController (e2e)', () => {
 
     const response = await request(app.getHttpServer() as Server)
       .patch('/profiles/me')
+      .set('authorization', 'Bearer jwt-valido')
       .send({ displayName: '  Novo   Nome  ' })
       .expect(200);
 
@@ -98,6 +123,7 @@ describe('ProfilesController (e2e)', () => {
 
     const response = await request(app.getHttpServer() as Server)
       .put('/profiles/me/avatar')
+      .set('authorization', 'Bearer jwt-valido')
       .attach('file', png, { contentType: 'image/png', filename: 'avatar.png' })
       .expect(200);
 
@@ -111,6 +137,7 @@ describe('ProfilesController (e2e)', () => {
   it('remove o avatar', async () => {
     await request(app.getHttpServer() as Server)
       .delete('/profiles/me/avatar')
+      .set('authorization', 'Bearer jwt-valido')
       .expect(204);
 
     expect(removeAvatar).toHaveBeenCalledWith(USER.id);
@@ -119,12 +146,14 @@ describe('ProfilesController (e2e)', () => {
   it('exige a frase de confirmação antes de excluir a conta', async () => {
     await request(app.getHttpServer() as Server)
       .delete('/profiles/me')
+      .set('authorization', 'Bearer jwt-valido')
       .send({ confirmation: 'excluir' })
       .expect(400);
     expect(deleteAccount).not.toHaveBeenCalled();
 
     await request(app.getHttpServer() as Server)
       .delete('/profiles/me')
+      .set('authorization', 'Bearer jwt-valido')
       .send({ confirmation: 'EXCLUIR MINHA CONTA' })
       .expect(204);
     expect(deleteAccount).toHaveBeenCalledWith(USER.id);
