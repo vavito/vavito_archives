@@ -55,9 +55,7 @@ describe('Bootstrap e health (e2e)', () => {
     expect(document.paths['/api/v1/health/ready']?.get?.responses?.['200']).toBeDefined();
     expect(document.paths['/api/v1/health/ready']?.get?.responses?.['503']).toBeDefined();
     expect(document.components?.securitySchemes?.['supabase-jwt']).toBeDefined();
-    expect(document.paths['/api/v1/profiles/me']?.get?.security).toEqual([
-      { 'supabase-jwt': [] },
-    ]);
+    expect(document.paths['/api/v1/profiles/me']?.get?.security).toEqual([{ 'supabase-jwt': [] }]);
     expect(document.components?.schemas?.ErrorResponseDto).toBeDefined();
   });
 });
