@@ -120,6 +120,20 @@ describe('SupabaseAuthGuard (e2e)', () => {
     expect(verify).toHaveBeenCalledWith('jwt-invalido');
   });
 
+  it.each([
+    ['usa outro esquema', 'Basic credencial'],
+    ['não contém o token', 'Bearer'],
+    ['contém mais de uma credencial', 'Bearer jwt outra-credencial'],
+  ])('responde 401 quando o Authorization %s', async (_label, authorization) => {
+    await request(app.getHttpServer() as Server)
+      .get('/auth-fixture')
+      .set('authorization', authorization)
+      .expect(401);
+
+    expect(controllerCalls).toBe(0);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
   it('disponibiliza o usuário autenticado com @CurrentUser', async () => {
     verify.mockResolvedValueOnce(AUTHENTICATED_USER);
 
