@@ -33,7 +33,7 @@ import {
 } from '@api/modules/profiles/pipes/avatar-file.pipe';
 import { ProfilesService } from '@api/modules/profiles/services/profiles.service';
 
-@ApiBearerAuth()
+@ApiBearerAuth('supabase-jwt')
 @ApiTags('Profiles')
 @Controller('profiles')
 export class ProfilesController {
