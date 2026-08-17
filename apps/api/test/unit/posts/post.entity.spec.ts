@@ -2,6 +2,7 @@ import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { InvalidPostStatusTransitionError } from '@api/modules/posts/domain/errors/invalid-post-status-transition.error';
 import { PostContentInvalidError } from '@api/modules/posts/domain/errors/post-content-invalid.error';
+import { PostDeleteNotAllowedError } from '@api/modules/posts/domain/errors/post-delete-not-allowed.error';
 import { PostEditNotAllowedError } from '@api/modules/posts/domain/errors/post-edit-not-allowed.error';
 import { PostNotReadyForPublicationError } from '@api/modules/posts/domain/errors/post-not-ready-for-publication.error';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
@@ -151,6 +152,39 @@ describe('Post', () => {
     expect(post.editedAt).toEqual(editedAt);
   });
 
+  it('edita os campos do rascunho de forma atômica', () => {
+    const post = createPost();
+    const updatedAt = new Date('2026-08-16T14:00:00.000Z');
+
+    post.edit({
+      currentSlug: Slug.create('artigo-revisado'),
+      excerpt: 'Novo resumo.',
+      now: updatedAt,
+      seoDescription: null,
+      seoTitle: 'SEO revisado',
+      title: 'Artigo revisado',
+    });
+
+    expect(post.title).toBe('Artigo revisado');
+    expect(post.currentSlug?.value).toBe('artigo-revisado');
+    expect(post.excerpt).toBe('Novo resumo.');
+    expect(post.seoTitle).toBe('SEO revisado');
+    expect(post.seoDescription).toBeNull();
+    expect(post.updatedAt).toEqual(updatedAt);
+    expect(post.editedAt).toBeNull();
+  });
+
+  it('não deixa uma edição tornar o post publicado incompleto', () => {
+    const post = createPost();
+    post.publish(new Date('2026-08-16T11:00:00.000Z'));
+
+    expect(() => post.edit({ now: new Date(), title: '' })).toThrow(
+      PostNotReadyForPublicationError,
+    );
+    expect(post.title).toBe('Primeiro artigo');
+    expect(post.editedAt).toBeNull();
+  });
+
   it('não permite esvaziar o conteúdo de um post publicado', () => {
     const post = createPost();
     post.publish(new Date('2026-08-16T11:00:00.000Z'));
@@ -178,6 +212,13 @@ describe('Post', () => {
         readingTimeMinutes: 1,
       }),
     ).toThrow(PostEditNotAllowedError);
+  });
+
+  it('não permite excluir permanentemente um post publicado', () => {
+    const post = createPost();
+    post.publish(new Date('2026-08-16T11:00:00.000Z'));
+
+    expect(() => post.ensureCanDelete()).toThrow(PostDeleteNotAllowedError);
   });
 
   it.each([
