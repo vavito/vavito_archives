@@ -1,6 +1,7 @@
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { InvalidPostStatusTransitionError } from '@api/modules/posts/domain/errors/invalid-post-status-transition.error';
 import { PostContentInvalidError } from '@api/modules/posts/domain/errors/post-content-invalid.error';
+import { PostDeleteNotAllowedError } from '@api/modules/posts/domain/errors/post-delete-not-allowed.error';
 import { PostEditNotAllowedError } from '@api/modules/posts/domain/errors/post-edit-not-allowed.error';
 import {
   PostNotReadyForPublicationError,
@@ -26,6 +27,17 @@ export interface UpdatePostContentProps {
   content: PostContent;
   now: Date;
   readingTimeMinutes: number;
+}
+
+export interface EditPostProps {
+  content?: PostContent;
+  currentSlug?: Slug;
+  excerpt?: string;
+  now: Date;
+  readingTimeMinutes?: number;
+  seoDescription?: string | null;
+  seoTitle?: string | null;
+  title?: string;
 }
 
 export interface RestorePostProps {
@@ -197,6 +209,55 @@ export class Post {
     this.props.archivedAt = null;
   }
 
+  edit(props: EditPostProps): void {
+    if (this.props.status === PostStatus.ARCHIVED) {
+      throw new PostEditNotAllowedError();
+    }
+
+    const nextContent = props.content ?? this.props.content;
+    const nextReadingTime = props.readingTimeMinutes ?? this.props.readingTimeMinutes;
+    const nextExcerpt = props.excerpt ?? this.props.excerpt;
+    const nextSlug = props.currentSlug ?? this.props.currentSlug;
+    const nextTitle = props.title ?? this.props.title;
+
+    if (!Number.isInteger(nextReadingTime) || nextReadingTime < 0) {
+      throw new PostContentInvalidError();
+    }
+
+    if (this.props.status === PostStatus.PUBLISHED) {
+      const missingFields = this.missingPublicationFields({
+        content: nextContent,
+        currentSlug: nextSlug,
+        excerpt: nextExcerpt,
+        title: nextTitle,
+      });
+
+      if (missingFields.length > 0) {
+        throw new PostNotReadyForPublicationError(missingFields);
+      }
+    }
+
+    this.props.content = nextContent;
+    this.props.currentSlug = nextSlug;
+    this.props.excerpt = nextExcerpt;
+    this.props.readingTimeMinutes = nextReadingTime;
+    this.props.seoDescription =
+      props.seoDescription === undefined ? this.props.seoDescription : props.seoDescription;
+    this.props.seoTitle = props.seoTitle === undefined ? this.props.seoTitle : props.seoTitle;
+    this.props.title = nextTitle;
+    this.props.updatedAt = cloneDate(props.now);
+
+    if (this.props.status === PostStatus.PUBLISHED) {
+      this.props.editedAt = cloneDate(props.now);
+    }
+  }
+
+  ensureCanDelete(): void {
+    if (this.props.status === PostStatus.PUBLISHED) {
+      throw new PostDeleteNotAllowedError();
+    }
+  }
+
   updateContent(props: UpdatePostContentProps): void {
     if (this.props.status === PostStatus.ARCHIVED) {
       throw new PostEditNotAllowedError();
@@ -225,19 +286,21 @@ export class Post {
     }
   }
 
-  private missingPublicationFields(): PostPublicationField[] {
+  private missingPublicationFields(
+    fields: Pick<RestorePostProps, 'content' | 'currentSlug' | 'excerpt' | 'title'> = this.props,
+  ): PostPublicationField[] {
     const missingFields: PostPublicationField[] = [];
 
-    if (this.props.title.trim().length === 0) {
+    if (fields.title.trim().length === 0) {
       missingFields.push('title');
     }
-    if (!this.props.excerpt || this.props.excerpt.trim().length === 0) {
+    if (!fields.excerpt || fields.excerpt.trim().length === 0) {
       missingFields.push('excerpt');
     }
-    if (!this.props.currentSlug) {
+    if (!fields.currentSlug) {
       missingFields.push('slug');
     }
-    if (this.props.content.isEmpty) {
+    if (fields.content.isEmpty) {
       missingFields.push('content');
     }
 
