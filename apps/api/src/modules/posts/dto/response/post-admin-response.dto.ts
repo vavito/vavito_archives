@@ -81,3 +81,24 @@ export class PostAdminDetailDto extends PostAdminSummaryDto {
   @ApiProperty({ format: 'date-time' })
   createdAt!: string;
 }
+
+export class PostRevisionAdminDto {
+  @ApiProperty({ format: 'uuid' })
+  id!: string;
+
+  @ApiProperty({ example: 2, minimum: 1 })
+  version!: number;
+
+  @ApiProperty({ type: () => PostAuthorDto })
+  editor!: PostAuthorDto;
+
+  @ApiProperty({
+    additionalProperties: true,
+    description: 'Snapshot integral do post antes da edição publicada.',
+    type: 'object',
+  })
+  snapshot!: Record<string, unknown>;
+
+  @ApiProperty({ format: 'date-time' })
+  createdAt!: string;
+}

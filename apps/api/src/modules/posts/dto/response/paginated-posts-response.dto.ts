@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { PostAdminSummaryDto } from '@api/modules/posts/dto/response/post-admin-response.dto';
+import {
+  PostAdminSummaryDto,
+  PostRevisionAdminDto,
+} from '@api/modules/posts/dto/response/post-admin-response.dto';
 import { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
 import { PaginationMetaDto } from '@api/shared/pagination/dto/pagination-meta.dto';
 
@@ -15,6 +18,14 @@ export class PaginatedPostSummaryDto {
 export class PaginatedPostAdminSummaryDto {
   @ApiProperty({ type: () => [PostAdminSummaryDto] })
   items!: PostAdminSummaryDto[];
+
+  @ApiProperty({ type: () => PaginationMetaDto })
+  meta!: PaginationMetaDto;
+}
+
+export class PaginatedPostRevisionAdminDto {
+  @ApiProperty({ type: () => [PostRevisionAdminDto] })
+  items!: PostRevisionAdminDto[];
 
   @ApiProperty({ type: () => PaginationMetaDto })
   meta!: PaginationMetaDto;
