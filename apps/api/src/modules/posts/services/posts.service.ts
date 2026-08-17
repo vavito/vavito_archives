@@ -14,6 +14,7 @@ import {
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import type { CreatePostDto } from '@api/modules/posts/dto/request/create-post.dto';
 import type { UpdatePostDto } from '@api/modules/posts/dto/request/update-post.dto';
+import { throwPostDomainException } from '@api/modules/posts/errors/post-domain.exception';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
 import {
@@ -65,28 +66,33 @@ export class PostsService {
 
   async archive(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
-    post.archive(new Date());
+    this.executeDomainAction(() => post.archive(new Date()));
     await this.postsRepository.update(post);
     return post;
   }
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
     await this.ensureActiveActor(authorId);
-    const currentSlug = dto.slug ? Slug.create(dto.slug) : null;
+    const requestedSlug = dto.slug;
+    const currentSlug = requestedSlug
+      ? this.executeDomainAction(() => Slug.create(requestedSlug))
+      : null;
 
     if (currentSlug) {
       await this.ensureSlugAvailable(currentSlug);
     }
 
-    const post = Post.create({
-      authorId,
-      content: PostContent.create(EMPTY_POST_DOCUMENT, CURRENT_POST_CONTENT_SCHEMA_VERSION),
-      currentSlug,
-      excerpt: null,
-      id: randomUUID(),
-      now: new Date(),
-      title: dto.title ?? '',
-    });
+    const post = this.executeDomainAction(() =>
+      Post.create({
+        authorId,
+        content: PostContent.create(EMPTY_POST_DOCUMENT, CURRENT_POST_CONTENT_SCHEMA_VERSION),
+        currentSlug,
+        excerpt: null,
+        id: randomUUID(),
+        now: new Date(),
+        title: dto.title ?? '',
+      }),
+    );
 
     await this.postsRepository.create(post);
     return post;
@@ -94,7 +100,7 @@ export class PostsService {
 
   async delete(actorId: string, postId: string): Promise<void> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
-    post.ensureCanDelete();
+    this.executeDomainAction(() => post.ensureCanDelete());
     await this.postsRepository.delete(post.id);
   }
 
@@ -105,21 +111,21 @@ export class PostsService {
       await this.ensureSlugAvailable(post.currentSlug, post.id);
     }
 
-    post.publish(new Date());
+    this.executeDomainAction(() => post.publish(new Date()));
     await this.postsRepository.update(post);
     return post;
   }
 
   async restore(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
-    post.restoreAsDraft();
+    this.executeDomainAction(() => post.restoreAsDraft());
     await this.postsRepository.update(post);
     return post;
   }
 
   async unpublish(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
-    post.unpublish();
+    this.executeDomainAction(() => post.unpublish());
     await this.postsRepository.update(post);
     return post;
   }
@@ -127,7 +133,11 @@ export class PostsService {
   async update(actorId: string, postId: string, dto: UpdatePostDto): Promise<Post> {
     const aggregate = await this.findAuthorizedPost(actorId, postId);
     const post = aggregate.post;
-    const nextSlug = dto.slug ? Slug.create(dto.slug) : undefined;
+    const requestedSlug = dto.slug;
+    const requestedTags = dto.tagNames;
+    const nextSlug = requestedSlug
+      ? this.executeDomainAction(() => Slug.create(requestedSlug))
+      : undefined;
 
     if (nextSlug) {
       await this.ensureSlugAvailable(nextSlug, post.id);
@@ -135,12 +145,17 @@ export class PostsService {
 
     const changesContent = dto.content !== undefined || dto.contentSchemaVersion !== undefined;
     const nextContent = changesContent
-      ? PostContent.create(
-          dto.content ?? post.content.document,
-          dto.contentSchemaVersion ?? post.contentSchemaVersion,
+      ? this.executeDomainAction(() =>
+          PostContent.create(
+            dto.content ?? post.content.document,
+            dto.contentSchemaVersion ?? post.contentSchemaVersion,
+          ),
         )
       : undefined;
-    const tags = dto.tagNames === undefined ? undefined : normalizeTags(dto.tagNames);
+    const tags =
+      requestedTags === undefined
+        ? undefined
+        : this.executeDomainAction(() => normalizeTags(requestedTags));
     const hasEditableChanges =
       changesContent ||
       nextSlug !== undefined ||
@@ -156,17 +171,19 @@ export class PostsService {
 
     const now = new Date();
     const wasPublished = post.status === PostStatus.PUBLISHED;
-    post.edit({
-      now,
-      ...(nextContent
-        ? { content: nextContent, readingTimeMinutes: readingTimeInMinutes(nextContent) }
-        : {}),
-      ...(nextSlug ? { currentSlug: nextSlug } : {}),
-      ...(dto.excerpt !== undefined ? { excerpt: dto.excerpt } : {}),
-      ...(dto.seoDescription !== undefined ? { seoDescription: dto.seoDescription } : {}),
-      ...(dto.seoTitle !== undefined ? { seoTitle: dto.seoTitle } : {}),
-      ...(dto.title !== undefined ? { title: dto.title } : {}),
-    });
+    this.executeDomainAction(() =>
+      post.edit({
+        now,
+        ...(nextContent
+          ? { content: nextContent, readingTimeMinutes: readingTimeInMinutes(nextContent) }
+          : {}),
+        ...(nextSlug ? { currentSlug: nextSlug } : {}),
+        ...(dto.excerpt !== undefined ? { excerpt: dto.excerpt } : {}),
+        ...(dto.seoDescription !== undefined ? { seoDescription: dto.seoDescription } : {}),
+        ...(dto.seoTitle !== undefined ? { seoTitle: dto.seoTitle } : {}),
+        ...(dto.title !== undefined ? { title: dto.title } : {}),
+      }),
+    );
 
     await this.postsRepository.update(post, {
       ...(wasPublished ? { revision: { createdAt: now, editorId: actorId } } : {}),
@@ -183,6 +200,14 @@ export class PostsService {
     }
 
     return role;
+  }
+
+  private executeDomainAction<T>(action: () => T): T {
+    try {
+      return action();
+    } catch (error) {
+      throwPostDomainException(error);
+    }
   }
 
   private async ensureSlugAvailable(slug: Slug, postId?: string): Promise<void> {

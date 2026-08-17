@@ -1,9 +1,9 @@
 import type { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
+import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 import { UserRole } from '@api/generated/prisma/client';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
-import { PostDeleteNotAllowedError } from '@api/modules/posts/domain/errors/post-delete-not-allowed.error';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
@@ -171,9 +171,9 @@ describe('PostsService', () => {
   it('não exclui permanentemente um post publicado', async () => {
     findById.mockResolvedValueOnce(aggregate(post(PostStatus.PUBLISHED)));
 
-    await expect(service.delete(AUTHOR_ID, POST_ID)).rejects.toBeInstanceOf(
-      PostDeleteNotAllowedError,
-    );
+    const result = service.delete(AUTHOR_ID, POST_ID);
+    await expect(result).rejects.toBeInstanceOf(ApplicationException);
+    await expect(result).rejects.toMatchObject({ code: 'POST_DELETE_NOT_ALLOWED' });
     expect(deletePost).not.toHaveBeenCalled();
   });
 
