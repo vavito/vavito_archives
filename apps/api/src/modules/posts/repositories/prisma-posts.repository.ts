@@ -5,6 +5,7 @@ import {
   MediaUsageType,
   Prisma,
   PostStatus as PrismaPostStatus,
+  ReactionType,
 } from '@api/generated/prisma/client';
 import type { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
@@ -15,6 +16,7 @@ import {
   type PaginatedRecords,
   type PostAggregateRecord,
   type PostCoverRecord,
+  type PostRevisionRecord,
   type PostSlugLookupRecord,
   type PostTagRecord,
   type PostUpdateOptions,
@@ -254,8 +256,19 @@ export class PrismaPostsRepository implements PostsRepository {
       return null;
     }
 
+    const reactionCounts = await this.prisma.reaction.groupBy({
+      _count: { _all: true },
+      by: ['type'],
+      where: { postId: record.post.id },
+    });
+    const countByType = new Map(reactionCounts.map((item) => [item.type, item._count._all]));
+
     return {
       ...mapAggregate(record.post),
+      reactionCounts: {
+        dislike: countByType.get(ReactionType.DISLIKE) ?? 0,
+        like: countByType.get(ReactionType.LIKE) ?? 0,
+      },
       requestedSlug: record.slug,
       requestedSlugIsCurrent: record.isCurrent,
     };
@@ -325,6 +338,37 @@ export class PrismaPostsRepository implements PostsRepository {
     ]);
 
     return { items: records.map(mapPublicSummary), total };
+  }
+
+  async listRevisions(
+    postId: string,
+    filters: Pick<AdminPostsFilters, 'limit' | 'page'>,
+  ): Promise<PaginatedRecords<PostRevisionRecord>> {
+    const where: Prisma.PostRevisionWhereInput = { postId };
+    const [total, records] = await this.prisma.$transaction([
+      this.prisma.postRevision.count({ where }),
+      this.prisma.postRevision.findMany({
+        orderBy: [{ version: 'desc' }, { id: 'asc' }],
+        select: {
+          createdAt: true,
+          editor: { select: { displayName: true, id: true } },
+          id: true,
+          snapshot: true,
+          version: true,
+        },
+        skip: paginationOffset(filters.page, filters.limit),
+        take: filters.limit,
+        where,
+      }),
+    ]);
+
+    return {
+      items: records.map((record) => ({
+        ...record,
+        snapshot: structuredClone(record.snapshot) as Record<string, unknown>,
+      })),
+      total,
+    };
   }
 
   async listTags(): Promise<TagWithPublishedCountRecord[]> {

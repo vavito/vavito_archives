@@ -26,6 +26,10 @@ export interface PostAggregateRecord {
 }
 
 export interface PostSlugLookupRecord extends PostAggregateRecord {
+  reactionCounts: {
+    dislike: number;
+    like: number;
+  };
   requestedSlug: string;
   requestedSlugIsCurrent: boolean;
 }
@@ -56,6 +60,14 @@ export interface AdminPostSummaryRecord {
 export interface PaginatedRecords<T> {
   items: T[];
   total: number;
+}
+
+export interface PostRevisionRecord {
+  createdAt: Date;
+  editor: PostAuthorRecord;
+  id: string;
+  snapshot: Record<string, unknown>;
+  version: number;
 }
 
 export interface PublicPostsFilters {
@@ -106,6 +118,10 @@ export abstract class PostsRepository {
   abstract listPublic(
     filters: PublicPostsFilters,
   ): Promise<PaginatedRecords<PublicPostSummaryRecord>>;
+  abstract listRevisions(
+    postId: string,
+    filters: Pick<AdminPostsFilters, 'limit' | 'page'>,
+  ): Promise<PaginatedRecords<PostRevisionRecord>>;
   abstract listTags(): Promise<TagWithPublishedCountRecord[]>;
   abstract replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void>;
   abstract update(post: Post, options?: PostUpdateOptions): Promise<void>;
