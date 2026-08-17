@@ -17,6 +17,7 @@ import {
   type PostCoverRecord,
   type PostSlugLookupRecord,
   type PostTagRecord,
+  type PostUpdateOptions,
   PostsRepository,
   type PublicPostSummaryRecord,
   type PublicPostsFilters,
@@ -192,6 +193,21 @@ function paginationOffset(page: number, limit: number): number {
   return (page - 1) * limit;
 }
 
+function revisionSnapshot(record: PrismaPostAggregate): Prisma.InputJsonObject {
+  return {
+    content: record.content,
+    contentSchemaVersion: record.contentSchemaVersion,
+    coverMediaId: record.mediaAssets[0]?.mediaAsset.id ?? null,
+    excerpt: record.excerpt,
+    readingTimeMinutes: record.readingTimeMinutes,
+    seoDescription: record.seoDescription,
+    seoTitle: record.seoTitle,
+    slug: record.slugs.find(({ isCurrent }) => isCurrent)?.slug ?? null,
+    tagNames: record.tags.map(({ tag }) => tag.name),
+    title: record.title,
+  };
+}
+
 @Injectable()
 export class PrismaPostsRepository implements PostsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -334,39 +350,44 @@ export class PrismaPostsRepository implements PostsRepository {
 
   async replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
-      const uniqueTags = [...new Map(tags.map((tag) => [tag.name, tag])).values()];
-      const persistedTags = await Promise.all(
-        uniqueTags.map((tag) =>
-          transaction.tag.upsert({
-            create: tag,
-            select: { id: true },
-            update: { slug: tag.slug },
-            where: { name: tag.name },
-          }),
-        ),
-      );
-      const tagIds = persistedTags.map(({ id }) => id);
-
-      await transaction.postTag.deleteMany({
-        where: {
-          postId,
-          ...(tagIds.length > 0 ? { tagId: { notIn: tagIds } } : {}),
-        },
-      });
-
-      if (tagIds.length > 0) {
-        await transaction.postTag.createMany({
-          data: tagIds.map((tagId) => ({ postId, tagId })),
-          skipDuplicates: true,
-        });
-      }
+      await this.replaceTagsInTransaction(transaction, postId, tags);
     });
   }
 
-  async update(post: Post): Promise<void> {
+  async update(post: Post, options: PostUpdateOptions = {}): Promise<void> {
     const desiredSlug = post.currentSlug?.value ?? null;
 
     await this.prisma.$transaction(async (transaction) => {
+      if (options.revision) {
+        await transaction.$queryRaw`
+          SELECT "id"
+          FROM "Post"
+          WHERE "id" = ${post.id}::uuid
+          FOR UPDATE
+        `;
+
+        const [previous, latestRevision] = await Promise.all([
+          transaction.post.findUniqueOrThrow({
+            select: POST_AGGREGATE_SELECT,
+            where: { id: post.id },
+          }),
+          transaction.postRevision.aggregate({
+            _max: { version: true },
+            where: { postId: post.id },
+          }),
+        ]);
+
+        await transaction.postRevision.create({
+          data: {
+            createdAt: options.revision.createdAt,
+            editorId: options.revision.editorId,
+            postId: post.id,
+            snapshot: revisionSnapshot(previous),
+            version: (latestRevision._max.version ?? 0) + 1,
+          },
+        });
+      }
+
       const [currentSlug, desiredSlugRecord] = await Promise.all([
         transaction.postSlug.findFirst({
           select: { id: true, slug: true },
@@ -399,32 +420,62 @@ export class PrismaPostsRepository implements PostsRepository {
         where: { id: post.id },
       });
 
-      if (currentSlug?.slug === desiredSlug) {
-        return;
+      if (currentSlug?.slug !== desiredSlug) {
+        if (currentSlug) {
+          await transaction.postSlug.update({
+            data: { isCurrent: false, retiredAt: post.updatedAt },
+            where: { id: currentSlug.id },
+          });
+        }
+
+        if (desiredSlugRecord?.postId === post.id) {
+          await transaction.postSlug.update({
+            data: { isCurrent: true, retiredAt: null },
+            where: { id: desiredSlugRecord.id },
+          });
+        } else if (desiredSlug) {
+          await transaction.postSlug.create({
+            data: { postId: post.id, slug: desiredSlug },
+          });
+        }
       }
 
-      if (currentSlug) {
-        await transaction.postSlug.update({
-          data: { isCurrent: false, retiredAt: post.updatedAt },
-          where: { id: currentSlug.id },
-        });
+      if (options.tags !== undefined) {
+        await this.replaceTagsInTransaction(transaction, post.id, options.tags);
       }
-
-      if (!desiredSlug) {
-        return;
-      }
-
-      if (desiredSlugRecord?.postId === post.id) {
-        await transaction.postSlug.update({
-          data: { isCurrent: true, retiredAt: null },
-          where: { id: desiredSlugRecord.id },
-        });
-        return;
-      }
-
-      await transaction.postSlug.create({
-        data: { postId: post.id, slug: desiredSlug },
-      });
     });
+  }
+
+  private async replaceTagsInTransaction(
+    transaction: Prisma.TransactionClient,
+    postId: string,
+    tags: readonly TagWriteRecord[],
+  ): Promise<void> {
+    const uniqueTags = [...new Map(tags.map((tag) => [tag.slug, tag])).values()];
+    const persistedTags = await Promise.all(
+      uniqueTags.map((tag) =>
+        transaction.tag.upsert({
+          create: tag,
+          select: { id: true },
+          update: { name: tag.name },
+          where: { slug: tag.slug },
+        }),
+      ),
+    );
+    const tagIds = persistedTags.map(({ id }) => id);
+
+    await transaction.postTag.deleteMany({
+      where: {
+        postId,
+        ...(tagIds.length > 0 ? { tagId: { notIn: tagIds } } : {}),
+      },
+    });
+
+    if (tagIds.length > 0) {
+      await transaction.postTag.createMany({
+        data: tagIds.map((tagId) => ({ postId, tagId })),
+        skipDuplicates: true,
+      });
+    }
   }
 }

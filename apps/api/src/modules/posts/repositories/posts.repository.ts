@@ -77,6 +77,16 @@ export interface TagWriteRecord {
   slug: string;
 }
 
+export interface PostRevisionWriteRecord {
+  createdAt: Date;
+  editorId: string;
+}
+
+export interface PostUpdateOptions {
+  revision?: PostRevisionWriteRecord;
+  tags?: readonly TagWriteRecord[];
+}
+
 export interface TagWithPublishedCountRecord extends PostTagRecord {
   publishedPostCount: number;
 }
@@ -98,5 +108,5 @@ export abstract class PostsRepository {
   ): Promise<PaginatedRecords<PublicPostSummaryRecord>>;
   abstract listTags(): Promise<TagWithPublishedCountRecord[]>;
   abstract replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void>;
-  abstract update(post: Post): Promise<void>;
+  abstract update(post: Post, options?: PostUpdateOptions): Promise<void>;
 }
