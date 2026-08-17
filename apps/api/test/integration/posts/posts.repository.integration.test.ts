@@ -30,6 +30,7 @@ interface TestRecords {
 }
 
 interface PostFixtureOverrides {
+  content?: PostContent;
   createdAt?: Date;
   currentSlug?: string | null;
   editedAt?: Date | null;
@@ -55,7 +56,7 @@ function buildPost(authorId: string, overrides: PostFixtureOverrides = {}): Post
   return Post.restore({
     archivedAt: status === PostStatus.ARCHIVED ? now : null,
     authorId,
-    content,
+    content: overrides.content ?? content,
     createdAt: now,
     currentSlug: currentSlug ? Slug.create(currentSlug) : null,
     editedAt: overrides.editedAt ?? null,
@@ -311,5 +312,98 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
       expect.objectContaining({ id: second.id, status: PostStatus.DRAFT }),
     ]);
     expect(result.items[0]).not.toHaveProperty('content');
+  });
+
+  it('salva revisão anterior, post e tags na mesma transação', async () => {
+    const authorId = await createAuthor();
+    const original = buildPost(authorId, {
+      currentSlug: 'post-antes-da-revisao',
+      title: 'Título anterior',
+    });
+    await createPost(original);
+    const oldTag = { name: `Tag antiga ${randomUUID()}`, slug: `tag-antiga-${randomUUID()}` };
+    const newTag = { name: `Tag nova ${randomUUID()}`, slug: `tag-nova-${randomUUID()}` };
+    records.tagNames.push(oldTag.name, newTag.name);
+    await repository.replaceTags(original.id, [oldTag]);
+
+    const editedAt = new Date('2026-08-17T18:00:00.000Z');
+    const updatedContent = PostContent.create(
+      {
+        content: [{ content: [{ text: 'Conteúdo revisado', type: 'text' }], type: 'paragraph' }],
+        type: 'doc',
+      },
+      1,
+    );
+    const updated = buildPost(authorId, {
+      content: updatedContent,
+      createdAt: original.createdAt,
+      currentSlug: 'post-depois-da-revisao',
+      editedAt,
+      id: original.id,
+      publishedAt: original.publishedAt,
+      title: 'Título revisado',
+      updatedAt: editedAt,
+    });
+
+    await repository.update(updated, {
+      revision: { createdAt: editedAt, editorId: authorId },
+      tags: [newTag],
+    });
+
+    const persisted = await prisma.post.findUniqueOrThrow({
+      select: {
+        revisions: { select: { createdAt: true, editorId: true, snapshot: true, version: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+        title: true,
+      },
+      where: { id: original.id },
+    });
+
+    expect(persisted.title).toBe('Título revisado');
+    expect(persisted.tags).toEqual([{ tag: { name: newTag.name } }]);
+    expect(persisted.revisions).toHaveLength(1);
+    expect(persisted.revisions[0]).toMatchObject({
+      createdAt: editedAt,
+      editorId: authorId,
+      version: 1,
+    });
+    expect(persisted.revisions[0]?.snapshot).toMatchObject({
+      slug: 'post-antes-da-revisao',
+      tagNames: [oldTag.name],
+      title: 'Título anterior',
+    });
+  });
+
+  it('reverte a edição do post quando a substituição de tags falha', async () => {
+    const authorId = await createAuthor();
+    const original = buildPost(authorId, {
+      currentSlug: 'post-para-rollback',
+      status: PostStatus.DRAFT,
+      title: 'Título preservado',
+    });
+    await createPost(original);
+    const conflictingName = `Tag conflitante ${randomUUID()}`;
+    records.tagNames.push(conflictingName);
+    await prisma.tag.create({
+      data: { name: conflictingName, slug: `slug-existente-${randomUUID()}` },
+    });
+    const updated = buildPost(authorId, {
+      createdAt: original.createdAt,
+      currentSlug: 'post-para-rollback',
+      id: original.id,
+      status: PostStatus.DRAFT,
+      title: 'Título que deve ser revertido',
+      updatedAt: new Date('2026-08-17T19:00:00.000Z'),
+    });
+
+    await expect(
+      repository.update(updated, {
+        tags: [{ name: conflictingName, slug: `outro-slug-${randomUUID()}` }],
+      }),
+    ).rejects.toMatchObject({ code: 'P2002' });
+
+    await expect(
+      prisma.post.findUniqueOrThrow({ select: { title: true }, where: { id: original.id } }),
+    ).resolves.toEqual({ title: 'Título preservado' });
   });
 });
