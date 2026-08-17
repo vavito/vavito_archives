@@ -14,17 +14,44 @@ import {
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import type { CreatePostDto } from '@api/modules/posts/dto/request/create-post.dto';
 import type { UpdatePostDto } from '@api/modules/posts/dto/request/update-post.dto';
+import type { ListAdminPostsQueryDto } from '@api/modules/posts/dto/query/list-admin-posts-query.dto';
+import type { ListPublicPostsQueryDto } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
+import type {
+  PaginatedPostAdminSummaryDto,
+  PaginatedPostRevisionAdminDto,
+  PaginatedPostSummaryDto,
+} from '@api/modules/posts/dto/response/paginated-posts-response.dto';
+import type { PostAdminDetailDto } from '@api/modules/posts/dto/response/post-admin-response.dto';
+import type { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
+import type { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
 import { throwPostDomainException } from '@api/modules/posts/errors/post-domain.exception';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
+import { PostMapper } from '@api/modules/posts/mappers/post.mapper';
 import {
   type PostAggregateRecord,
   PostsRepository,
   type TagWriteRecord,
 } from '@api/modules/posts/repositories/posts.repository';
+import type { AdminPaginationQueryDto } from '@api/shared/pagination/dto/pagination-query.dto';
 
 const WORDS_PER_MINUTE = 200;
 const EMPTY_POST_DOCUMENT = { content: [], type: 'doc' } as const;
+
+export interface PublicPostDetailResult {
+  canonicalSlug: string;
+  data: PostDetailResponseDto;
+  shouldRedirect: boolean;
+}
+
+function paginationMeta(page: number, limit: number, total: number) {
+  return {
+    limit,
+    page,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
+}
 
 function collectText(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -69,6 +96,84 @@ export class PostsService {
     this.executeDomainAction(() => post.archive(new Date()));
     await this.postsRepository.update(post);
     return post;
+  }
+
+  async getAdminDetail(actorId: string, postId: string): Promise<PostAdminDetailDto> {
+    await this.ensureAdminActor(actorId);
+    const aggregate = await this.postsRepository.findById(postId);
+
+    if (!aggregate) {
+      throw new PostNotFoundException();
+    }
+
+    return PostMapper.fromAggregateToAdminDetail(aggregate);
+  }
+
+  async getPublicDetail(slug: string): Promise<PublicPostDetailResult> {
+    const record = await this.postsRepository.findBySlug(slug);
+
+    if (!record) {
+      throw new PostNotFoundException();
+    }
+
+    const canonicalSlug = record.post.currentSlug?.value;
+
+    if (!canonicalSlug) {
+      throw new PostNotFoundException();
+    }
+
+    return {
+      canonicalSlug,
+      data: PostMapper.fromSlugLookupToPublicDetail(record),
+      shouldRedirect: !record.requestedSlugIsCurrent,
+    };
+  }
+
+  async listAdmin(
+    actorId: string,
+    query: ListAdminPostsQueryDto,
+  ): Promise<PaginatedPostAdminSummaryDto> {
+    await this.ensureAdminActor(actorId);
+    const result = await this.postsRepository.listAdmin(query);
+
+    return {
+      items: result.items.map((item) => PostMapper.fromAdminSummaryRecord(item)),
+      meta: paginationMeta(query.page, query.limit, result.total),
+    };
+  }
+
+  async listPublic(query: ListPublicPostsQueryDto): Promise<PaginatedPostSummaryDto> {
+    const result = await this.postsRepository.listPublic(query);
+
+    return {
+      items: result.items.map((item) => PostMapper.fromPublicSummaryRecord(item)),
+      meta: paginationMeta(query.page, query.limit, result.total),
+    };
+  }
+
+  async listRevisions(
+    actorId: string,
+    postId: string,
+    query: AdminPaginationQueryDto,
+  ): Promise<PaginatedPostRevisionAdminDto> {
+    await this.ensureAdminActor(actorId);
+
+    if (!(await this.postsRepository.findById(postId))) {
+      throw new PostNotFoundException();
+    }
+
+    const result = await this.postsRepository.listRevisions(postId, query);
+
+    return {
+      items: result.items.map((item) => PostMapper.fromRevisionRecord(item)),
+      meta: paginationMeta(query.page, query.limit, result.total),
+    };
+  }
+
+  async listTags(): Promise<TagResponseDto[]> {
+    const tags = await this.postsRepository.listTags();
+
+    return tags.map((tag) => ({ ...tag }));
   }
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
@@ -207,6 +312,12 @@ export class PostsService {
       return action();
     } catch (error) {
       throwPostDomainException(error);
+    }
+  }
+
+  private async ensureAdminActor(actorId: string): Promise<void> {
+    if ((await this.ensureActiveActor(actorId)) !== UserRole.ADMIN) {
+      throw new ForbiddenAccessException();
     }
   }
 

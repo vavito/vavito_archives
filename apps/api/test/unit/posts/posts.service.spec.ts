@@ -6,6 +6,7 @@ import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
+import { PublicPostsSort } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
 import type {
@@ -58,14 +59,24 @@ describe('PostsService', () => {
   const create = jest.fn();
   const deletePost = jest.fn();
   const findById = jest.fn();
+  const findBySlug = jest.fn();
   const findSlugOwner = jest.fn();
+  const listAdmin = jest.fn();
+  const listPublic = jest.fn();
+  const listRevisions = jest.fn();
+  const listTags = jest.fn();
   const update = jest.fn();
   const findActiveRoleByProfileId = jest.fn();
   const repository = {
     create,
     delete: deletePost,
     findById,
+    findBySlug,
     findSlugOwner,
+    listAdmin,
+    listPublic,
+    listRevisions,
+    listTags,
     update,
   } as unknown as PostsRepository;
   const authorizationRepository = {
@@ -99,6 +110,67 @@ describe('PostsService', () => {
       title: 'Meu primeiro post',
     });
     expect(created.currentSlug?.value).toBe('meu-primeiro-post');
+  });
+
+  it('lista posts públicos com resposta e metadados do contrato', async () => {
+    listPublic.mockResolvedValueOnce({
+      items: [
+        {
+          cover: null,
+          excerpt: 'Resumo do post.',
+          id: POST_ID,
+          publishedAt: new Date('2026-08-17T12:00:00.000Z'),
+          readingTimeMinutes: 1,
+          slug: 'post-original',
+          tags: [{ id: OTHER_ID, name: 'NestJS', slug: 'nestjs' }],
+          title: 'Post original',
+          viewsCount: 12,
+        },
+      ],
+      total: 25,
+    });
+
+    await expect(
+      service.listPublic({ limit: 12, page: 2, sort: PublicPostsSort.RECENT }),
+    ).resolves.toEqual({
+      items: [
+        expect.objectContaining({ id: POST_ID, slug: 'post-original', viewCount: 12 }),
+      ],
+      meta: { limit: 12, page: 2, total: 25, totalPages: 3 },
+    });
+  });
+
+  it('retorna detalhe público e sinaliza redirecionamento de slug histórico', async () => {
+    findBySlug.mockResolvedValueOnce({
+      ...aggregate(post(PostStatus.PUBLISHED)),
+      reactionCounts: { dislike: 1, like: 4 },
+      requestedSlug: 'post-antigo',
+      requestedSlugIsCurrent: false,
+    });
+
+    await expect(service.getPublicDetail('post-antigo')).resolves.toMatchObject({
+      canonicalSlug: 'post-original',
+      data: {
+        id: POST_ID,
+        reactionCounts: { dislike: 1, like: 4 },
+        viewer: null,
+      },
+      shouldRedirect: true,
+    });
+  });
+
+  it('restringe listagem administrativa a perfil ADMIN', async () => {
+    listAdmin.mockResolvedValueOnce({ items: [], total: 0 });
+
+    await expect(service.listAdmin(AUTHOR_ID, { limit: 20, page: 1 })).rejects.toBeInstanceOf(
+      ForbiddenAccessException,
+    );
+
+    findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.ADMIN);
+    await expect(service.listAdmin(ADMIN_ID, { limit: 20, page: 1 })).resolves.toEqual({
+      items: [],
+      meta: { limit: 20, page: 1, total: 0, totalPages: 0 },
+    });
   });
 
   it('rejeita a criação quando outro post já possui o slug normalizado', async () => {
