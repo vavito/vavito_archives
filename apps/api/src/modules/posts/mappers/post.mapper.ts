@@ -12,6 +12,7 @@ import type {
   PostAdminDetailDto,
   PostAdminSummaryDto,
   PostAuthorDto,
+  PostRevisionAdminDto,
 } from '@api/modules/posts/dto/response/post-admin-response.dto';
 import type {
   PostDetailResponseDto,
@@ -19,6 +20,14 @@ import type {
 } from '@api/modules/posts/dto/response/post-detail-response.dto';
 import type { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
 import type { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
+import type {
+  AdminPostSummaryRecord,
+  PostAggregateRecord,
+  PostCoverRecord,
+  PostRevisionRecord,
+  PostSlugLookupRecord,
+  PublicPostSummaryRecord,
+} from '@api/modules/posts/repositories/posts.repository';
 
 export type PrismaPostWithSlugs = PrismaPost & {
   slugs: readonly PrismaPostSlug[];
@@ -27,7 +36,7 @@ export type PrismaPostWithSlugs = PrismaPost & {
 export interface PostCoverView {
   alt: string;
   mediaId: string;
-  url: string;
+  url: string | null;
 }
 
 export interface PostResponseContext {
@@ -63,6 +72,23 @@ function cloneContent(post: Post): Record<string, unknown> {
 
 function cloneTags(tags: readonly TagResponseDto[]): TagResponseDto[] {
   return tags.map((tag) => ({ ...tag }));
+}
+
+function coverView(cover: PostCoverRecord | null): PostCoverView | null {
+  if (!cover) {
+    return null;
+  }
+
+  return {
+    alt: cover.altText,
+    mediaId: cover.id,
+    // A URL pública será derivada pelo StorageService do módulo Media na Sprint 5.
+    url: null,
+  };
+}
+
+function responseTags(tags: readonly TagResponseDto[]): TagResponseDto[] {
+  return tags.map(({ id, name, slug }) => ({ id, name, slug }));
 }
 
 function publicFields(post: Post): {
@@ -129,6 +155,63 @@ export class PostMapper {
       title: post.title,
       updatedAt: post.updatedAt,
       viewsCount: post.viewsCount,
+    };
+  }
+
+  static fromPublicSummaryRecord(record: PublicPostSummaryRecord): PostSummaryDto {
+    const cover = coverView(record.cover);
+
+    return {
+      coverAlt: cover?.alt ?? null,
+      coverUrl: cover?.url ?? null,
+      excerpt: record.excerpt,
+      id: record.id,
+      publishedAt: record.publishedAt.toISOString(),
+      readingTimeMinutes: record.readingTimeMinutes,
+      slug: record.slug,
+      tags: responseTags(record.tags),
+      title: record.title,
+      viewCount: record.viewsCount,
+    };
+  }
+
+  static fromAdminSummaryRecord(record: AdminPostSummaryRecord): PostAdminSummaryDto {
+    return {
+      author: { ...record.author },
+      editedAt: toNullableIso(record.editedAt),
+      id: record.id,
+      publishedAt: toNullableIso(record.publishedAt),
+      slug: record.slug,
+      status: record.status,
+      title: record.title,
+      updatedAt: record.updatedAt.toISOString(),
+    };
+  }
+
+  static fromAggregateToAdminDetail(record: PostAggregateRecord): PostAdminDetailDto {
+    return this.toAdminDetail(record.post, {
+      author: record.author,
+      cover: coverView(record.cover),
+      tags: responseTags(record.tags),
+    });
+  }
+
+  static fromSlugLookupToPublicDetail(record: PostSlugLookupRecord): PostDetailResponseDto {
+    return this.toPublicDetail(record.post, {
+      cover: coverView(record.cover),
+      reactionCounts: record.reactionCounts,
+      tags: responseTags(record.tags),
+      viewer: null,
+    });
+  }
+
+  static fromRevisionRecord(record: PostRevisionRecord): PostRevisionAdminDto {
+    return {
+      createdAt: record.createdAt.toISOString(),
+      editor: { ...record.editor },
+      id: record.id,
+      snapshot: structuredClone(record.snapshot),
+      version: record.version,
     };
   }
 
