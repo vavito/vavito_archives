@@ -12,8 +12,10 @@ import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
 import type {
   PostAggregateRecord,
+  RegisterPostViewRecord,
   PostsRepository,
 } from '@api/modules/posts/repositories/posts.repository';
+import type { PostViewFingerprintService } from '@api/modules/posts/services/post-view-fingerprint.service';
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 const AUTHOR_ID = 'ad4ce1ef-339f-45dc-bb91-a2f7ffbf3026';
@@ -67,8 +69,13 @@ describe('PostsService', () => {
   const listRevisions = jest.fn();
   const listTags = jest.fn();
   const searchPublic = jest.fn();
+  const registerView = jest.fn<
+    ReturnType<PostsRepository['registerView']>,
+    Parameters<PostsRepository['registerView']>
+  >();
   const update = jest.fn();
   const findActiveRoleByProfileId = jest.fn();
+  const createDailyFingerprint = jest.fn();
   const repository = {
     create,
     delete: deletePost,
@@ -80,18 +87,23 @@ describe('PostsService', () => {
     listRevisions,
     listTags,
     searchPublic,
+    registerView,
     update,
   } as unknown as PostsRepository;
   const authorizationRepository = {
     findActiveRoleByProfileId,
   } as unknown as ProfileAuthorizationRepository;
-  const service = new PostsService(repository, authorizationRepository);
+  const fingerprintService = {
+    createDailyFingerprint,
+  } as unknown as PostViewFingerprintService;
+  const service = new PostsService(repository, authorizationRepository, fingerprintService);
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers().setSystemTime(NOW);
     findActiveRoleByProfileId.mockResolvedValue(UserRole.USER);
     findSlugOwner.mockResolvedValue(null);
+    createDailyFingerprint.mockReturnValue('daily-fingerprint');
   });
 
   afterEach(() => {
@@ -160,6 +172,36 @@ describe('PostsService', () => {
       },
       shouldRedirect: true,
     });
+  });
+
+  it('registra fingerprint diário para uma visualização aceita', async () => {
+    let registeredSlug: string | undefined;
+    let registeredView: RegisterPostViewRecord | undefined;
+    registerView.mockImplementationOnce((slug, view) => {
+      registeredSlug = slug;
+      registeredView = view;
+      return Promise.resolve({ counted: true, postExists: true });
+    });
+    const signal = { ip: '203.0.113.10', userAgent: 'Vavito Browser' };
+
+    await service.registerView('post-original', signal);
+
+    expect(createDailyFingerprint).toHaveBeenCalledWith(signal, '2026-08-17');
+    expect(registerView).toHaveBeenCalledTimes(1);
+    expect(registeredSlug).toBe('post-original');
+    expect(registeredView).toMatchObject({
+      bucketDate: '2026-08-17',
+      fingerprintHash: 'daily-fingerprint',
+    });
+    expect(registeredView?.id).toMatch(/^[a-f\d-]{36}$/);
+  });
+
+  it('responde como não encontrado ao registrar view de post não publicado', async () => {
+    registerView.mockResolvedValueOnce({ counted: false, postExists: false });
+
+    await expect(
+      service.registerView('rascunho', { ip: '203.0.113.10', userAgent: 'Vavito Browser' }),
+    ).rejects.toBeInstanceOf(PostNotFoundException);
   });
 
   it('normaliza o termo e limita a busca pública a oito resumos', async () => {

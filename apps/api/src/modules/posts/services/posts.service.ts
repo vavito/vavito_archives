@@ -38,6 +38,10 @@ import {
   PostsRepository,
   type TagWriteRecord,
 } from '@api/modules/posts/repositories/posts.repository';
+import {
+  PostViewFingerprintService,
+  type PostViewSignal,
+} from '@api/modules/posts/services/post-view-fingerprint.service';
 import type { AdminPaginationQueryDto } from '@api/shared/pagination/dto/pagination-query.dto';
 
 const WORDS_PER_MINUTE = 200;
@@ -94,6 +98,7 @@ export class PostsService {
   constructor(
     private readonly postsRepository: PostsRepository,
     private readonly profileAuthorizationRepository: ProfileAuthorizationRepository,
+    private readonly postViewFingerprintService: PostViewFingerprintService,
   ) {}
 
   async archive(actorId: string, postId: string): Promise<Post> {
@@ -245,6 +250,19 @@ export class PostsService {
     this.executeDomainAction(() => post.restoreAsDraft());
     await this.postsRepository.update(post);
     return post;
+  }
+
+  async registerView(slug: string, signal: PostViewSignal): Promise<void> {
+    const bucketDate = new Date().toISOString().slice(0, 10);
+    const result = await this.postsRepository.registerView(slug, {
+      bucketDate,
+      fingerprintHash: this.postViewFingerprintService.createDailyFingerprint(signal, bucketDate),
+      id: randomUUID(),
+    });
+
+    if (!result.postExists) {
+      throw new PostNotFoundException();
+    }
   }
 
   async unpublish(actorId: string, postId: string): Promise<Post> {
