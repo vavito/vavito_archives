@@ -1,11 +1,24 @@
-import { Controller, Get, HttpStatus, Param, Query, Res } from '@nestjs/common';
 import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiAcceptedResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
 
 import { Public } from '@api/core/auth/decorators/public.decorator';
@@ -15,11 +28,17 @@ import { SearchPostsQueryDto } from '@api/modules/posts/dto/query/search-posts-q
 import { PaginatedPostSummaryDto } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
 import { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
 import { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
+import { PostViewsRateLimitGuard } from '@api/modules/posts/guards/post-views-rate-limit.guard';
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 interface RedirectResponse {
   location(path: string): RedirectResponse;
   status(statusCode: number): RedirectResponse;
+}
+
+interface PostViewRequest {
+  headers: { 'user-agent'?: string };
+  ip: string;
 }
 
 @Public()
@@ -64,5 +83,22 @@ export class PostsController {
     }
 
     return result.data;
+  }
+
+  @Post(':slug/views')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseGuards(PostViewsRateLimitGuard)
+  @ApiOperation({ summary: 'Registra uma visualização do post publicado' })
+  @ApiAcceptedResponse({ description: 'Visualização aceita para processamento.' })
+  @ApiNotFoundResponse({ description: 'Post inexistente ou não publicado.', type: ErrorResponseDto })
+  @ApiTooManyRequestsResponse({
+    description: 'Limite de registros de visualização excedido.',
+    type: ErrorResponseDto,
+  })
+  async registerView(@Param('slug') slug: string, @Req() request: PostViewRequest): Promise<void> {
+    await this.postsService.registerView(slug, {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'] ?? '',
+    });
   }
 }

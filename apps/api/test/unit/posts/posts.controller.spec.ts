@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 
 import {
   PUBLIC_ROUTE_METADATA_KEY,
@@ -11,6 +12,7 @@ import { TagsController } from '@api/modules/posts/controllers/tags.controller';
 import { PublicPostsSort } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
 import type { PostAdminDetailDto } from '@api/modules/posts/dto/response/post-admin-response.dto';
 import type { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
+import { PostViewsRateLimitGuard } from '@api/modules/posts/guards/post-views-rate-limit.guard';
 import type { PostsService } from '@api/modules/posts/services/posts.service';
 
 const ADMIN_ID = '4ef89da4-7cd3-48e4-972a-7855f24d9da7';
@@ -29,6 +31,7 @@ function services() {
   const listTags = jest.fn();
   const publish = jest.fn();
   const restore = jest.fn();
+  const registerView = jest.fn();
   const searchPublic = jest.fn();
   const unpublish = jest.fn();
   const update = jest.fn();
@@ -44,6 +47,7 @@ function services() {
     listTags,
     publish,
     restore,
+    registerView,
     searchPublic,
     unpublish,
     update,
@@ -61,6 +65,7 @@ function services() {
     listTags,
     publish,
     restore,
+    registerView,
     searchPublic,
     service,
     unpublish,
@@ -73,6 +78,14 @@ describe('Controllers de Posts', () => {
     expect(Reflect.getMetadata(PUBLIC_ROUTE_METADATA_KEY, PostsController)).toBe(true);
     expect(Reflect.getMetadata(PUBLIC_ROUTE_METADATA_KEY, TagsController)).toBe(true);
     expect(Reflect.getMetadata(ROLES_METADATA_KEY, AdminPostsController)).toEqual([UserRole.ADMIN]);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(Reflect.getMetadata(HTTP_CODE_METADATA, PostsController.prototype.registerView)).toBe(
+      HttpStatus.ACCEPTED,
+    );
+    expect(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      Reflect.getMetadata(GUARDS_METADATA, PostsController.prototype.registerView),
+    ).toContain(PostViewsRateLimitGuard);
   });
 
   it('lista posts públicos e tags por meio do service', async () => {
@@ -116,6 +129,21 @@ describe('Controllers de Posts', () => {
     await expect(controller.getBySlug('slug-antigo', response)).resolves.toBe(detail);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.PERMANENT_REDIRECT);
     expect(response.location).toHaveBeenCalledWith('/api/v1/posts/slug-atual');
+  });
+
+  it('registra visualização usando apenas o sinal técnico extraído da requisição', async () => {
+    const mocks = services();
+    const controller = new PostsController(mocks.service);
+
+    await controller.registerView('post-publicado', {
+      headers: { 'user-agent': 'Vavito Browser' },
+      ip: '203.0.113.10',
+    });
+
+    expect(mocks.registerView).toHaveBeenCalledWith('post-publicado', {
+      ip: '203.0.113.10',
+      userAgent: 'Vavito Browser',
+    });
   });
 
   it('cria o post e devolve o detalhe administrativo persistido', async () => {
