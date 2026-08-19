@@ -108,6 +108,17 @@ export interface SlugOwnerRecord {
   postId: string;
 }
 
+export interface RegisterPostViewRecord {
+  bucketDate: string;
+  fingerprintHash: string;
+  id: string;
+}
+
+export interface RegisterPostViewResult {
+  counted: boolean;
+  postExists: boolean;
+}
+
 export abstract class PostsRepository {
   abstract create(post: Post): Promise<void>;
   abstract delete(id: string): Promise<void>;
@@ -125,5 +136,9 @@ export abstract class PostsRepository {
   ): Promise<PaginatedRecords<PostRevisionRecord>>;
   abstract listTags(): Promise<TagWithPublishedCountRecord[]>;
   abstract replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void>;
+  abstract registerView(
+    slug: string,
+    view: RegisterPostViewRecord,
+  ): Promise<RegisterPostViewResult>;
   abstract update(post: Post, options?: PostUpdateOptions): Promise<void>;
 }

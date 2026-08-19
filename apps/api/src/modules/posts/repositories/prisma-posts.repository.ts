@@ -27,6 +27,8 @@ import {
   PostsRepository,
   type PublicPostSummaryRecord,
   type PublicPostsFilters,
+  type RegisterPostViewRecord,
+  type RegisterPostViewResult,
   type SlugOwnerRecord,
   type TagWithPublishedCountRecord,
   type TagWriteRecord,
@@ -424,6 +426,50 @@ export class PrismaPostsRepository implements PostsRepository {
     await this.prisma.$transaction(async (transaction) => {
       await this.replaceTagsInTransaction(transaction, postId, tags);
     });
+  }
+
+  async registerView(
+    slug: string,
+    view: RegisterPostViewRecord,
+  ): Promise<RegisterPostViewResult> {
+    const [result] = await this.prisma.$queryRaw<RegisterPostViewResult[]>`
+      WITH "published_post" AS (
+        SELECT "post"."id"
+        FROM "PostSlug" AS "post_slug"
+        INNER JOIN "Post" AS "post" ON "post"."id" = "post_slug"."postId"
+        WHERE
+          "post_slug"."slug" = ${slug}
+          AND "post"."status" = 'PUBLISHED'::"PostStatus"
+        LIMIT 1
+      ),
+      "inserted_view" AS (
+        INSERT INTO "PostView" (
+          "id",
+          "postId",
+          "fingerprintHash",
+          "bucketDate"
+        )
+        SELECT
+          ${view.id}::uuid,
+          "published_post"."id",
+          ${view.fingerprintHash},
+          ${view.bucketDate}::date
+        FROM "published_post"
+        ON CONFLICT ("postId", "fingerprintHash", "bucketDate") DO NOTHING
+        RETURNING "postId"
+      ),
+      "updated_post" AS (
+        UPDATE "Post"
+        SET "viewsCount" = "viewsCount" + 1
+        WHERE "id" IN (SELECT "postId" FROM "inserted_view")
+        RETURNING "id"
+      )
+      SELECT
+        EXISTS(SELECT 1 FROM "published_post") AS "postExists",
+        EXISTS(SELECT 1 FROM "updated_post") AS "counted"
+    `;
+
+    return result ?? { counted: false, postExists: false };
   }
 
   async update(post: Post, options: PostUpdateOptions = {}): Promise<void> {

@@ -407,6 +407,66 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     expect(JSON.stringify(plan)).toMatch(/(?:Index|Bitmap).*Scan/);
   });
 
+  it('deduplica views concorrentes e atualiza o ranking somente para posts publicados', async () => {
+    const authorId = await createAuthor('Autor das visualizações');
+    const mostViewed = buildPost(authorId, {
+      currentSlug: `mais-visto-${randomUUID()}`,
+      title: 'Post mais visto',
+    });
+    const lessViewed = buildPost(authorId, {
+      currentSlug: `menos-visto-${randomUUID()}`,
+      title: 'Post menos visto',
+    });
+    const draft = buildPost(authorId, {
+      currentSlug: `rascunho-view-${randomUUID()}`,
+      status: PostStatus.DRAFT,
+      title: 'Rascunho sem visualizações',
+    });
+    await createPost(mostViewed);
+    await createPost(lessViewed);
+    await createPost(draft);
+
+    const duplicatedAttempts = await Promise.all([
+      repository.registerView(mostViewed.currentSlug!.value, {
+        bucketDate: '2026-08-19',
+        fingerprintHash: 'same-daily-fingerprint',
+        id: randomUUID(),
+      }),
+      repository.registerView(mostViewed.currentSlug!.value, {
+        bucketDate: '2026-08-19',
+        fingerprintHash: 'same-daily-fingerprint',
+        id: randomUUID(),
+      }),
+    ]);
+    await repository.registerView(mostViewed.currentSlug!.value, {
+      bucketDate: '2026-08-19',
+      fingerprintHash: 'another-daily-fingerprint',
+      id: randomUUID(),
+    });
+    await repository.registerView(lessViewed.currentSlug!.value, {
+      bucketDate: '2026-08-19',
+      fingerprintHash: 'less-viewed-fingerprint',
+      id: randomUUID(),
+    });
+    const draftResult = await repository.registerView(draft.currentSlug!.value, {
+      bucketDate: '2026-08-19',
+      fingerprintHash: 'draft-fingerprint',
+      id: randomUUID(),
+    });
+
+    const ranking = await repository.listPublic({ limit: 10, page: 1, sort: 'popular' });
+    const persistedViews = await prisma.postView.count({ where: { postId: mostViewed.id } });
+
+    expect(duplicatedAttempts.filter(({ counted }) => counted)).toHaveLength(1);
+    expect(draftResult).toEqual({ counted: false, postExists: false });
+    expect(persistedViews).toBe(2);
+    expect(ranking.items.slice(0, 2).map(({ id }) => id)).toEqual([
+      mostViewed.id,
+      lessViewed.id,
+    ]);
+    expect(ranking.items.slice(0, 2).map(({ viewsCount }) => viewsCount)).toEqual([2, 1]);
+  });
+
   it('salva revisão anterior, post e tags na mesma transação', async () => {
     const authorId = await createAuthor();
     const original = buildPost(authorId, {
