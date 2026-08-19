@@ -29,6 +29,7 @@ function services() {
   const listTags = jest.fn();
   const publish = jest.fn();
   const restore = jest.fn();
+  const searchPublic = jest.fn();
   const unpublish = jest.fn();
   const update = jest.fn();
   const service = {
@@ -43,6 +44,7 @@ function services() {
     listTags,
     publish,
     restore,
+    searchPublic,
     unpublish,
     update,
   } as unknown as PostsService;
@@ -59,6 +61,7 @@ function services() {
     listTags,
     publish,
     restore,
+    searchPublic,
     service,
     unpublish,
     update,
@@ -84,6 +87,16 @@ describe('Controllers de Posts', () => {
 
     await expect(postsController.list(query)).resolves.toEqual(posts);
     await expect(tagsController.list()).resolves.toEqual(tags);
+  });
+
+  it('busca posts públicos antes da rota dinâmica de slug', async () => {
+    const mocks = services();
+    const controller = new PostsController(mocks.service);
+    const results = [{ id: POST_ID }];
+    mocks.searchPublic.mockResolvedValueOnce(results);
+
+    await expect(controller.search({ q: 'nestjs' })).resolves.toBe(results);
+    expect(mocks.searchPublic).toHaveBeenCalledWith({ q: 'nestjs' });
   });
 
   it('marca slug histórico com redirecionamento permanente para a rota canônica', async () => {

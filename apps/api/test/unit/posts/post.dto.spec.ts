@@ -77,6 +77,13 @@ describe('DTOs de posts', () => {
     await expect(validate(query)).resolves.not.toHaveLength(0);
   });
 
+  it('normaliza caixa, Unicode e espaços do termo de busca', async () => {
+    const query = plainToInstance(SearchPostsQueryDto, { q: '  NESTJS   E   AÇÃO  ' });
+
+    await expect(validate(query)).resolves.toHaveLength(0);
+    expect(query.q).toBe('nestjs e ação');
+  });
+
   it('normaliza o título inicial sem exigir dados completos de publicação', async () => {
     const request = plainToInstance(CreatePostDto, {
       title: '  Meu   rascunho  ',

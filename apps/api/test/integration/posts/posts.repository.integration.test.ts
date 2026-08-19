@@ -5,6 +5,7 @@ import type { ConfigService } from '@nestjs/config';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 import { MediaAssetStatus, MediaUsageType, UserRole } from '@api/generated/prisma/client';
+import { Prisma } from '@api/generated/prisma/client';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
@@ -312,6 +313,98 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
       expect.objectContaining({ id: second.id, status: PostStatus.DRAFT }),
     ]);
     expect(result.items[0]).not.toHaveProperty('content');
+  });
+
+  it('busca somente posts publicados por título, resumo e tag', async () => {
+    const authorId = await createAuthor('Autora da busca');
+    const searchToken = `postgresql${randomUUID().replaceAll('-', '')}`;
+    const titleMatch = buildPost(authorId, {
+      currentSlug: `${searchToken}-titulo`,
+      excerpt: 'Resumo sem o termo principal.',
+      title: `${searchToken} para aplicações web`,
+    });
+    const excerptMatch = buildPost(authorId, {
+      currentSlug: `${searchToken}-resumo`,
+      excerpt: `Uma introdução prática ao ${searchToken}.`,
+      title: 'Banco de dados relacional',
+    });
+    const tagMatch = buildPost(authorId, {
+      currentSlug: `${searchToken}-tag`,
+      excerpt: 'Resumo sem o termo principal.',
+      title: 'Persistência moderna',
+    });
+    const draftMatch = buildPost(authorId, {
+      currentSlug: `${searchToken}-rascunho`,
+      status: PostStatus.DRAFT,
+      title: 'PostgreSQL ainda privado',
+    });
+    await createPost(titleMatch);
+    await createPost(excerptMatch);
+    await createPost(tagMatch);
+    await createPost(draftMatch);
+
+    const tag = { name: searchToken, slug: searchToken };
+    records.tagNames.push(tag.name);
+    await repository.replaceTags(tagMatch.id, [tag]);
+
+    const results = await repository.searchPublic(searchToken, 8);
+
+    expect(results.map(({ id }) => id)).toEqual([
+      titleMatch.id,
+      tagMatch.id,
+      excerptMatch.id,
+    ]);
+    expect(results.map(({ id }) => id)).not.toContain(draftMatch.id);
+    expect(results.every((result) => !('content' in result))).toBe(true);
+  });
+
+  it('limita a busca e mantém desempate estável por publicação e id', async () => {
+    const authorId = await createAuthor('Autor do limite');
+    const publishedAt = new Date('2026-08-18T12:00:00.000Z');
+    const searchToken = `limite${randomUUID().replaceAll('-', '')}`;
+    const posts = Array.from({ length: 9 }, (_, index) =>
+      buildPost(authorId, {
+        currentSlug: `${searchToken}-${index}`,
+        id: `10000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+        publishedAt,
+        title: searchToken,
+      }),
+    );
+    await Promise.all(posts.map(createPost));
+
+    const results = await repository.searchPublic(searchToken, 8);
+
+    expect(results).toHaveLength(8);
+    expect(results.map(({ id }) => id)).toEqual(posts.slice(0, 8).map(({ id }) => id));
+  });
+
+  it('mantém o índice trigram disponível e explica o plano da busca publicada', async () => {
+    const indexes = await prisma.$queryRaw<Array<{ indexdef: string; indexname: string }>>`
+      SELECT "indexname", "indexdef"
+      FROM "pg_indexes"
+      WHERE
+        "schemaname" = 'public'
+        AND "tablename" = 'Post'
+        AND "indexname" = 'Post_published_title_trgm_idx'
+    `;
+    const plan = await prisma.$transaction(async (transaction) => {
+      await transaction.$executeRaw`SET LOCAL enable_seqscan = off`;
+
+      return transaction.$queryRaw<Array<{ 'QUERY PLAN': unknown }>>(Prisma.sql`
+        EXPLAIN (FORMAT JSON)
+        SELECT "id"
+        FROM "Post"
+        WHERE
+          "status" = 'PUBLISHED'::"PostStatus"
+          AND lower("title") LIKE '%postgresql%' ESCAPE '\'
+      `);
+    });
+
+    expect(indexes).toHaveLength(1);
+    expect(indexes[0]?.indexname).toBe('Post_published_title_trgm_idx');
+    expect(indexes[0]?.indexdef).toContain('USING gin');
+    expect(indexes[0]?.indexdef).toContain('gin_trgm_ops');
+    expect(JSON.stringify(plan)).toMatch(/(?:Index|Bitmap).*Scan/);
   });
 
   it('salva revisão anterior, post e tags na mesma transação', async () => {

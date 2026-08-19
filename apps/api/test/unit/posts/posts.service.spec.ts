@@ -7,6 +7,7 @@ import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import { PublicPostsSort } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
+import { POST_SEARCH_MAX_RESULTS } from '@api/modules/posts/dto/query/search-posts-query.dto';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
 import type {
@@ -65,6 +66,7 @@ describe('PostsService', () => {
   const listPublic = jest.fn();
   const listRevisions = jest.fn();
   const listTags = jest.fn();
+  const searchPublic = jest.fn();
   const update = jest.fn();
   const findActiveRoleByProfileId = jest.fn();
   const repository = {
@@ -77,6 +79,7 @@ describe('PostsService', () => {
     listPublic,
     listRevisions,
     listTags,
+    searchPublic,
     update,
   } as unknown as PostsRepository;
   const authorizationRepository = {
@@ -157,6 +160,28 @@ describe('PostsService', () => {
       },
       shouldRedirect: true,
     });
+  });
+
+  it('normaliza o termo e limita a busca pública a oito resumos', async () => {
+    searchPublic.mockResolvedValueOnce([
+      {
+        cover: null,
+        excerpt: 'Resumo do post.',
+        id: POST_ID,
+        publishedAt: new Date('2026-08-17T12:00:00.000Z'),
+        readingTimeMinutes: 1,
+        slug: 'post-original',
+        tags: [],
+        title: 'Post original',
+        viewsCount: 12,
+      },
+    ]);
+
+    await expect(service.searchPublic({ q: '  NESTJS   E   AÇÃO  ' })).resolves.toEqual([
+      expect.objectContaining({ id: POST_ID, viewCount: 12 }),
+    ]);
+    expect(searchPublic).toHaveBeenCalledWith('nestjs e ação', POST_SEARCH_MAX_RESULTS);
+    expect(POST_SEARCH_MAX_RESULTS).toBe(8);
   });
 
   it('restringe listagem administrativa a perfil ADMIN', async () => {
