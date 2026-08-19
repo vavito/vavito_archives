@@ -11,8 +11,10 @@ import {
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import { ListPublicPostsQueryDto } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
+import { SearchPostsQueryDto } from '@api/modules/posts/dto/query/search-posts-query.dto';
 import { PaginatedPostSummaryDto } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
 import { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
+import { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 interface RedirectResponse {
@@ -32,6 +34,13 @@ export class PostsController {
   @ApiOkResponse({ type: PaginatedPostSummaryDto })
   list(@Query() query: ListPublicPostsQueryDto): Promise<PaginatedPostSummaryDto> {
     return this.postsService.listPublic(query);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Busca posts publicados por título, resumo ou tag' })
+  @ApiOkResponse({ type: [PostSummaryDto] })
+  search(@Query() query: SearchPostsQueryDto): Promise<PostSummaryDto[]> {
+    return this.postsService.searchPublic(query);
   }
 
   @Get(':slug')

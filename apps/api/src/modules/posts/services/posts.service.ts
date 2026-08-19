@@ -16,6 +16,10 @@ import type { CreatePostDto } from '@api/modules/posts/dto/request/create-post.d
 import type { UpdatePostDto } from '@api/modules/posts/dto/request/update-post.dto';
 import type { ListAdminPostsQueryDto } from '@api/modules/posts/dto/query/list-admin-posts-query.dto';
 import type { ListPublicPostsQueryDto } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
+import {
+  POST_SEARCH_MAX_RESULTS,
+  type SearchPostsQueryDto,
+} from '@api/modules/posts/dto/query/search-posts-query.dto';
 import type {
   PaginatedPostAdminSummaryDto,
   PaginatedPostRevisionAdminDto,
@@ -23,6 +27,7 @@ import type {
 } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
 import type { PostAdminDetailDto } from '@api/modules/posts/dto/response/post-admin-response.dto';
 import type { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
+import type { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
 import type { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
 import { throwPostDomainException } from '@api/modules/posts/errors/post-domain.exception';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
@@ -168,6 +173,20 @@ export class PostsService {
       items: result.items.map((item) => PostMapper.fromRevisionRecord(item)),
       meta: paginationMeta(query.page, query.limit, result.total),
     };
+  }
+
+  async searchPublic(query: SearchPostsQueryDto): Promise<PostSummaryDto[]> {
+    const normalizedQuery = query.q
+      .normalize('NFC')
+      .trim()
+      .replaceAll(/\s+/g, ' ')
+      .toLocaleLowerCase('pt-BR');
+    const records = await this.postsRepository.searchPublic(
+      normalizedQuery,
+      POST_SEARCH_MAX_RESULTS,
+    );
+
+    return records.map((record) => PostMapper.fromPublicSummaryRecord(record));
   }
 
   async listTags(): Promise<TagResponseDto[]> {

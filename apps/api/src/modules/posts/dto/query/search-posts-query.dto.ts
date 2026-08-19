@@ -8,7 +8,9 @@ export const POST_SEARCH_QUERY_MAX_LENGTH = 200;
 export class SearchPostsQueryDto {
   @ApiProperty({ example: 'nestjs', maxLength: POST_SEARCH_QUERY_MAX_LENGTH })
   @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().replaceAll(/\s+/g, ' ') : value,
+    typeof value === 'string'
+      ? value.normalize('NFC').trim().replaceAll(/\s+/g, ' ').toLocaleLowerCase('pt-BR')
+      : value,
   )
   @IsString()
   @IsNotEmpty()
