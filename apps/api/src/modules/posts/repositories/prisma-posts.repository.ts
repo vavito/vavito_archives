@@ -11,6 +11,10 @@ import type { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostMapper } from '@api/modules/posts/mappers/post.mapper';
 import {
+  buildPostSearchQuery,
+  type PostSearchIdRecord,
+} from '@api/modules/posts/repositories/post-search.query';
+import {
   type AdminPostSummaryRecord,
   type AdminPostsFilters,
   type PaginatedRecords,
@@ -369,6 +373,30 @@ export class PrismaPostsRepository implements PostsRepository {
       })),
       total,
     };
+  }
+
+  async searchPublic(query: string, limit: number): Promise<PublicPostSummaryRecord[]> {
+    const matches = await this.prisma.$queryRaw<PostSearchIdRecord[]>(
+      buildPostSearchQuery(query, limit),
+    );
+
+    if (matches.length === 0) {
+      return [];
+    }
+
+    const records = await this.prisma.post.findMany({
+      select: PUBLIC_POST_SUMMARY_SELECT,
+      where: {
+        id: { in: matches.map(({ id }) => id) },
+        status: PrismaPostStatus.PUBLISHED,
+      },
+    });
+    const recordById = new Map(records.map((record) => [record.id, record]));
+
+    return matches.flatMap(({ id }) => {
+      const record = recordById.get(id);
+      return record ? [mapPublicSummary(record)] : [];
+    });
   }
 
   async listTags(): Promise<TagWithPublishedCountRecord[]> {

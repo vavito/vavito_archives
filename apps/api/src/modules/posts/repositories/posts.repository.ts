@@ -118,6 +118,7 @@ export abstract class PostsRepository {
   abstract listPublic(
     filters: PublicPostsFilters,
   ): Promise<PaginatedRecords<PublicPostSummaryRecord>>;
+  abstract searchPublic(query: string, limit: number): Promise<PublicPostSummaryRecord[]>;
   abstract listRevisions(
     postId: string,
     filters: Pick<AdminPostsFilters, 'limit' | 'page'>,
