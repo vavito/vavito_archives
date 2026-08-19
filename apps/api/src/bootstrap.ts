@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from '@api/app.module';
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
@@ -22,7 +23,8 @@ export function configureApplication(
 }
 
 export async function createApplication(): Promise<INestApplication> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.set('trust proxy', 1);
   const configService = app.get(ConfigService<ApplicationConfig, true>);
 
   return configureApplication(app, configService);
