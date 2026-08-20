@@ -30,6 +30,18 @@ function createPost(overrides: Partial<Parameters<typeof Post.create>[0]> = {}):
   });
 }
 
+function createPostInStatus(status: PostStatus): Post {
+  const post = createPost();
+
+  if (status === PostStatus.PUBLISHED) {
+    post.publish(new Date('2026-08-16T11:00:00.000Z'));
+  } else if (status === PostStatus.ARCHIVED) {
+    post.archive(new Date('2026-08-16T12:00:00.000Z'));
+  }
+
+  return post;
+}
+
 describe('Post', () => {
   it('cria um rascunho sem datas de publicação, edição ou arquivamento', () => {
     const post = createPost();
@@ -222,33 +234,22 @@ describe('Post', () => {
   });
 
   it.each([
-    ['publicar novamente', (post: Post) => post.publish(new Date())],
-    ['restaurar sem arquivar', (post: Post) => post.restoreAsDraft()],
-  ])('rejeita a transição inválida ao %s', (_label, transition) => {
-    const post = createPost();
-    post.publish(new Date('2026-08-16T11:00:00.000Z'));
+    ['publicar', PostStatus.PUBLISHED, (post: Post) => post.publish(new Date())],
+    ['publicar', PostStatus.ARCHIVED, (post: Post) => post.publish(new Date())],
+    ['despublicar', PostStatus.DRAFT, (post: Post) => post.unpublish()],
+    ['despublicar', PostStatus.ARCHIVED, (post: Post) => post.unpublish()],
+    ['restaurar', PostStatus.DRAFT, (post: Post) => post.restoreAsDraft()],
+    ['restaurar', PostStatus.PUBLISHED, (post: Post) => post.restoreAsDraft()],
+    ['arquivar', PostStatus.ARCHIVED, (post: Post) => post.archive(new Date())],
+  ] as const)(
+    'rejeita %s quando o post está em %s sem alterar o estado',
+    (_action, status, transition) => {
+      const post = createPostInStatus(status);
 
-    expect(() => transition(post)).toThrow(InvalidPostStatusTransitionError);
-    expect(post.status).toBe(PostStatus.PUBLISHED);
-  });
-
-  it('rejeita despublicar um rascunho', () => {
-    const post = createPost();
-
-    expect(() => post.unpublish()).toThrow(InvalidPostStatusTransitionError);
-    expect(post.status).toBe(PostStatus.DRAFT);
-  });
-
-  it('rejeita arquivar um post já arquivado', () => {
-    const post = createPost();
-    const archivedAt = new Date('2026-08-16T12:00:00.000Z');
-    post.archive(archivedAt);
-
-    expect(() => post.archive(new Date('2026-08-16T13:00:00.000Z'))).toThrow(
-      InvalidPostStatusTransitionError,
-    );
-    expect(post.archivedAt).toEqual(archivedAt);
-  });
+      expect(() => transition(post)).toThrow(InvalidPostStatusTransitionError);
+      expect(post.status).toBe(status);
+    },
+  );
 
   it('protege conteúdo e datas contra mutação externa', () => {
     const contentDocument = structuredClone(CONTENT_DOCUMENT);
