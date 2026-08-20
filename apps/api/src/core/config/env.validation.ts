@@ -27,6 +27,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   VIEW_FINGERPRINT_SECRET: Joi.string().min(32).required(),
   SUPABASE_SERVICE_ROLE_KEY: Joi.string().min(20).required(),
   SUPABASE_AVATARS_BUCKET: Joi.string().trim().min(1).default('avatars'),
+  SUPABASE_MEDIA_BUCKET: Joi.string().trim().min(1).default('media'),
   SUPABASE_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .required(),
