@@ -148,9 +148,7 @@ describe('PostsService', () => {
     await expect(
       service.listPublic({ limit: 12, page: 2, sort: PublicPostsSort.RECENT }),
     ).resolves.toEqual({
-      items: [
-        expect.objectContaining({ id: POST_ID, slug: 'post-original', viewCount: 12 }),
-      ],
+      items: [expect.objectContaining({ id: POST_ID, slug: 'post-original', viewCount: 12 })],
       meta: { limit: 12, page: 2, total: 25, totalPages: 3 },
     });
   });
@@ -306,6 +304,35 @@ describe('PostsService', () => {
     expect(published.status).toBe(PostStatus.PUBLISHED);
     expect(update).toHaveBeenCalledWith(restoredPost);
   });
+
+  it.each([
+    ['arquiva rascunho', 'archive', PostStatus.DRAFT, PostStatus.ARCHIVED],
+    ['arquiva post publicado', 'archive', PostStatus.PUBLISHED, PostStatus.ARCHIVED],
+    ['restaura post arquivado', 'restore', PostStatus.ARCHIVED, PostStatus.DRAFT],
+    ['despublica post publicado', 'unpublish', PostStatus.PUBLISHED, PostStatus.DRAFT],
+  ] as const)(
+    '%s e persiste o novo estado',
+    async (_label, action, initialStatus, expectedStatus) => {
+      const restoredPost = post(initialStatus);
+      findById.mockResolvedValueOnce(aggregate(restoredPost));
+
+      const transitionedPost = await service[action](AUTHOR_ID, POST_ID);
+
+      expect(transitionedPost.status).toBe(expectedStatus);
+      expect(update).toHaveBeenCalledWith(restoredPost);
+    },
+  );
+
+  it.each([PostStatus.DRAFT, PostStatus.ARCHIVED])(
+    'exclui permanentemente um post em %s',
+    async (status) => {
+      findById.mockResolvedValueOnce(aggregate(post(status)));
+
+      await service.delete(AUTHOR_ID, POST_ID);
+
+      expect(deletePost).toHaveBeenCalledWith(POST_ID);
+    },
+  );
 
   it('não exclui permanentemente um post publicado', async () => {
     findById.mockResolvedValueOnce(aggregate(post(PostStatus.PUBLISHED)));
