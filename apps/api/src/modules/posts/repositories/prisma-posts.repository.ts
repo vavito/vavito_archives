@@ -428,10 +428,7 @@ export class PrismaPostsRepository implements PostsRepository {
     });
   }
 
-  async registerView(
-    slug: string,
-    view: RegisterPostViewRecord,
-  ): Promise<RegisterPostViewResult> {
+  async registerView(slug: string, view: RegisterPostViewRecord): Promise<RegisterPostViewResult> {
     const [result] = await this.prisma.$queryRaw<RegisterPostViewResult[]>`
       WITH "published_post" AS (
         SELECT "post"."id"

@@ -349,11 +349,7 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
 
     const results = await repository.searchPublic(searchToken, 8);
 
-    expect(results.map(({ id }) => id)).toEqual([
-      titleMatch.id,
-      tagMatch.id,
-      excerptMatch.id,
-    ]);
+    expect(results.map(({ id }) => id)).toEqual([titleMatch.id, tagMatch.id, excerptMatch.id]);
     expect(results.map(({ id }) => id)).not.toContain(draftMatch.id);
     expect(results.every((result) => !('content' in result))).toBe(true);
   });
@@ -460,10 +456,7 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     expect(duplicatedAttempts.filter(({ counted }) => counted)).toHaveLength(1);
     expect(draftResult).toEqual({ counted: false, postExists: false });
     expect(persistedViews).toBe(2);
-    expect(ranking.items.slice(0, 2).map(({ id }) => id)).toEqual([
-      mostViewed.id,
-      lessViewed.id,
-    ]);
+    expect(ranking.items.slice(0, 2).map(({ id }) => id)).toEqual([mostViewed.id, lessViewed.id]);
     expect(ranking.items.slice(0, 2).map(({ viewsCount }) => viewsCount)).toEqual([2, 1]);
   });
 

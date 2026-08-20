@@ -65,7 +65,10 @@ export class PostsController {
   @Get(':slug')
   @ApiOperation({ summary: 'Consulta um post publicado pelo slug' })
   @ApiOkResponse({ type: PostDetailResponseDto })
-  @ApiNotFoundResponse({ description: 'Post inexistente ou não publicado.', type: ErrorResponseDto })
+  @ApiNotFoundResponse({
+    description: 'Post inexistente ou não publicado.',
+    type: ErrorResponseDto,
+  })
   @ApiResponse({
     description: 'O slug informado é histórico; redireciona para o slug atual.',
     status: HttpStatus.PERMANENT_REDIRECT,
@@ -90,7 +93,10 @@ export class PostsController {
   @UseGuards(PostViewsRateLimitGuard)
   @ApiOperation({ summary: 'Registra uma visualização do post publicado' })
   @ApiAcceptedResponse({ description: 'Visualização aceita para processamento.' })
-  @ApiNotFoundResponse({ description: 'Post inexistente ou não publicado.', type: ErrorResponseDto })
+  @ApiNotFoundResponse({
+    description: 'Post inexistente ou não publicado.',
+    type: ErrorResponseDto,
+  })
   @ApiTooManyRequestsResponse({
     description: 'Limite de registros de visualização excedido.',
     type: ErrorResponseDto,
