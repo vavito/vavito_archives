@@ -43,6 +43,12 @@ import { SupabaseModule } from '@api/core/supabase/supabase.module';
       useExisting: RolesGuard,
     },
   ],
-  exports: [AuthAdminService, SupabaseJwtService, SupabaseAuthGuard, RolesGuard],
+  exports: [
+    AuthAdminService,
+    ProfileAuthorizationRepository,
+    SupabaseJwtService,
+    SupabaseAuthGuard,
+    RolesGuard,
+  ],
 })
 export class AuthModule {}

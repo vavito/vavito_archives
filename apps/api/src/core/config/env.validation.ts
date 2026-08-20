@@ -24,6 +24,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
     .pattern(/^re_[A-Za-z0-9_-]+$/)
     .required(),
   REVALIDATION_SECRET: Joi.string().min(32).required(),
+  VIEW_FINGERPRINT_SECRET: Joi.string().min(32).required(),
   SUPABASE_SERVICE_ROLE_KEY: Joi.string().min(20).required(),
   SUPABASE_AVATARS_BUCKET: Joi.string().trim().min(1).default('avatars'),
   SUPABASE_URL: Joi.string()
@@ -39,6 +40,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
 const secretVariableNames = [
   'RESEND_API_KEY',
   'REVALIDATION_SECRET',
+  'VIEW_FINGERPRINT_SECRET',
   'SUPABASE_SERVICE_ROLE_KEY',
 ] as const;
 

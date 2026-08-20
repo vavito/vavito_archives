@@ -7,6 +7,7 @@ function validEnvironment(): Record<string, unknown> {
     FRONTEND_URL: 'http://localhost:3000',
     RESEND_API_KEY: 're_valid_test_key',
     REVALIDATION_SECRET: 'valid_revalidation_secret_at_least_32_characters',
+    VIEW_FINGERPRINT_SECRET: 'valid_view_fingerprint_secret_at_least_32_characters',
     SUPABASE_SERVICE_ROLE_KEY: 'valid_service_role_key_value',
     SUPABASE_URL: 'http://127.0.0.1:54321',
   };

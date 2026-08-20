@@ -49,6 +49,7 @@ export default function configuration(): ApplicationConfig {
     },
     security: {
       revalidationSecret: requiredEnvironmentValue('REVALIDATION_SECRET'),
+      viewFingerprintSecret: requiredEnvironmentValue('VIEW_FINGERPRINT_SECRET'),
     },
     supabase: {
       avatarsBucket: requiredEnvironmentValue('SUPABASE_AVATARS_BUCKET'),

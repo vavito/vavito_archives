@@ -11,6 +11,10 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/controllers/health.controller';
 import { HealthService } from '@api/modules/health/services/health.service';
+import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
+import { PostsController } from '@api/modules/posts/controllers/posts.controller';
+import { TagsController } from '@api/modules/posts/controllers/tags.controller';
+import { PostsService } from '@api/modules/posts/services/posts.service';
 import { ProfilesController } from '@api/modules/profiles/controllers/profiles.controller';
 import { ProfilesService } from '@api/modules/profiles/services/profiles.service';
 
@@ -38,6 +42,10 @@ describe('AppModule', () => {
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
     expect(moduleRef.get(ProfilesController)).toBeInstanceOf(ProfilesController);
     expect(moduleRef.get(ProfilesService)).toBeInstanceOf(ProfilesService);
+    expect(moduleRef.get(PostsController)).toBeInstanceOf(PostsController);
+    expect(moduleRef.get(TagsController)).toBeInstanceOf(TagsController);
+    expect(moduleRef.get(AdminPostsController)).toBeInstanceOf(AdminPostsController);
+    expect(moduleRef.get(PostsService)).toBeInstanceOf(PostsService);
     expect(configService.get('app.environment', { infer: true })).toBe('test');
     expect(configService.get('app.version', { infer: true })).toBe('1.2.3-test');
     expect(configService.get('database.connectOnStart', { infer: true })).toBe(false);

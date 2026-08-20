@@ -20,6 +20,7 @@ export interface ApplicationConfig {
   };
   security: {
     revalidationSecret: string;
+    viewFingerprintSecret: string;
   };
   supabase: {
     avatarsBucket: string;
@@ -38,6 +39,7 @@ export interface EnvironmentVariables {
   PORT: number;
   RESEND_API_KEY: string;
   REVALIDATION_SECRET: string;
+  VIEW_FINGERPRINT_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   SUPABASE_AVATARS_BUCKET: string;
   SUPABASE_URL: string;
