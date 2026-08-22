@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",
     "lint": "eslint . --max-warnings=0",
+    "media:cleanup": "tsx src/modules/media/commands/media-cleanup.command.ts",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
@@ -34,7 +35,8 @@
     "jose": "5.10.0",
     "pg": "8.22.0",
     "reflect-metadata": "0.2.2",
-    "rxjs": "7.8.2"
+    "rxjs": "7.8.2",
+    "sharp": "0.35.3"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.24",

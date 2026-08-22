@@ -23,6 +23,7 @@ describe('validateEnvironment', () => {
       NODE_ENV: 'development',
       PORT: 3001,
       SUPABASE_AVATARS_BUCKET: 'avatars',
+      SUPABASE_MEDIA_BUCKET: 'media',
       SWAGGER_ENABLED: true,
     });
   });

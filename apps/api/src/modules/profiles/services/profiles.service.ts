@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { AuthAdminService } from '@api/core/auth/services/auth-admin.service';
-import { AvatarStorageService, type AvatarUpload } from '@api/core/storage/avatar-storage.service';
+import {
+  AvatarStorageService,
+  type AvatarUpload,
+} from '@api/core/storage/services/avatar-storage.service';
 import type { UpdateProfileDto } from '@api/modules/profiles/dto/request/update-profile.dto';
 import type { ProfileResponseDto } from '@api/modules/profiles/dto/response/profile-response.dto';
 import { AccountDeletionException } from '@api/modules/profiles/errors/account-deletion.exception';

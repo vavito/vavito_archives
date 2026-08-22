@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable, type PipeTransform } from '@nestjs/common';
 
-import type { AvatarUpload } from '@api/core/storage/avatar-storage.service';
+import type { AvatarUpload } from '@api/core/storage/services/avatar-storage.service';
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 
 export const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;

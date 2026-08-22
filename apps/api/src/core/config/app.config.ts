@@ -24,6 +24,7 @@ export interface ApplicationConfig {
   };
   supabase: {
     avatarsBucket: string;
+    mediaBucket: string;
     serviceRoleKey: string;
     url: string;
   };
@@ -42,6 +43,7 @@ export interface EnvironmentVariables {
   VIEW_FINGERPRINT_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   SUPABASE_AVATARS_BUCKET: string;
+  SUPABASE_MEDIA_BUCKET: string;
   SUPABASE_URL: string;
   SWAGGER_ENABLED: boolean;
 }

@@ -23,7 +23,7 @@ import {
 
 import { CurrentUser } from '@api/core/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
-import type { AvatarUpload } from '@api/core/storage/avatar-storage.service';
+import type { AvatarUpload } from '@api/core/storage/services/avatar-storage.service';
 import { DeleteAccountDto } from '@api/modules/profiles/dto/request/delete-account.dto';
 import { UpdateProfileDto } from '@api/modules/profiles/dto/request/update-profile.dto';
 import { ProfileResponseDto } from '@api/modules/profiles/dto/response/profile-response.dto';

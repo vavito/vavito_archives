@@ -53,6 +53,7 @@ export default function configuration(): ApplicationConfig {
     },
     supabase: {
       avatarsBucket: requiredEnvironmentValue('SUPABASE_AVATARS_BUCKET'),
+      mediaBucket: requiredEnvironmentValue('SUPABASE_MEDIA_BUCKET'),
       serviceRoleKey: requiredEnvironmentValue('SUPABASE_SERVICE_ROLE_KEY'),
       url: requiredEnvironmentValue('SUPABASE_URL'),
     },
