@@ -430,6 +430,7 @@ O preview protegido é montado pelo frontend com `GET /admin/posts/:id`; não ex
 | `PATCH` | `/admin/comments/:id/status` | ADMIN | `ModerateCommentDto` | `200 CommentAdminResponseDto`. |
 
 Após persistir um comentário, a API solicita email transacional ao administrador. Falha no email não desfaz o comentário.
+A criação de comentários aplica inicialmente o limite de `5` publicações por usuário a cada minuto.
 
 ### Reactions e bookmarks
 
