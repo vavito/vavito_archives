@@ -1,5 +1,5 @@
 import type { AuthAdminService } from '@api/core/auth/services/auth-admin.service';
-import type { AvatarStorageService } from '@api/core/storage/avatar-storage.service';
+import type { AvatarStorageService } from '@api/core/storage/services/avatar-storage.service';
 import { UserRole } from '@api/generated/prisma/client';
 import { Profile } from '@api/modules/profiles/domain/entities/profile.entity';
 import { AccountDeletionException } from '@api/modules/profiles/errors/account-deletion.exception';
