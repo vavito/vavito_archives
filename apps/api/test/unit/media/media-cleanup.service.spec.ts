@@ -2,12 +2,13 @@ import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 
 import type { ApplicationConfig } from '@api/core/config/app.config';
-import type { StorageService } from '@api/core/storage/services/storage.service';
 import { MediaAsset } from '@api/modules/media/domain/entities/media-asset.entity';
 import { MediaAssetStatus } from '@api/modules/media/domain/enums/media-asset-status.enum';
 import { MediaMetadata } from '@api/modules/media/domain/value-objects/media-metadata.value-object';
 import type { MediaRepository } from '@api/modules/media/repositories/media.repository';
 import { MediaCleanupService } from '@api/modules/media/services/media-cleanup.service';
+
+import { FakeStorageService } from '../../fakes/media/fake-storage.service';
 
 const NOW = new Date('2026-08-22T12:00:00.000Z');
 const CREATED_AT = new Date('2026-08-20T12:00:00.000Z');
@@ -41,10 +42,6 @@ describe('MediaCleanupService', () => {
   const findReadyWithoutPostReferencesBefore = jest.fn<Promise<MediaAsset[]>, [Date, number]>();
   const hasPostReferences = jest.fn<Promise<boolean>, [string]>();
   const save = jest.fn<Promise<void>, [MediaAsset]>();
-  const remove = jest.fn<
-    ReturnType<StorageService['remove']>,
-    Parameters<StorageService['remove']>
-  >();
   const repository = {
     deleteIfOrphanedAndUnreferenced,
     findOrphanedBefore,
@@ -52,7 +49,7 @@ describe('MediaCleanupService', () => {
     hasPostReferences,
     save,
   } as unknown as MediaRepository;
-  const storage = { remove } as unknown as StorageService;
+  const storage = new FakeStorageService();
   const config = { get: jest.fn().mockReturnValue('media') } as unknown as ConfigService<
     ApplicationConfig,
     true
@@ -68,6 +65,7 @@ describe('MediaCleanupService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    storage.reset();
     findReadyWithoutPostReferencesBefore.mockResolvedValue([]);
     findOrphanedBefore.mockResolvedValue([]);
   });
@@ -90,7 +88,7 @@ describe('MediaCleanupService', () => {
     expect(result.wouldMarkOrphanedIds).toEqual([READY_ID]);
     expect(result.wouldPurgeIds).toEqual([ORPHANED_ID]);
     expect(save).not.toHaveBeenCalled();
-    expect(remove).not.toHaveBeenCalled();
+    expect(storage.removeAttempts).toEqual([]);
     expect(deleteIfOrphanedAndUnreferenced).not.toHaveBeenCalled();
     expect(loggerLog).toHaveBeenCalledWith(expect.stringContaining('media_orphan_cleanup'));
   });
@@ -108,7 +106,10 @@ describe('MediaCleanupService', () => {
     expect(ready.status).toBe(MediaAssetStatus.ORPHANED);
     expect(ready.orphanedAt).toEqual(NOW);
     expect(save).toHaveBeenCalledWith(ready);
-    expect(remove).toHaveBeenCalledWith('media', orphaned.storagePath);
+    expect(storage.removeAttempts).toContainEqual({
+      bucket: 'media',
+      path: orphaned.storagePath,
+    });
     expect(deleteIfOrphanedAndUnreferenced).toHaveBeenCalledWith(ORPHANED_ID);
     expect(result.markedOrphanedIds).toEqual([READY_ID]);
     expect(result.purgedIds).toEqual([ORPHANED_ID]);
@@ -128,13 +129,13 @@ describe('MediaCleanupService', () => {
     expect(orphaned.status).toBe(MediaAssetStatus.READY);
     expect(save).toHaveBeenCalledTimes(1);
     expect(save).toHaveBeenCalledWith(orphaned);
-    expect(remove).not.toHaveBeenCalled();
+    expect(storage.removeAttempts).toEqual([]);
   });
 
   it('mantém o registro e reporta falha quando o Storage não remove o objeto', async () => {
     findOrphanedBefore.mockResolvedValueOnce([mediaAsset(ORPHANED_ID, MediaAssetStatus.ORPHANED)]);
     hasPostReferences.mockResolvedValueOnce(false);
-    remove.mockRejectedValueOnce(new Error('storage unavailable'));
+    storage.failNextRemove(new Error('storage unavailable'));
 
     const result = await service.cleanup({ dryRun: false, limit: 100, olderThanHours: 24 }, NOW);
 
