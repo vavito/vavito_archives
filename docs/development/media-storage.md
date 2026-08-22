@@ -34,6 +34,20 @@ Objetos editoriais usam o formato:
 
 O UUID é gerado pelo backend e torna o path não previsível. Nome original, email, ID do usuário e outros dados pessoais não entram no path. O upload usa `upsert: false` para impedir sobrescrita silenciosa.
 
+## Upload administrativo
+
+O endpoint `POST /api/v1/admin/media` recebe `multipart/form-data` com os campos obrigatórios `file` e `altText`. Somente um perfil ativo com role `ADMIN` pode executar o upload.
+
+Antes de chamar o Storage, a API:
+
+1. rejeita arquivos vazios ou maiores que `10485760` bytes;
+2. inspeciona os bytes com `sharp` para identificar o formato e as dimensões reais;
+3. exige correspondência entre conteúdo real, MIME declarado e extensão do nome enviado;
+4. aceita apenas JPEG (`.jpg` ou `.jpeg`), PNG (`.png`) e WebP (`.webp`);
+5. normaliza o texto alternativo e exige que ele não seja vazio.
+
+Arquivos acima do limite retornam `413 PAYLOAD_TOO_LARGE`. Conteúdo corrompido, formato não permitido ou divergência entre bytes, MIME e extensão retornam `415 UNSUPPORTED_MEDIA_TYPE`. O objeto só é enviado ao bucket depois dessas validações.
+
 ## Persistência e compensação
 
 O `StorageService` centraliza as operações no provedor e o `MediaRepository` centraliza a persistência do agregado `MediaAsset`. O fluxo de upload segue esta ordem:
