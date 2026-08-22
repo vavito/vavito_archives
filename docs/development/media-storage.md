@@ -34,6 +34,18 @@ Objetos editoriais usam o formato:
 
 O UUID é gerado pelo backend e torna o path não previsível. Nome original, email, ID do usuário e outros dados pessoais não entram no path. O upload usa `upsert: false` para impedir sobrescrita silenciosa.
 
+## Persistência e compensação
+
+O `StorageService` centraliza as operações no provedor e o `MediaRepository` centraliza a persistência do agregado `MediaAsset`. O fluxo de upload segue esta ordem:
+
+1. a API gera um path UUID e cria o registro como `UPLOADING`, reservando o path protegido pela constraint única do PostgreSQL;
+2. o objeto é enviado ao bucket sem permitir `upsert`;
+3. depois da confirmação do Storage, os metadados completos são persistidos e o ativo passa para `READY`;
+4. se o upload falhar, o registro passa para `FAILED` com um motivo técnico seguro;
+5. se a persistência de `READY` falhar depois do upload, a aplicação remove o objeto e registra o ativo como `FAILED`.
+
+Storage e PostgreSQL não compartilham uma transação. Por isso, falha na remoção compensatória ou no registro de `FAILED` produz `MEDIA_STORAGE_INCONSISTENT` e um log que identifica o ativo para revisão operacional. Logs não incluem service role, tokens, buffers, URLs assinadas nem a mensagem bruta devolvida pelo provedor.
+
 ## Verificação
 
 Antes de concluir a configuração de um ambiente, confirme:
