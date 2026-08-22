@@ -119,7 +119,7 @@ stateDiagram-v2
 - O post precisa estar `PUBLISHED` para aceitar novo comentário.
 - O autor é um `Profile` autenticado.
 - Todo comentário válido nasce `VISIBLE`; a moderação é posterior à publicação.
-- Conteúdo não pode ficar vazio após normalização e respeita limite configurado.
+- Conteúdo não pode ficar vazio após normalização e respeita o limite inicial configurado de 2.000 caracteres.
 - Conversas possuem dois níveis: comentário principal e respostas diretas.
 - `parentId`, quando presente, aponta para comentário principal do mesmo post.
 - Uma resposta não pode ser pai de outra resposta.
