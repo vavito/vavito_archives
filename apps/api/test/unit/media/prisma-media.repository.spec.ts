@@ -33,11 +33,13 @@ function readyAsset(): MediaAsset {
 
 describe('PrismaMediaRepository', () => {
   const create = jest.fn<Promise<PrismaMediaAsset>, [Prisma.MediaAssetCreateArgs]>();
+  const deleteMany = jest.fn<Promise<{ count: number }>, [Prisma.MediaAssetDeleteManyArgs]>();
+  const findMany = jest.fn<Promise<PrismaMediaAsset[]>, [Prisma.MediaAssetFindManyArgs]>();
   const findUnique = jest.fn<Promise<PrismaMediaAsset | null>, [Prisma.MediaAssetFindUniqueArgs]>();
   const update = jest.fn<Promise<PrismaMediaAsset>, [Prisma.MediaAssetUpdateArgs]>();
   const count = jest.fn<Promise<number>, [Prisma.PostMediaAssetCountArgs]>();
   const prisma = {
-    mediaAsset: { create, findUnique, update },
+    mediaAsset: { create, deleteMany, findMany, findUnique, update },
     postMediaAsset: { count },
   } as unknown as PrismaService;
   const repository = new PrismaMediaRepository(prisma);
@@ -81,6 +83,37 @@ describe('PrismaMediaRepository', () => {
     expect(findUnique).toHaveBeenCalledWith({ where: { storagePath: PATH } });
   });
 
+  it('lista READY antigos sem referências usando ordem estável', async () => {
+    const cutoff = new Date('2026-08-21T10:00:00.000Z');
+    findMany.mockResolvedValueOnce([]);
+
+    await expect(repository.findReadyWithoutPostReferencesBefore(cutoff, 100)).resolves.toEqual([]);
+    expect(findMany).toHaveBeenCalledWith({
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: 100,
+      where: {
+        createdAt: { lte: cutoff },
+        posts: { none: {} },
+        status: PrismaMediaAssetStatus.READY,
+      },
+    });
+  });
+
+  it('lista ORPHANED que já cumpriram a segunda janela de segurança', async () => {
+    const cutoff = new Date('2026-08-21T10:00:00.000Z');
+    findMany.mockResolvedValueOnce([]);
+
+    await expect(repository.findOrphanedBefore(cutoff, 50)).resolves.toEqual([]);
+    expect(findMany).toHaveBeenCalledWith({
+      orderBy: [{ orphanedAt: 'asc' }, { id: 'asc' }],
+      take: 50,
+      where: {
+        orphanedAt: { lte: cutoff },
+        status: PrismaMediaAssetStatus.ORPHANED,
+      },
+    });
+  });
+
   it('detecta referências existentes em posts', async () => {
     count.mockResolvedValueOnce(1);
 
@@ -98,5 +131,18 @@ describe('PrismaMediaRepository', () => {
       status: PrismaMediaAssetStatus.READY,
     });
     expect(update.mock.calls[0]?.[0].where).toEqual({ id: ASSET_ID });
+  });
+
+  it('remove somente ORPHANED ainda sem referências', async () => {
+    deleteMany.mockResolvedValueOnce({ count: 1 });
+
+    await expect(repository.deleteIfOrphanedAndUnreferenced(ASSET_ID)).resolves.toBe(true);
+    expect(deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: ASSET_ID,
+        posts: { none: {} },
+        status: PrismaMediaAssetStatus.ORPHANED,
+      },
+    });
   });
 });
