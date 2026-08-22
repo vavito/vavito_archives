@@ -60,6 +60,29 @@ O `StorageService` centraliza as operações no provedor e o `MediaRepository` c
 
 Storage e PostgreSQL não compartilham uma transação. Por isso, falha na remoção compensatória ou no registro de `FAILED` produz `MEDIA_STORAGE_INCONSISTENT` e um log que identifica o ativo para revisão operacional. Logs não incluem service role, tokens, buffers, URLs assinadas nem a mensagem bruta devolvida pelo provedor.
 
+## Limpeza de órfãos
+
+A duração do período seguro não é fixa na V1. Cada execução deve informá-la explicitamente com `--older-than-hours=<inteiro positivo>`. O comando usa dry run por padrão e limita cada fase a 100 registros, configurável com `--limit` até 500.
+
+Na raiz do monorepo, simule uma janela de 24 horas:
+
+```powershell
+pnpm --filter @vavito/api run media:cleanup -- --older-than-hours=24
+```
+
+Revise o log estruturado `media_orphan_cleanup`. Para executar as alterações, repita a mesma janela e o mesmo limite com `--execute`:
+
+```powershell
+pnpm --filter @vavito/api run media:cleanup -- --older-than-hours=24 --execute
+```
+
+O processo possui duas fases e nunca marca e remove o mesmo asset na mesma execução:
+
+1. `READY` criado antes do corte e sem associação é revalidado e marcado como `ORPHANED`;
+2. `ORPHANED` cujo `orphanedAt` já ultrapassou uma segunda janela é revalidado, removido do Storage e só então excluído do PostgreSQL.
+
+Se uma referência aparecer antes do purge, o asset volta para `READY`. Uma falha de Storage mantém o registro; uma falha ao excluir o registro após remover o objeto é reportada como inconsistência operacional. Falhas aparecem em `failedIds` e fazem o comando terminar com código diferente de zero. O log também informa os IDs que seriam marcados ou removidos no dry run, sem registrar credenciais ou respostas brutas do provedor.
+
 ## Verificação
 
 Antes de concluir a configuração de um ambiente, confirme:
