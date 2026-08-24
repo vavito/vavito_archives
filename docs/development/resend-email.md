@@ -33,6 +33,8 @@ O endereço informado pelo visitante nunca deve ser usado como `From`, pois ele 
 
 ```env
 RESEND_API_KEY=re_replace_with_api_key
+RESEND_TIMEOUT_MS=5000
+RESEND_MAX_ATTEMPTS=3
 MAIL_CONTACT_FROM="Vavito Archives <notifications@contact.vavitoarchives.com.br>"
 MAIL_NEWSLETTER_FROM="Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>"
 MAIL_ADMIN_RECIPIENT=replace_with_admin_email
@@ -40,10 +42,20 @@ MAIL_REPLY_TO=replace_with_monitored_reply_email
 ```
 
 - `RESEND_API_KEY` usa uma chave privada com permissão somente de envio para os domínios da aplicação.
+- `RESEND_TIMEOUT_MS` limita cada tentativa a 5 segundos por padrão.
+- `RESEND_MAX_ATTEMPTS` aceita de 1 a 3 tentativas e usa 3 por padrão.
 - `MAIL_ADMIN_RECIPIENT` recebe notificações internas de comentário e contato.
 - `MAIL_REPLY_TO` precisa apontar para uma caixa postal acompanhada pelo administrador.
 - valores reais ficam no `.env` local ou nas variáveis protegidas do provedor de deploy e nunca são versionados.
 - a chave usada pela integração SMTP do Supabase Auth permanece separada da chave usada pela API.
+
+## Entrega transacional
+
+O `MailModule` encapsula o SDK do Resend e expõe contratos internos aos demais módulos. Cada envio devolve uma resposta normalizada com o provedor e o identificador da mensagem.
+
+Notificações de novo comentário usam a chave de idempotência `new-comment/<commentId>`, preservada nas novas tentativas durante a janela de 24 horas do Resend. Somente falhas transitórias — timeout, indisponibilidade, erro 5xx, rate limit ou conflito concorrente da mesma chave — são repetidas. Erros de autenticação, configuração ou validação falham imediatamente.
+
+O template inclui somente título do artigo, nome público do leitor, trecho escapado de até 240 caracteres e link para `/admin/comments`. O conteúdo além desse trecho, identificadores internos e dados de autenticação não são enviados.
 
 ## Ambiente de teste
 
@@ -61,3 +73,5 @@ A confirmação final da entrega deve ser feita na caixa postal do destinatário
 - [Gerenciamento e verificação de domínios](https://resend.com/docs/dashboard/domains/introduction)
 - [Configuração de DMARC](https://resend.com/docs/dashboard/domains/dmarc)
 - [Envio de email pela API](https://resend.com/docs/api-reference/emails/send-email)
+- [Chaves de idempotência](https://resend.com/docs/dashboard/emails/idempotency-keys)
+- [Erros da API](https://resend.com/docs/api-reference/errors)
