@@ -181,8 +181,8 @@ stateDiagram-v2
 | Ação | Origem | Destino | Condições |
 | --- | --- | --- | --- |
 | `subscribe(consent, tokenHash)` | inexistente | `PENDING` | Email normalizado; consentimento, origem e data presentes; token armazenado somente como hash. |
-| `confirm(token, now)` | `PENDING` | `CONFIRMED` | Token válido, não expirado e correspondente ao hash; define `confirmedAt = now`. |
-| `unsubscribe(now)` | `PENDING` ou `CONFIRMED` | `UNSUBSCRIBED` | Token de cancelamento válido; operação repetida é tratada como idempotente pelo service. |
+| `confirm(token, now)` | `PENDING` | `CONFIRMED` | Token válido, não expirado e correspondente ao hash; define `confirmedAt = now` e remove o hash temporário de confirmação. |
+| `unsubscribe(now)` | `PENDING` ou `CONFIRMED` | `UNSUBSCRIBED` | Token de cancelamento válido; remove o hash temporário de confirmação e a operação repetida é tratada como idempotente pelo service. |
 | `markBounced(now)` | `CONFIRMED` | `BOUNCED` | Webhook Resend autêntico e idempotente; define `bouncedAt = now`. |
 | `markComplained(now)` | `CONFIRMED` ou `BOUNCED` | `COMPLAINED` | Webhook Resend autêntico e idempotente; define `complainedAt = now`. |
 | `resubscribe(consent, tokenHash)` | `UNSUBSCRIBED` ou `BOUNCED` | `PENDING` | Novo consentimento explícito; novo token; limpa datas incompatíveis e exige confirmação novamente. |
@@ -193,6 +193,7 @@ stateDiagram-v2
 - Consentimento possui data e origem.
 - Apenas `CONFIRMED` entra na audiência de campanha.
 - `PENDING` exige token de confirmação válido armazenado como hash.
+- O hash e a expiração da confirmação são removidos após confirmação ou cancelamento; o token de cancelamento permanece armazenado somente como hash.
 - `CONFIRMED` exige `confirmedAt`.
 - `UNSUBSCRIBED` exige `unsubscribedAt`.
 - `BOUNCED` exige `bouncedAt`.
@@ -206,10 +207,13 @@ stateDiagram-v2
 | --- | --- |
 | `INVALID_SUBSCRIBER_STATUS_TRANSITION` | Estado não permite a ação. |
 | `SUBSCRIBER_CONSENT_REQUIRED` | Consentimento, data ou origem ausente. |
+| `SUBSCRIBER_EMAIL_INVALID` | Email não pode ser normalizado ou viola o limite persistido. |
+| `SUBSCRIBER_TOKEN_HASH_INVALID` | Hash de token ausente, malformado ou fora do limite persistido. |
 | `SUBSCRIBER_CONFIRMATION_TOKEN_INVALID` | Token não corresponde ao hash. |
 | `SUBSCRIBER_CONFIRMATION_TOKEN_EXPIRED` | Token ultrapassou a validade. |
 | `SUBSCRIBER_SUPPRESSED` | Tentativa automática de reativar `COMPLAINED`. |
 | `SUBSCRIBER_NOT_ELIGIBLE` | Inclusão em campanha fora de `CONFIRMED`. |
+| `SUBSCRIBER_STATE_INCONSISTENT` | Datas ou campos restaurados não correspondem ao estado persistido. |
 
 ## MediaAsset
 

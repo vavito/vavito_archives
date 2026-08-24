@@ -416,9 +416,9 @@ Unique `(postId, fingerprintHash, bucketDate)` impede múltiplas contagens do me
 | `status` | `SubscriberStatus` | ciclo aprovado. |
 | `consentSource` | varchar | origem declarada no contrato. |
 | `consentedAt` | timestamptz | obrigatório. |
-| `confirmationTokenHash` | varchar nullable | único enquanto ativo. |
+| `confirmationTokenHash` | varchar nullable | único enquanto ativo; removido após confirmação ou cancelamento. |
 | `confirmationExpiresAt` | timestamptz nullable | exigido em `PENDING`. |
-| `unsubscribeTokenHash` | varchar | único. |
+| `unsubscribeTokenHash` | varchar | único; token bruto nunca é persistido. |
 | `confirmedAt`, `unsubscribedAt`, `bouncedAt`, `complainedAt` | timestamptz nullable | coerentes com o estado. |
 | `createdAt`, `updatedAt` | timestamptz | auditoria. |
 
