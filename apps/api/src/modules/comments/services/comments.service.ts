@@ -79,11 +79,7 @@ export class CommentsService {
     await this.commentsRepository.create(comment);
 
     const record = await this.requireComment(comment.id);
-    await this.notifyNewComment(
-      record,
-      postAggregate.post.title,
-      postAggregate.post.currentSlug?.value ?? slug,
-    );
+    await this.notifyNewComment(record, postAggregate.post.title);
     return CommentResponseMapper.toPublic(record, this.toAuthorDto(record.author));
   }
 
@@ -191,20 +187,13 @@ export class CommentsService {
     }
   }
 
-  private async notifyNewComment(
-    record: CommentRecord,
-    postTitle: string,
-    postSlug: string,
-  ): Promise<void> {
+  private async notifyNewComment(record: CommentRecord, postTitle: string): Promise<void> {
     try {
       await this.mailService.sendNewCommentNotification({
         authorDisplayName: record.author?.displayName ?? 'Leitor',
-        authorId: record.comment.authorId ?? '',
+        commentContent: record.comment.content?.value ?? '',
         commentId: record.comment.id,
-        createdAt: record.comment.createdAt,
         isReply: record.comment.parentId !== null,
-        postId: record.comment.postId,
-        postSlug,
         postTitle,
       });
     } catch (error) {
