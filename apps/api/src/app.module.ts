@@ -8,6 +8,7 @@ import configuration, { environmentFilePaths } from '@api/core/config/configurat
 import { validateEnvironment } from '@api/core/config/env.validation';
 import { PrismaModule } from '@api/core/database/prisma.module';
 import { CommentsModule } from '@api/modules/comments/comments.module';
+import { EngagementModule } from '@api/modules/engagement/engagement.module';
 import { HealthModule } from '@api/modules/health/health.module';
 import { MediaModule } from '@api/modules/media/media.module';
 import { PostsModule } from '@api/modules/posts/posts.module';
@@ -25,6 +26,7 @@ import { ProfilesModule } from '@api/modules/profiles/profiles.module';
     PrismaModule,
     AuthModule,
     CommentsModule,
+    EngagementModule,
     HealthModule,
     MediaModule,
     ProfilesModule,
