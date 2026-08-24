@@ -210,6 +210,25 @@ describe('CommentsService', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it('permite que o autor edite o próprio comentário', async () => {
+    const comment = restoredComment();
+    findById.mockResolvedValueOnce(record(comment));
+
+    await expect(
+      service.update(USER_ID, COMMENT_ID, { content: 'Conteúdo atualizado' }),
+    ).resolves.toMatchObject({ content: 'Conteúdo atualizado', edited: true });
+    expect(save).toHaveBeenCalledWith(comment);
+  });
+
+  it('impede terceiro de excluir comentário alheio', async () => {
+    findById.mockResolvedValueOnce(record(restoredComment()));
+
+    await expect(service.delete(OTHER_ID, COMMENT_ID)).rejects.toBeInstanceOf(
+      ForbiddenAccessException,
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
   it('permite que administrador aplique soft delete em comentário alheio', async () => {
     const comment = restoredComment();
     findById.mockResolvedValueOnce(record(comment));
