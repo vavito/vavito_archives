@@ -1,14 +1,16 @@
 export interface NewCommentNotification {
   authorDisplayName: string;
-  authorId: string;
+  commentContent: string;
   commentId: string;
-  createdAt: Date;
   isReply: boolean;
-  postId: string;
-  postSlug: string;
   postTitle: string;
 }
 
+export interface MailDelivery {
+  messageId: string;
+  provider: 'resend';
+}
+
 export abstract class MailService {
-  abstract sendNewCommentNotification(notification: NewCommentNotification): Promise<void>;
+  abstract sendNewCommentNotification(notification: NewCommentNotification): Promise<MailDelivery>;
 }

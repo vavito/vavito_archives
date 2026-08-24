@@ -1,0 +1,4 @@
+export const RESEND_EMAIL_CLIENT = Symbol('RESEND_EMAIL_CLIENT');
+
+export const MAIL_RETRY_BASE_DELAY_MS = 200;
+export const NEW_COMMENT_EXCERPT_MAX_LENGTH = 240;
