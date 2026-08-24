@@ -148,10 +148,9 @@ describe('CommentsService', () => {
     expect(create).toHaveBeenCalledWith(createdComment);
     expect(sendNewCommentNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        authorId: USER_ID,
+        commentContent: 'Olá!',
         commentId: createdComment?.id,
-        postId: POST_ID,
-        postSlug: 'artigo-publicado',
+        postTitle: 'Artigo publicado',
       }),
     );
     expect(create.mock.invocationCallOrder[0]).toBeLessThan(
