@@ -45,7 +45,13 @@ export default function configuration(): ApplicationConfig {
       url: requiredEnvironmentValue('DATABASE_URL'),
     },
     resend: {
+      adminRecipient: requiredEnvironmentValue('MAIL_ADMIN_RECIPIENT'),
       apiKey: requiredEnvironmentValue('RESEND_API_KEY'),
+      contactFrom: requiredEnvironmentValue('MAIL_CONTACT_FROM'),
+      maxAttempts: Number(requiredEnvironmentValue('RESEND_MAX_ATTEMPTS')),
+      newsletterFrom: requiredEnvironmentValue('MAIL_NEWSLETTER_FROM'),
+      replyTo: requiredEnvironmentValue('MAIL_REPLY_TO'),
+      timeoutMs: Number(requiredEnvironmentValue('RESEND_TIMEOUT_MS')),
     },
     security: {
       revalidationSecret: requiredEnvironmentValue('REVALIDATION_SECRET'),
