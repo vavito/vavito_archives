@@ -9,6 +9,7 @@ function validEnvironment(): Record<string, unknown> {
     MAIL_CONTACT_FROM: 'Vavito Archives <notifications@contact.vavitoarchives.com.br>',
     MAIL_NEWSLETTER_FROM: 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>',
     MAIL_REPLY_TO: 'contato@example.com',
+    NEWSLETTER_TOKEN_SECRET: 'valid_newsletter_token_secret_at_least_32_characters',
     RESEND_API_KEY: 're_valid_test_key',
     REVALIDATION_SECRET: 'valid_revalidation_secret_at_least_32_characters',
     VIEW_FINGERPRINT_SECRET: 'valid_view_fingerprint_secret_at_least_32_characters',

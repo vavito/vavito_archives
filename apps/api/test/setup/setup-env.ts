@@ -14,5 +14,6 @@ process.env.MAIL_CONTACT_FROM = 'Vavito Archives <notifications@contact.vavitoar
 process.env.MAIL_NEWSLETTER_FROM = 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>';
 process.env.MAIL_ADMIN_RECIPIENT = 'admin@example.com';
 process.env.MAIL_REPLY_TO = 'contato@example.com';
+process.env.NEWSLETTER_TOKEN_SECRET = 'test_newsletter_token_secret_at_least_32_characters';
 process.env.REVALIDATION_SECRET = 'test_revalidation_secret_at_least_32_characters';
 process.env.VIEW_FINGERPRINT_SECRET = 'test_view_fingerprint_secret_at_least_32_characters';
