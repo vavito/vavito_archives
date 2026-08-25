@@ -198,6 +198,17 @@ export class Subscriber {
     this.props.updatedAt = cloneDate(now);
   }
 
+  renewConfirmation(props: ResubscribeSubscriberProps): void {
+    this.ensureStatus('renew confirmation', SubscriberStatus.PENDING);
+    this.ensureTransitionDate(props.now);
+    Subscriber.ensureNewConsentIsValid(props.consent, props.confirmationExpiresAt, props.now);
+
+    this.props.confirmationExpiresAt = cloneDate(props.confirmationExpiresAt);
+    this.props.confirmationTokenHash = props.confirmationTokenHash;
+    this.props.consent = props.consent;
+    this.props.updatedAt = cloneDate(props.now);
+  }
+
   resubscribe(props: ResubscribeSubscriberProps): void {
     if (this.props.status === SubscriberStatus.COMPLAINED) {
       throw new SubscriberSuppressedError();
