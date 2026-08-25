@@ -172,6 +172,7 @@ stateDiagram-v2
     CONFIRMED --> BOUNCED: markBounced(now)
     CONFIRMED --> COMPLAINED: markComplained(now)
     BOUNCED --> COMPLAINED: markComplained(now)
+    PENDING --> PENDING: renewConfirmation(newConsent)
     UNSUBSCRIBED --> PENDING: resubscribe(newConsent)
     BOUNCED --> PENDING: resubscribe(newConsent)
 ```
@@ -182,6 +183,7 @@ stateDiagram-v2
 | --- | --- | --- | --- |
 | `subscribe(consent, tokenHash)` | inexistente | `PENDING` | Email normalizado; consentimento, origem e data presentes; token armazenado somente como hash. |
 | `confirm(token, now)` | `PENDING` | `CONFIRMED` | Token válido, não expirado e correspondente ao hash; define `confirmedAt = now` e remove o hash temporário de confirmação. |
+| `renewConfirmation(consent, tokenHash)` | `PENDING` | `PENDING` | Nova solicitação explícita substitui o token anterior e sua expiração sem criar outro assinante. |
 | `unsubscribe(now)` | `PENDING` ou `CONFIRMED` | `UNSUBSCRIBED` | Token de cancelamento válido; remove o hash temporário de confirmação e a operação repetida é tratada como idempotente pelo service. |
 | `markBounced(now)` | `CONFIRMED` | `BOUNCED` | Webhook Resend autêntico e idempotente; define `bouncedAt = now`. |
 | `markComplained(now)` | `CONFIRMED` ou `BOUNCED` | `COMPLAINED` | Webhook Resend autêntico e idempotente; define `complainedAt = now`. |
@@ -199,6 +201,7 @@ stateDiagram-v2
 - `BOUNCED` exige `bouncedAt`.
 - `COMPLAINED` exige `complainedAt` e é terminal na V1.
 - Novo consentimento nunca reativa diretamente para `CONFIRMED`.
+- Nova solicitação em `PENDING` invalida o link de confirmação anterior e envia um novo link.
 - Webhooks repetidos não duplicam efeitos.
 
 ### Erros

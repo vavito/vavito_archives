@@ -459,6 +459,7 @@ O clique repetido no frontend usa `DELETE` quando a reação ou bookmark já est
 | `POST` | `/admin/newsletter/campaigns/:id/send` | ADMIN | header `Idempotency-Key` | `202 EmailCampaignAdminDto`. |
 
 Inscrição sempre responde de modo que não revele se o email já existia. Apenas `CONFIRMED` participa da audiência.
+As três rotas públicas aceitam inicialmente até `5` solicitações por IP e por rota a cada minuto. Os links enviados apontam para páginas do frontend com o token no fragmento da URL, que não é enviado automaticamente ao servidor. O frontend apresenta o resultado, encaminha o token ao respectivo endpoint `POST` e remove o fragmento sem persistir o valor no navegador.
 
 ### Contact
 
