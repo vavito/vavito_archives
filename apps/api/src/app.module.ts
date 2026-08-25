@@ -11,6 +11,7 @@ import { CommentsModule } from '@api/modules/comments/comments.module';
 import { EngagementModule } from '@api/modules/engagement/engagement.module';
 import { HealthModule } from '@api/modules/health/health.module';
 import { MediaModule } from '@api/modules/media/media.module';
+import { NewsletterModule } from '@api/modules/newsletter/newsletter.module';
 import { PostsModule } from '@api/modules/posts/posts.module';
 import { ProfilesModule } from '@api/modules/profiles/profiles.module';
 
@@ -29,6 +30,7 @@ import { ProfilesModule } from '@api/modules/profiles/profiles.module';
     EngagementModule,
     HealthModule,
     MediaModule,
+    NewsletterModule,
     ProfilesModule,
     PostsModule,
   ],
