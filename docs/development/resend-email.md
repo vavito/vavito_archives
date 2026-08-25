@@ -39,6 +39,7 @@ MAIL_CONTACT_FROM="Vavito Archives <notifications@contact.vavitoarchives.com.br>
 MAIL_NEWSLETTER_FROM="Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>"
 MAIL_ADMIN_RECIPIENT=replace_with_admin_email
 MAIL_REPLY_TO=replace_with_monitored_reply_email
+NEWSLETTER_TOKEN_SECRET=replace_with_a_32_character_newsletter_secret
 ```
 
 - `RESEND_API_KEY` usa uma chave privada com permissão somente de envio para os domínios da aplicação.
@@ -46,6 +47,7 @@ MAIL_REPLY_TO=replace_with_monitored_reply_email
 - `RESEND_MAX_ATTEMPTS` aceita de 1 a 3 tentativas e usa 3 por padrão.
 - `MAIL_ADMIN_RECIPIENT` recebe notificações internas de comentário e contato.
 - `MAIL_REPLY_TO` precisa apontar para uma caixa postal acompanhada pelo administrador.
+- `NEWSLETTER_TOKEN_SECRET` possui ao menos 32 caracteres e deriva tokens de cancelamento reproduzíveis sem armazenar seus valores brutos.
 - valores reais ficam no `.env` local ou nas variáveis protegidas do provedor de deploy e nunca são versionados.
 - a chave usada pela integração SMTP do Supabase Auth permanece separada da chave usada pela API.
 
