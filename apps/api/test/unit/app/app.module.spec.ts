@@ -11,6 +11,8 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/controllers/health.controller';
 import { HealthService } from '@api/modules/health/services/health.service';
+import { NewsletterController } from '@api/modules/newsletter/controllers/newsletter.controller';
+import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
 import { TagsController } from '@api/modules/posts/controllers/tags.controller';
@@ -40,6 +42,8 @@ describe('AppModule', () => {
     expect(moduleRef.get(RolesGuard)).toBeInstanceOf(RolesGuard);
     expect(moduleRef.get(HealthController)).toBeInstanceOf(HealthController);
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
+    expect(moduleRef.get(NewsletterController)).toBeInstanceOf(NewsletterController);
+    expect(moduleRef.get(NewsletterService)).toBeInstanceOf(NewsletterService);
     expect(moduleRef.get(ProfilesController)).toBeInstanceOf(ProfilesController);
     expect(moduleRef.get(ProfilesService)).toBeInstanceOf(ProfilesService);
     expect(moduleRef.get(PostsController)).toBeInstanceOf(PostsController);
