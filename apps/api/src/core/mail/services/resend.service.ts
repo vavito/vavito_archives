@@ -6,8 +6,10 @@ import {
   type MailDelivery,
   MailService,
   type NewCommentNotification,
+  type NewsletterConfirmationNotification,
 } from '@api/core/mail/services/mail.service';
 import { newCommentEmailTemplate } from '@api/core/mail/templates/new-comment-email.template';
+import { newsletterConfirmationEmailTemplate } from '@api/core/mail/templates/newsletter-confirmation-email.template';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { CreateEmailRequestOptions, ErrorResponse } from 'resend';
@@ -18,6 +20,7 @@ type ResendRequestOptions = CreateEmailRequestOptions & { signal: AbortSignal };
 export class ResendService implements MailService {
   private readonly logger = new Logger(ResendService.name);
   private readonly mailConfig: ApplicationConfig['resend'];
+  private readonly frontendUrl: string;
   private readonly moderationUrl: string;
 
   constructor(
@@ -25,10 +28,8 @@ export class ResendService implements MailService {
     configService: ConfigService<ApplicationConfig, true>,
   ) {
     this.mailConfig = configService.get('resend', { infer: true });
-    this.moderationUrl = new URL(
-      '/admin/comments',
-      configService.get('app.frontendUrl', { infer: true }),
-    ).toString();
+    this.frontendUrl = configService.get('app.frontendUrl', { infer: true });
+    this.moderationUrl = new URL('/admin/comments', this.frontendUrl).toString();
   }
 
   async sendNewCommentNotification(notification: NewCommentNotification): Promise<MailDelivery> {
@@ -44,6 +45,32 @@ export class ResendService implements MailService {
         to: this.mailConfig.adminRecipient,
       },
       `new-comment/${notification.commentId}`,
+    );
+  }
+
+  async sendNewsletterConfirmation(
+    notification: NewsletterConfirmationNotification,
+  ): Promise<MailDelivery> {
+    const confirmationUrl = this.newsletterUrl(
+      '/newsletter/confirm',
+      notification.confirmationToken,
+    );
+    const unsubscribeUrl = this.newsletterUrl(
+      '/newsletter/unsubscribe',
+      notification.unsubscribeToken,
+    );
+    const template = newsletterConfirmationEmailTemplate(confirmationUrl, unsubscribeUrl);
+
+    return this.sendWithRetry(
+      {
+        from: this.mailConfig.newsletterFrom,
+        html: template.html,
+        replyTo: this.mailConfig.replyTo,
+        subject: template.subject,
+        text: template.text,
+        to: notification.recipient,
+      },
+      `newsletter-confirmation/${notification.subscriberId}/${notification.confirmationTokenHash}`,
     );
   }
 
@@ -146,6 +173,12 @@ export class ResendService implements MailService {
       retryable,
       statusCode,
     });
+  }
+
+  private newsletterUrl(path: string, token: string): string {
+    const url = new URL(path, this.frontendUrl);
+    url.hash = new URLSearchParams({ token }).toString();
+    return url.toString();
   }
 
   private delay(milliseconds: number): Promise<void> {
