@@ -87,6 +87,25 @@ describe('Subscriber', () => {
     );
   });
 
+  it('renova consentimento e token de uma inscrição pendente', () => {
+    const subscriber = subscribe();
+    const renewedAt = new Date('2026-08-24T14:00:00.000Z');
+    const renewedExpiry = new Date('2026-08-25T14:00:00.000Z');
+
+    subscriber.renewConfirmation({
+      confirmationExpiresAt: renewedExpiry,
+      confirmationTokenHash: OTHER_HASH,
+      consent: consent(renewedAt, SubscriberConsentSource.FOOTER),
+      now: renewedAt,
+    });
+
+    expect(subscriber.status).toBe(SubscriberStatus.PENDING);
+    expect(subscriber.confirmationTokenHash).toBe(OTHER_HASH);
+    expect(subscriber.confirmationExpiresAt).toEqual(renewedExpiry);
+    expect(subscriber.consent.source).toBe(SubscriberConsentSource.FOOTER);
+    expect(subscriber.updatedAt).toEqual(renewedAt);
+  });
+
   it.each(['pending', 'confirmed'] as const)('cancela inscrição em estado %s', (state) => {
     const subscriber = state === 'pending' ? subscribe() : confirmedSubscriber();
     const unsubscribedAt = new Date('2026-08-24T14:00:00.000Z');
