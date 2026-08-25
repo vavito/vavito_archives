@@ -27,6 +27,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
     .valid(...environments)
     .default('development'),
   PORT: Joi.number().port().default(3001),
+  NEWSLETTER_TOKEN_SECRET: Joi.string().min(32).required(),
   RESEND_API_KEY: Joi.string()
     .pattern(/^re_[A-Za-z0-9_-]+$/)
     .required(),
@@ -48,6 +49,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
 });
 
 const secretVariableNames = [
+  'NEWSLETTER_TOKEN_SECRET',
   'RESEND_API_KEY',
   'REVALIDATION_SECRET',
   'VIEW_FINGERPRINT_SECRET',

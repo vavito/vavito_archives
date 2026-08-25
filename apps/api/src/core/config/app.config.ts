@@ -25,6 +25,7 @@ export interface ApplicationConfig {
     timeoutMs: number;
   };
   security: {
+    newsletterTokenSecret: string;
     revalidationSecret: string;
     viewFingerprintSecret: string;
   };
@@ -51,6 +52,7 @@ export interface EnvironmentVariables {
   RESEND_API_KEY: string;
   RESEND_MAX_ATTEMPTS: number;
   RESEND_TIMEOUT_MS: number;
+  NEWSLETTER_TOKEN_SECRET: string;
   REVALIDATION_SECRET: string;
   VIEW_FINGERPRINT_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;

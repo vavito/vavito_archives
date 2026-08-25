@@ -54,6 +54,7 @@ export default function configuration(): ApplicationConfig {
       timeoutMs: Number(requiredEnvironmentValue('RESEND_TIMEOUT_MS')),
     },
     security: {
+      newsletterTokenSecret: requiredEnvironmentValue('NEWSLETTER_TOKEN_SECRET'),
       revalidationSecret: requiredEnvironmentValue('REVALIDATION_SECRET'),
       viewFingerprintSecret: requiredEnvironmentValue('VIEW_FINGERPRINT_SECRET'),
     },
