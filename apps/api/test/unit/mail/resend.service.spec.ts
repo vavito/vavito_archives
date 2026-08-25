@@ -5,7 +5,10 @@ import type { CreateEmailRequestOptions, CreateEmailResponse } from 'resend';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import type { MailDeliveryError } from '@api/core/mail/errors/mail-delivery.error';
 import type { ResendEmailClient } from '@api/core/mail/providers/resend-email-client';
-import type { NewCommentNotification } from '@api/core/mail/services/mail.service';
+import type {
+  NewCommentNotification,
+  NewsletterConfirmationNotification,
+} from '@api/core/mail/services/mail.service';
 import { ResendService } from '@api/core/mail/services/resend.service';
 
 const notification: NewCommentNotification = {
@@ -14,6 +17,14 @@ const notification: NewCommentNotification = {
   commentId: 'df23c92d-71e4-400b-805e-975bbc3e1788',
   isReply: false,
   postTitle: 'Artigo publicado',
+};
+
+const newsletterNotification: NewsletterConfirmationNotification = {
+  confirmationToken: 'A'.repeat(43),
+  confirmationTokenHash: 'a'.repeat(64),
+  recipient: 'leitor@example.com',
+  subscriberId: '2813645a-8b74-4d1f-96c3-72cf3c594ad3',
+  unsubscribeToken: 'B'.repeat(43),
 };
 
 function successfulResponse(id = 'email-id'): CreateEmailResponse {
@@ -95,6 +106,32 @@ describe('ResendService', () => {
     });
     expect(send).toHaveBeenCalledTimes(2);
     expect(send.mock.calls[0]?.[1]?.idempotencyKey).toBe(send.mock.calls[1]?.[1]?.idempotencyKey);
+  });
+
+  it('envia double opt-in pelo remetente da newsletter com links reais', async () => {
+    send.mockResolvedValueOnce(successfulResponse('newsletter-message-id'));
+    const service = new ResendService(client, config());
+
+    await expect(service.sendNewsletterConfirmation(newsletterNotification)).resolves.toEqual({
+      messageId: 'newsletter-message-id',
+      provider: 'resend',
+    });
+    const [payload, options] = send.mock.calls[0]!;
+
+    expect(payload).toMatchObject({
+      from: 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>',
+      replyTo: 'contato@example.com',
+      to: 'leitor@example.com',
+    });
+    expect(payload.html).toContain(
+      `https://vavitoarchives.com.br/newsletter/confirm#token=${newsletterNotification.confirmationToken}`,
+    );
+    expect(payload.text).toContain(
+      `https://vavitoarchives.com.br/newsletter/unsubscribe#token=${newsletterNotification.unsubscribeToken}`,
+    );
+    expect(options?.idempotencyKey).toBe(
+      `newsletter-confirmation/${newsletterNotification.subscriberId}/${newsletterNotification.confirmationTokenHash}`,
+    );
   });
 
   it('não repete erro de validação do provedor', async () => {
