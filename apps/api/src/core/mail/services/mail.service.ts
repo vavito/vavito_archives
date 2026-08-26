@@ -6,6 +6,14 @@ export interface NewCommentNotification {
   postTitle: string;
 }
 
+export interface ContactMessageNotification {
+  contactMessageId: string;
+  message: string;
+  name: string;
+  replyTo: string;
+  subject: string;
+}
+
 export interface NewsletterConfirmationNotification {
   confirmationToken: string;
   confirmationTokenHash: string;
@@ -31,6 +39,9 @@ export interface MailDelivery {
 }
 
 export abstract class MailService {
+  abstract sendContactMessageNotification(
+    notification: ContactMessageNotification,
+  ): Promise<MailDelivery>;
   abstract sendNewCommentNotification(notification: NewCommentNotification): Promise<MailDelivery>;
   abstract sendNewsletterConfirmation(
     notification: NewsletterConfirmationNotification,
