@@ -1,6 +1,6 @@
 # Resend e entrega de emails
 
-O Resend atende três fluxos separados do Vavito Archives. A separação por subdomínio reduz o acoplamento operacional e permite acompanhar a reputação de autenticação, notificações e newsletter de forma independente.
+O Resend atende os fluxos de autenticação, contato, notificações administrativas e newsletter do Vavito Archives. A separação por subdomínio reduz o acoplamento operacional e permite acompanhar a reputação de cada finalidade de forma independente.
 
 ## Domínios
 
@@ -56,6 +56,8 @@ NEWSLETTER_TOKEN_SECRET=replace_with_a_32_character_newsletter_secret
 O `MailModule` encapsula o SDK do Resend e expõe contratos internos aos demais módulos. Cada envio devolve uma resposta normalizada com o provedor e o identificador da mensagem.
 
 Notificações de novo comentário usam a chave de idempotência `new-comment/<commentId>`, preservada nas novas tentativas durante a janela de 24 horas do Resend. Somente falhas transitórias — timeout, indisponibilidade, erro 5xx, rate limit ou conflito concorrente da mesma chave — são repetidas. Erros de autenticação, configuração ou validação falham imediatamente.
+
+Mensagens de contato usam `contact-message/<contactMessageId>`. A mensagem é persistida antes do envio; o log relaciona seu ID interno ao ID aceito pelo Resend sem registrar o email ou o conteúdo do visitante. O fluxo completo está documentado em `docs/development/contact-messages.md`.
 
 Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
 
