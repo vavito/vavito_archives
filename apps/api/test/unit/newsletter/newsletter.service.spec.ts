@@ -218,18 +218,25 @@ describe('NewsletterService', () => {
     expect(save).toHaveBeenCalledWith(subscriber);
   });
 
-  it('distingue token de confirmação inválido e expirado', async () => {
+  it('rejeita token de confirmação desconhecido', async () => {
     findByConfirmationTokenHash.mockResolvedValueOnce(null);
+
     await expect(service.confirm({ token: CONFIRMATION_RAW })).rejects.toBeInstanceOf(
       SubscriberTokenInvalidException,
     );
+    expect(save).not.toHaveBeenCalled();
+  });
 
+  it('rejeita token expirado sem alterar o assinante', async () => {
     const expired = pendingSubscriber(new Date('2026-08-24T10:00:00.000Z'));
     findByConfirmationTokenHash.mockResolvedValueOnce(expired);
     const result = service.confirm({ token: CONFIRMATION_RAW });
 
     await expect(result).rejects.toBeInstanceOf(ApplicationException);
     await expect(result).rejects.toMatchObject({ code: 'SUBSCRIBER_CONFIRMATION_TOKEN_EXPIRED' });
+    expect(expired.status).toBe(SubscriberStatus.PENDING);
+    expect(expired.confirmationTokenHash).toBe(CONFIRMATION_HASH);
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('cancela token conhecido e mantém repetição ou token desconhecido idempotentes', async () => {
