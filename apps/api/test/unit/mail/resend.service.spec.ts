@@ -7,6 +7,7 @@ import type { MailDeliveryError } from '@api/core/mail/errors/mail-delivery.erro
 import type { ResendEmailClient } from '@api/core/mail/providers/resend-email-client';
 import type {
   NewCommentNotification,
+  NewsletterCampaignNotification,
   NewsletterConfirmationNotification,
 } from '@api/core/mail/services/mail.service';
 import { ResendService } from '@api/core/mail/services/resend.service';
@@ -24,6 +25,17 @@ const newsletterNotification: NewsletterConfirmationNotification = {
   confirmationTokenHash: 'a'.repeat(64),
   recipient: 'leitor@example.com',
   subscriberId: '2813645a-8b74-4d1f-96c3-72cf3c594ad3',
+  unsubscribeToken: 'B'.repeat(43),
+};
+
+const campaignNotification: NewsletterCampaignNotification = {
+  articleUrl: 'https://vavitoarchives.com.br/artigos/artigo-publicado',
+  campaignId: '0b68ee40-f392-49cb-95c4-dd19cdd1bd43',
+  deliveryId: '49244eb5-fd04-438f-8d1d-a42e318c9bcd',
+  htmlSnapshot: '<html><a href="{{unsubscribeUrl}}">Cancelar</a></html>',
+  previewText: 'Nova leitura disponível',
+  recipient: 'leitor@example.com',
+  subject: 'Novo artigo',
   unsubscribeToken: 'B'.repeat(43),
 };
 
@@ -131,6 +143,30 @@ describe('ResendService', () => {
     );
     expect(options?.idempotencyKey).toBe(
       `newsletter-confirmation/${newsletterNotification.subscriberId}/${newsletterNotification.confirmationTokenHash}`,
+    );
+  });
+
+  it('personaliza campanha com cancelamento e chave por entrega', async () => {
+    send.mockResolvedValueOnce(successfulResponse('campaign-message-id'));
+    const service = new ResendService(client, config());
+
+    await expect(service.sendNewsletterCampaign(campaignNotification)).resolves.toEqual({
+      messageId: 'campaign-message-id',
+      provider: 'resend',
+    });
+    const [payload, options] = send.mock.calls[0]!;
+
+    expect(payload).toMatchObject({
+      from: 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>',
+      subject: 'Novo artigo',
+      to: 'leitor@example.com',
+    });
+    expect(payload.html).toContain(
+      `https://vavitoarchives.com.br/newsletter/unsubscribe#token=${campaignNotification.unsubscribeToken}`,
+    );
+    expect(payload.html).not.toContain('{{unsubscribeUrl}}');
+    expect(options?.idempotencyKey).toBe(
+      `newsletter-campaign/${campaignNotification.campaignId}/${campaignNotification.deliveryId}`,
     );
   });
 
