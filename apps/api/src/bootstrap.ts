@@ -23,7 +23,7 @@ export function configureApplication(
 }
 
 export async function createApplication(): Promise<INestApplication> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   app.set('trust proxy', 1);
   const configService = app.get(ConfigService<ApplicationConfig, true>);
 
