@@ -4,6 +4,7 @@ import { SubscriberConfirmationTokenExpiredError } from '@api/modules/newsletter
 import { SubscriberConfirmationTokenInvalidError } from '@api/modules/newsletter/domain/errors/subscriber-confirmation-token-invalid.error';
 import { SubscriberConsentRequiredError } from '@api/modules/newsletter/domain/errors/subscriber-consent-required.error';
 import { SubscriberEmailInvalidError } from '@api/modules/newsletter/domain/errors/subscriber-email-invalid.error';
+import { SubscriberNotEligibleError } from '@api/modules/newsletter/domain/errors/subscriber-not-eligible.error';
 import { SubscriberSuppressedError } from '@api/modules/newsletter/domain/errors/subscriber-suppressed.error';
 import { SubscriberTokenHashInvalidError } from '@api/modules/newsletter/domain/errors/subscriber-token-hash-invalid.error';
 import { HttpStatus } from '@nestjs/common';
@@ -40,6 +41,7 @@ export function throwSubscriberDomainException(error: unknown): never {
   }
   if (
     error instanceof InvalidSubscriberStatusTransitionError ||
+    error instanceof SubscriberNotEligibleError ||
     error instanceof SubscriberSuppressedError
   ) {
     throw applicationException(
