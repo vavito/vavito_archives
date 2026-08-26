@@ -57,6 +57,8 @@ O `MailModule` encapsula o SDK do Resend e expõe contratos internos aos demais 
 
 Notificações de novo comentário usam a chave de idempotência `new-comment/<commentId>`, preservada nas novas tentativas durante a janela de 24 horas do Resend. Somente falhas transitórias — timeout, indisponibilidade, erro 5xx, rate limit ou conflito concorrente da mesma chave — são repetidas. Erros de autenticação, configuração ou validação falham imediatamente.
 
+Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
+
 O template inclui somente título do artigo, nome público do leitor, trecho escapado de até 240 caracteres e link para `/admin/comments`. O conteúdo além desse trecho, identificadores internos e dados de autenticação não são enviados.
 
 ## Ambiente de teste
