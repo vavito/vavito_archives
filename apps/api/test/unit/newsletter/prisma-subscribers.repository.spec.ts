@@ -60,12 +60,16 @@ describe('PrismaSubscribersRepository', () => {
     Promise<PrismaNewsletterSubscriber | null>,
     [Prisma.NewsletterSubscriberFindUniqueArgs]
   >();
+  const findMany = jest.fn<
+    Promise<PrismaNewsletterSubscriber[]>,
+    [Prisma.NewsletterSubscriberFindManyArgs]
+  >();
   const update = jest.fn<
     Promise<PrismaNewsletterSubscriber>,
     [Prisma.NewsletterSubscriberUpdateArgs]
   >();
   const prisma = {
-    newsletterSubscriber: { createMany, findUnique, update },
+    newsletterSubscriber: { createMany, findMany, findUnique, update },
   } as unknown as PrismaService;
   const repository = new PrismaSubscribersRepository(prisma);
 
@@ -107,6 +111,22 @@ describe('PrismaSubscribersRepository', () => {
     expect(update.mock.calls[0]?.[0]).toMatchObject({
       data: { status: PrismaSubscriberStatus.PENDING },
       where: { id: ID },
+    });
+  });
+
+  it('lista somente assinantes confirmados em ordem estável', async () => {
+    const confirmed = record();
+    confirmed.status = PrismaSubscriberStatus.CONFIRMED;
+    confirmed.confirmationTokenHash = null;
+    confirmed.confirmationExpiresAt = null;
+    confirmed.confirmedAt = new Date('2026-08-25T11:00:00.000Z');
+    confirmed.updatedAt = confirmed.confirmedAt;
+    findMany.mockResolvedValueOnce([confirmed]);
+
+    await expect(repository.listEligibleForCampaign()).resolves.toHaveLength(1);
+    expect(findMany).toHaveBeenCalledWith({
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      where: { status: PrismaSubscriberStatus.CONFIRMED },
     });
   });
 });
