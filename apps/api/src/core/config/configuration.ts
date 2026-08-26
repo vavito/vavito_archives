@@ -52,6 +52,7 @@ export default function configuration(): ApplicationConfig {
       newsletterFrom: requiredEnvironmentValue('MAIL_NEWSLETTER_FROM'),
       replyTo: requiredEnvironmentValue('MAIL_REPLY_TO'),
       timeoutMs: Number(requiredEnvironmentValue('RESEND_TIMEOUT_MS')),
+      webhookSecret: requiredEnvironmentValue('RESEND_WEBHOOK_SECRET'),
     },
     security: {
       newsletterTokenSecret: requiredEnvironmentValue('NEWSLETTER_TOKEN_SECRET'),

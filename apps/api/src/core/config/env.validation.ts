@@ -33,6 +33,12 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
     .required(),
   RESEND_MAX_ATTEMPTS: Joi.number().integer().min(1).max(3).default(3),
   RESEND_TIMEOUT_MS: Joi.number().integer().min(1_000).max(30_000).default(5_000),
+  RESEND_WEBHOOK_SECRET: Joi.string()
+    .pattern(/^whsec_[A-Za-z0-9+/_=-]+$/)
+    .messages({
+      'string.pattern.base': '"RESEND_WEBHOOK_SECRET" has invalid format',
+    })
+    .required(),
   REVALIDATION_SECRET: Joi.string().min(32).required(),
   VIEW_FINGERPRINT_SECRET: Joi.string().min(32).required(),
   SUPABASE_SERVICE_ROLE_KEY: Joi.string().min(20).required(),
@@ -51,6 +57,7 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
 const secretVariableNames = [
   'NEWSLETTER_TOKEN_SECRET',
   'RESEND_API_KEY',
+  'RESEND_WEBHOOK_SECRET',
   'REVALIDATION_SECRET',
   'VIEW_FINGERPRINT_SECRET',
   'SUPABASE_SERVICE_ROLE_KEY',

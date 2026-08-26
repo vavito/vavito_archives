@@ -23,6 +23,7 @@ export interface ApplicationConfig {
     newsletterFrom: string;
     replyTo: string;
     timeoutMs: number;
+    webhookSecret: string;
   };
   security: {
     newsletterTokenSecret: string;
@@ -52,6 +53,7 @@ export interface EnvironmentVariables {
   RESEND_API_KEY: string;
   RESEND_MAX_ATTEMPTS: number;
   RESEND_TIMEOUT_MS: number;
+  RESEND_WEBHOOK_SECRET: string;
   NEWSLETTER_TOKEN_SECRET: string;
   REVALIDATION_SECRET: string;
   VIEW_FINGERPRINT_SECRET: string;
