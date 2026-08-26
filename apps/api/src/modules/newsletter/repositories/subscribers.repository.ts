@@ -5,5 +5,6 @@ export abstract class SubscribersRepository {
   abstract findByConfirmationTokenHash(tokenHash: string): Promise<Subscriber | null>;
   abstract findByEmail(email: string): Promise<Subscriber | null>;
   abstract findByUnsubscribeTokenHash(tokenHash: string): Promise<Subscriber | null>;
+  abstract listEligibleForCampaign(): Promise<Subscriber[]>;
   abstract save(subscriber: Subscriber): Promise<void>;
 }
