@@ -3,11 +3,12 @@ import { newCommentEmailTemplate } from '@api/core/mail/templates/new-comment-em
 
 describe('newCommentEmailTemplate', () => {
   it('escapa conteúdo controlado pelo leitor e inclui o link de moderação', () => {
+    const internalCommentId = 'internal-comment-id-should-not-leak';
     const template = newCommentEmailTemplate(
       {
         authorDisplayName: '<Leitor>',
         commentContent: '<script>alert("xss")</script>',
-        commentId: 'comment-id',
+        commentId: internalCommentId,
         isReply: false,
         postTitle: 'Artigo & segurança',
       },
@@ -19,6 +20,8 @@ describe('newCommentEmailTemplate', () => {
     expect(template.html).toContain('Artigo &amp; segurança');
     expect(template.html).toContain('https://vavitoarchives.com.br/admin/comments');
     expect(template.html).not.toContain('<script>');
+    expect(template.html).not.toContain(internalCommentId);
+    expect(template.text).not.toContain(internalCommentId);
   });
 
   it('limita o trecho sem cortar caracteres Unicode', () => {
