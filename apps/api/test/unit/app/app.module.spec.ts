@@ -15,8 +15,10 @@ import { ContactController } from '@api/modules/contact/controllers/contact.cont
 import { ContactService } from '@api/modules/contact/services/contact.service';
 import { NewsletterController } from '@api/modules/newsletter/controllers/newsletter.controller';
 import { AdminCampaignsController } from '@api/modules/newsletter/controllers/admin-campaigns.controller';
+import { ResendWebhooksController } from '@api/modules/newsletter/controllers/resend-webhooks.controller';
 import { CampaignsService } from '@api/modules/newsletter/services/campaigns.service';
 import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
+import { NewsletterWebhooksService } from '@api/modules/newsletter/services/newsletter-webhooks.service';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
 import { TagsController } from '@api/modules/posts/controllers/tags.controller';
@@ -52,6 +54,8 @@ describe('AppModule', () => {
     expect(moduleRef.get(NewsletterService)).toBeInstanceOf(NewsletterService);
     expect(moduleRef.get(AdminCampaignsController)).toBeInstanceOf(AdminCampaignsController);
     expect(moduleRef.get(CampaignsService)).toBeInstanceOf(CampaignsService);
+    expect(moduleRef.get(ResendWebhooksController)).toBeInstanceOf(ResendWebhooksController);
+    expect(moduleRef.get(NewsletterWebhooksService)).toBeInstanceOf(NewsletterWebhooksService);
     expect(moduleRef.get(ProfilesController)).toBeInstanceOf(ProfilesController);
     expect(moduleRef.get(ProfilesService)).toBeInstanceOf(ProfilesService);
     expect(moduleRef.get(PostsController)).toBeInstanceOf(PostsController);
