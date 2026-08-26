@@ -350,6 +350,8 @@ interface UpdateCampaignDto {
 
 `EmailCampaignAdminDto` inclui `id`, post resumido, snapshot, assunto, preview, status, tamanho da audiência, identificador do Resend, motivo de falha e datas.
 
+Ao editar `html`, o marcador `{{unsubscribeUrl}}` é obrigatório. A API preserva esse marcador no preview e o substitui pelo link individual somente durante o envio.
+
 ### Contact
 
 ```ts
