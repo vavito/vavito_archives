@@ -12,6 +12,8 @@ import { PrismaService } from '@api/core/database/prisma.service';
 import { HealthController } from '@api/modules/health/controllers/health.controller';
 import { HealthService } from '@api/modules/health/services/health.service';
 import { NewsletterController } from '@api/modules/newsletter/controllers/newsletter.controller';
+import { AdminCampaignsController } from '@api/modules/newsletter/controllers/admin-campaigns.controller';
+import { CampaignsService } from '@api/modules/newsletter/services/campaigns.service';
 import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
@@ -44,6 +46,8 @@ describe('AppModule', () => {
     expect(moduleRef.get(HealthService)).toBeInstanceOf(HealthService);
     expect(moduleRef.get(NewsletterController)).toBeInstanceOf(NewsletterController);
     expect(moduleRef.get(NewsletterService)).toBeInstanceOf(NewsletterService);
+    expect(moduleRef.get(AdminCampaignsController)).toBeInstanceOf(AdminCampaignsController);
+    expect(moduleRef.get(CampaignsService)).toBeInstanceOf(CampaignsService);
     expect(moduleRef.get(ProfilesController)).toBeInstanceOf(ProfilesController);
     expect(moduleRef.get(ProfilesService)).toBeInstanceOf(ProfilesService);
     expect(moduleRef.get(PostsController)).toBeInstanceOf(PostsController);
