@@ -6,9 +6,11 @@ import {
   type MailDelivery,
   MailService,
   type NewCommentNotification,
+  type NewsletterCampaignNotification,
   type NewsletterConfirmationNotification,
 } from '@api/core/mail/services/mail.service';
 import { newCommentEmailTemplate } from '@api/core/mail/templates/new-comment-email.template';
+import { newsletterCampaignDeliveryTemplate } from '@api/core/mail/templates/newsletter-campaign-email.template';
 import { newsletterConfirmationEmailTemplate } from '@api/core/mail/templates/newsletter-confirmation-email.template';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -71,6 +73,33 @@ export class ResendService implements MailService {
         to: notification.recipient,
       },
       `newsletter-confirmation/${notification.subscriberId}/${notification.confirmationTokenHash}`,
+    );
+  }
+
+  async sendNewsletterCampaign(
+    notification: NewsletterCampaignNotification,
+  ): Promise<MailDelivery> {
+    const unsubscribeUrl = this.newsletterUrl(
+      '/newsletter/unsubscribe',
+      notification.unsubscribeToken,
+    );
+    const template = newsletterCampaignDeliveryTemplate(
+      notification.htmlSnapshot,
+      notification.previewText,
+      notification.articleUrl,
+      unsubscribeUrl,
+    );
+
+    return this.sendWithRetry(
+      {
+        from: this.mailConfig.newsletterFrom,
+        html: template.html,
+        replyTo: this.mailConfig.replyTo,
+        subject: notification.subject,
+        text: template.text,
+        to: notification.recipient,
+      },
+      `newsletter-campaign/${notification.campaignId}/${notification.deliveryId}`,
     );
   }
 
