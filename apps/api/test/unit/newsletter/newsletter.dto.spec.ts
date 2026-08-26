@@ -17,8 +17,17 @@ describe('DTOs de Newsletter', () => {
     expect(dto.email).toBe('leitor@example.com');
   });
 
+  it('rejeita inscrição sem consentimento explícito', async () => {
+    const dto = plainToInstance(SubscribeNewsletterDto, {
+      consent: false,
+      email: 'leitor@example.com',
+      source: SubscriberConsentSource.HOME,
+    });
+
+    await expect(validate(dto)).resolves.not.toHaveLength(0);
+  });
+
   it.each([
-    { consent: false, email: 'leitor@example.com', source: SubscriberConsentSource.HOME },
     { consent: true, email: 'email-invalido', source: SubscriberConsentSource.HOME },
     { consent: true, email: 'leitor@example.com', source: 'SIDEBAR' },
   ])('rejeita inscrição inválida', async (payload) => {
