@@ -6,6 +6,7 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
 import type { MailDeliveryError } from '@api/core/mail/errors/mail-delivery.error';
 import type { ResendEmailClient } from '@api/core/mail/providers/resend-email-client';
 import type {
+  ContactMessageNotification,
   NewCommentNotification,
   NewsletterCampaignNotification,
   NewsletterConfirmationNotification,
@@ -18,6 +19,14 @@ const notification: NewCommentNotification = {
   commentId: 'df23c92d-71e4-400b-805e-975bbc3e1788',
   isReply: false,
   postTitle: 'Artigo publicado',
+};
+
+const contactNotification: ContactMessageNotification = {
+  contactMessageId: '49d6cdaa-a5f5-4716-9b27-39006338557b',
+  message: 'Gostaria de sugerir uma nova pauta.',
+  name: 'Leitor',
+  replyTo: 'leitor@example.com',
+  subject: 'Sugestão',
 };
 
 const newsletterNotification: NewsletterConfirmationNotification = {
@@ -100,6 +109,24 @@ describe('ResendService', () => {
     });
     expect(requestOptions.idempotencyKey).toBe(`new-comment/${notification.commentId}`);
     expect(requestOptions.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('envia o contato ao administrador com reply-to do visitante', async () => {
+    send.mockResolvedValueOnce(successfulResponse('contact-message-id'));
+    const service = new ResendService(client, config());
+
+    await expect(service.sendContactMessageNotification(contactNotification)).resolves.toEqual({
+      messageId: 'contact-message-id',
+      provider: 'resend',
+    });
+    const [payload, options] = send.mock.calls[0]!;
+
+    expect(payload).toMatchObject({
+      from: 'Vavito Archives <notifications@contact.vavitoarchives.com.br>',
+      replyTo: 'leitor@example.com',
+      to: 'admin@example.com',
+    });
+    expect(options?.idempotencyKey).toBe(`contact-message/${contactNotification.contactMessageId}`);
   });
 
   it('repete falha transitória com a mesma chave de idempotência', async () => {
