@@ -1,0 +1,10 @@
+export const CONTACT_ACCEPTED_MESSAGE = 'Mensagem recebida. Retornaremos assim que possível.';
+export const CONTACT_DEFAULT_SUBJECT = 'Contato pelo site';
+export const CONTACT_RATE_LIMIT = 5;
+export const CONTACT_RATE_LIMIT_WINDOW_MS = 60_000;
+export const MAX_CONTACT_EMAIL_LENGTH = 320;
+export const MAX_CONTACT_MESSAGE_LENGTH = 5_000;
+export const MAX_CONTACT_NAME_LENGTH = 120;
+export const MAX_CONTACT_SUBJECT_LENGTH = 255;
+export const MIN_CONTACT_MESSAGE_LENGTH = 10;
+export const MIN_CONTACT_NAME_LENGTH = 2;

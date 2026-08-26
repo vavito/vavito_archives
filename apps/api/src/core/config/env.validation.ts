@@ -2,6 +2,9 @@ import * as Joi from 'joi';
 
 import { environments, type EnvironmentVariables } from '@api/core/config/app.config';
 
+const mailboxPattern =
+  /^(?:[^<>\r\n]+\s+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>|[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+)$/;
+
 const environmentSchema = Joi.object<EnvironmentVariables>({
   APP_VERSION: Joi.string()
     .pattern(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
@@ -16,12 +19,25 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   FRONTEND_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .required(),
+  MAIL_ADMIN_RECIPIENT: Joi.string().email().required(),
+  MAIL_CONTACT_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
+  MAIL_NEWSLETTER_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
+  MAIL_REPLY_TO: Joi.string().email().required(),
   NODE_ENV: Joi.string()
     .valid(...environments)
     .default('development'),
   PORT: Joi.number().port().default(3001),
+  NEWSLETTER_TOKEN_SECRET: Joi.string().min(32).required(),
   RESEND_API_KEY: Joi.string()
     .pattern(/^re_[A-Za-z0-9_-]+$/)
+    .required(),
+  RESEND_MAX_ATTEMPTS: Joi.number().integer().min(1).max(3).default(3),
+  RESEND_TIMEOUT_MS: Joi.number().integer().min(1_000).max(30_000).default(5_000),
+  RESEND_WEBHOOK_SECRET: Joi.string()
+    .pattern(/^whsec_[A-Za-z0-9+/_=-]+$/)
+    .messages({
+      'string.pattern.base': '"RESEND_WEBHOOK_SECRET" has invalid format',
+    })
     .required(),
   REVALIDATION_SECRET: Joi.string().min(32).required(),
   VIEW_FINGERPRINT_SECRET: Joi.string().min(32).required(),
@@ -39,7 +55,9 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
 });
 
 const secretVariableNames = [
+  'NEWSLETTER_TOKEN_SECRET',
   'RESEND_API_KEY',
+  'RESEND_WEBHOOK_SECRET',
   'REVALIDATION_SECRET',
   'VIEW_FINGERPRINT_SECRET',
   'SUPABASE_SERVICE_ROLE_KEY',

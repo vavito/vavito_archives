@@ -148,10 +148,9 @@ describe('CommentsService', () => {
     expect(create).toHaveBeenCalledWith(createdComment);
     expect(sendNewCommentNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        authorId: USER_ID,
+        commentContent: 'Olá!',
         commentId: createdComment?.id,
-        postId: POST_ID,
-        postSlug: 'artigo-publicado',
+        postTitle: 'Artigo publicado',
       }),
     );
     expect(create.mock.invocationCallOrder[0]).toBeLessThan(
@@ -162,10 +161,17 @@ describe('CommentsService', () => {
   it('mantém o comentário quando a notificação falha', async () => {
     sendNewCommentNotification.mockRejectedValueOnce(new Error('Resend indisponível'));
 
-    await expect(
-      service.create(USER_ID, 'artigo-publicado', { content: 'Olá!' }),
-    ).resolves.toMatchObject({ status: CommentStatus.VISIBLE });
+    const response = await service.create(USER_ID, 'artigo-publicado', { content: 'Olá!' });
+
+    expect(createdComment).toBeDefined();
+    expect(response).toMatchObject({
+      content: 'Olá!',
+      id: createdComment?.id,
+      status: CommentStatus.VISIBLE,
+    });
     expect(create).toHaveBeenCalledTimes(1);
+    expect(findById).toHaveBeenCalledWith(createdComment?.id);
+    expect(sendNewCommentNotification).toHaveBeenCalledTimes(1);
   });
 
   it('rejeita terceiro nível de comentários', async () => {

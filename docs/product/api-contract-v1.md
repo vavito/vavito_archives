@@ -52,7 +52,7 @@ Ausência ou invalidade do JWT retorna `401`. Usuário autenticado sem permissã
 | `Content-Type: multipart/form-data` | Uploads de avatar e mídia editorial. |
 | `Idempotency-Key` | Obrigatório ao disparar campanha; UUID gerado pelo cliente administrativo. |
 | `X-Request-Id` | Aceito quando válido; caso ausente, gerado pela API e devolvido na resposta. |
-| Header de assinatura do Resend | Validado conforme o SDK oficial no endpoint de webhook. |
+| `svix-id`, `svix-timestamp`, `svix-signature` | Validados conforme o SDK oficial no endpoint de webhook do Resend. |
 
 ## Paginação, filtros e ordenação
 
@@ -121,6 +121,7 @@ Regras:
 | HTTP | Código | Uso |
 | --- | --- | --- |
 | `400` | `VALIDATION_ERROR` | DTO, query, arquivo ou parâmetro inválido. |
+| `400` | `WEBHOOK_PAYLOAD_INVALID` | Payload assinado do webhook não atende ao contrato mínimo. |
 | `401` | `UNAUTHENTICATED` | JWT ausente, expirado ou inválido. |
 | `401` | `WEBHOOK_SIGNATURE_INVALID` | Assinatura do webhook inválida. |
 | `403` | `FORBIDDEN` | Perfil sem autorização para a ação. |
@@ -350,14 +351,16 @@ interface UpdateCampaignDto {
 
 `EmailCampaignAdminDto` inclui `id`, post resumido, snapshot, assunto, preview, status, tamanho da audiência, identificador do Resend, motivo de falha e datas.
 
+Ao editar `html`, o marcador `{{unsubscribeUrl}}` é obrigatório. A API preserva esse marcador no preview e o substitui pelo link individual somente durante o envio.
+
 ### Contact
 
 ```ts
 interface CreateContactMessageDto {
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
+  name: string; // 2..120, normalizado
+  email: string; // email válido, até 320, normalizado
+  subject?: string; // 1..255; padrão "Contato pelo site"
+  message: string; // 10..5000
 }
 ```
 
@@ -459,6 +462,7 @@ O clique repetido no frontend usa `DELETE` quando a reação ou bookmark já est
 | `POST` | `/admin/newsletter/campaigns/:id/send` | ADMIN | header `Idempotency-Key` | `202 EmailCampaignAdminDto`. |
 
 Inscrição sempre responde de modo que não revele se o email já existia. Apenas `CONFIRMED` participa da audiência.
+As três rotas públicas aceitam inicialmente até `5` solicitações por IP e por rota a cada minuto. Os links enviados apontam para páginas do frontend com o token no fragmento da URL, que não é enviado automaticamente ao servidor. O frontend apresenta o resultado, encaminha o token ao respectivo endpoint `POST` e remove o fragmento sem persistir o valor no navegador.
 
 ### Contact
 
@@ -466,7 +470,7 @@ Inscrição sempre responde de modo que não revele se o email já existia. Apen
 | --- | --- | --- | --- | --- |
 | `POST` | `/contact` | Público limitado | `CreateContactMessageDto` | `202`; persiste e solicita email ao administrador. |
 
-Falha no envio do email não desfaz a mensagem persistida.
+O endpoint aceita inicialmente até `5` mensagens por IP a cada minuto e retorna apenas uma mensagem genérica, sem email, ID interno ou ID do provedor. Falha no envio do email não desfaz a mensagem persistida.
 
 ### Webhooks
 

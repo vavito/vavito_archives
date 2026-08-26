@@ -16,9 +16,17 @@ export interface ApplicationConfig {
     url: string;
   };
   resend: {
+    adminRecipient: string;
     apiKey: string;
+    contactFrom: string;
+    maxAttempts: number;
+    newsletterFrom: string;
+    replyTo: string;
+    timeoutMs: number;
+    webhookSecret: string;
   };
   security: {
+    newsletterTokenSecret: string;
     revalidationSecret: string;
     viewFingerprintSecret: string;
   };
@@ -36,9 +44,17 @@ export interface EnvironmentVariables {
   DATABASE_URL: string;
   DIRECT_URL: string;
   FRONTEND_URL: string;
+  MAIL_ADMIN_RECIPIENT: string;
+  MAIL_CONTACT_FROM: string;
+  MAIL_NEWSLETTER_FROM: string;
+  MAIL_REPLY_TO: string;
   NODE_ENV: AppEnvironment;
   PORT: number;
   RESEND_API_KEY: string;
+  RESEND_MAX_ATTEMPTS: number;
+  RESEND_TIMEOUT_MS: number;
+  RESEND_WEBHOOK_SECRET: string;
+  NEWSLETTER_TOKEN_SECRET: string;
   REVALIDATION_SECRET: string;
   VIEW_FINGERPRINT_SECRET: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
