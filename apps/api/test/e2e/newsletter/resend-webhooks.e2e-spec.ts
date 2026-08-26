@@ -1,6 +1,7 @@
 import type { Server } from 'node:http';
 
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
+import { MailWebhookPayloadInvalidError } from '@api/core/mail/errors/mail-webhook-payload-invalid.error';
 import { MailWebhookSignatureInvalidError } from '@api/core/mail/errors/mail-webhook-signature-invalid.error';
 import type { VerifiedMailWebhookEvent } from '@api/core/mail/services/mail-webhook-verifier.service';
 import { MailWebhookVerifier } from '@api/core/mail/services/mail-webhook-verifier.service';
@@ -90,6 +91,27 @@ describe('Resend webhook (e2e)', () => {
     expect(response.body).toMatchObject({
       code: 'WEBHOOK_SIGNATURE_INVALID',
       statusCode: 401,
+    });
+    expect(process).not.toHaveBeenCalled();
+  });
+
+  it('responde 400 quando o payload assinado é inválido', async () => {
+    verify.mockImplementationOnce(() => {
+      throw new MailWebhookPayloadInvalidError();
+    });
+
+    const response = await request(app.getHttpServer() as Server)
+      .post('/api/v1/webhooks/resend')
+      .set('content-type', 'application/json')
+      .set('svix-id', 'message-id')
+      .set('svix-signature', 'signature')
+      .set('svix-timestamp', 'timestamp')
+      .send('{}')
+      .expect(400);
+
+    expect(response.body).toMatchObject({
+      code: 'WEBHOOK_PAYLOAD_INVALID',
+      statusCode: 400,
     });
     expect(process).not.toHaveBeenCalled();
   });
