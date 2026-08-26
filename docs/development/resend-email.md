@@ -35,6 +35,7 @@ O endereço informado pelo visitante nunca deve ser usado como `From`, pois ele 
 RESEND_API_KEY=re_replace_with_api_key
 RESEND_TIMEOUT_MS=5000
 RESEND_MAX_ATTEMPTS=3
+RESEND_WEBHOOK_SECRET=whsec_replace_with_webhook_signing_secret
 MAIL_CONTACT_FROM="Vavito Archives <notifications@contact.vavitoarchives.com.br>"
 MAIL_NEWSLETTER_FROM="Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>"
 MAIL_ADMIN_RECIPIENT=replace_with_admin_email
@@ -45,6 +46,7 @@ NEWSLETTER_TOKEN_SECRET=replace_with_a_32_character_newsletter_secret
 - `RESEND_API_KEY` usa uma chave privada com permissão somente de envio para os domínios da aplicação.
 - `RESEND_TIMEOUT_MS` limita cada tentativa a 5 segundos por padrão.
 - `RESEND_MAX_ATTEMPTS` aceita de 1 a 3 tentativas e usa 3 por padrão.
+- `RESEND_WEBHOOK_SECRET` valida os eventos recebidos do Resend e é diferente da chave de envio.
 - `MAIL_ADMIN_RECIPIENT` recebe notificações internas de comentário e contato.
 - `MAIL_REPLY_TO` precisa apontar para uma caixa postal acompanhada pelo administrador.
 - `NEWSLETTER_TOKEN_SECRET` possui ao menos 32 caracteres e deriva tokens de cancelamento reproduzíveis sem armazenar seus valores brutos.
@@ -60,6 +62,8 @@ Notificações de novo comentário usam a chave de idempotência `new-comment/<c
 Mensagens de contato usam `contact-message/<contactMessageId>`. A mensagem é persistida antes do envio; o log relaciona seu ID interno ao ID aceito pelo Resend sem registrar o email ou o conteúdo do visitante. O fluxo completo está documentado em `docs/development/contact-messages.md`.
 
 Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
+
+O processamento assinado de delivered, bounce, complaint e falhas técnicas está documentado em `docs/development/resend-webhooks.md`.
 
 O template inclui somente título do artigo, nome público do leitor, trecho escapado de até 240 caracteres e link para `/admin/comments`. O conteúdo além desse trecho, identificadores internos e dados de autenticação não são enviados.
 
@@ -81,3 +85,4 @@ A confirmação final da entrega deve ser feita na caixa postal do destinatário
 - [Envio de email pela API](https://resend.com/docs/api-reference/emails/send-email)
 - [Chaves de idempotência](https://resend.com/docs/dashboard/emails/idempotency-keys)
 - [Erros da API](https://resend.com/docs/api-reference/errors)
+- [Webhooks](https://resend.com/docs/dashboard/webhooks/introduction)
