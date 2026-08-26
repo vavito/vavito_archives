@@ -40,4 +40,4 @@ Se uma solicitação for rejeitada, a entrega correspondente e a campanha passam
 - `SENT`: todos os pedidos foram aceitos pelo Resend;
 - `FAILED`: ao menos um pedido não foi aceito e não há reenvio automático.
 
-Webhooks atualizarão os estados individuais de entrega em uma task posterior. Bounce e complaint pertencem ao destinatário e não reabrem uma campanha `SENT`.
+Webhooks assinados atualizam os estados individuais de entrega sem reabrir uma campanha `SENT`. Bounce permanente altera o subscriber para `BOUNCED`, atraso ou bounce transitório não o bloqueia, e reclamação de spam altera o subscriber para `COMPLAINED`. O processamento completo, incluindo idempotência e eventos fora de ordem, está documentado em `docs/development/resend-webhooks.md`.
