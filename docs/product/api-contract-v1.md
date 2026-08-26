@@ -52,7 +52,7 @@ Ausência ou invalidade do JWT retorna `401`. Usuário autenticado sem permissã
 | `Content-Type: multipart/form-data` | Uploads de avatar e mídia editorial. |
 | `Idempotency-Key` | Obrigatório ao disparar campanha; UUID gerado pelo cliente administrativo. |
 | `X-Request-Id` | Aceito quando válido; caso ausente, gerado pela API e devolvido na resposta. |
-| Header de assinatura do Resend | Validado conforme o SDK oficial no endpoint de webhook. |
+| `svix-id`, `svix-timestamp`, `svix-signature` | Validados conforme o SDK oficial no endpoint de webhook do Resend. |
 
 ## Paginação, filtros e ordenação
 
@@ -121,6 +121,7 @@ Regras:
 | HTTP | Código | Uso |
 | --- | --- | --- |
 | `400` | `VALIDATION_ERROR` | DTO, query, arquivo ou parâmetro inválido. |
+| `400` | `WEBHOOK_PAYLOAD_INVALID` | Payload assinado do webhook não atende ao contrato mínimo. |
 | `401` | `UNAUTHENTICATED` | JWT ausente, expirado ou inválido. |
 | `401` | `WEBHOOK_SIGNATURE_INVALID` | Assinatura do webhook inválida. |
 | `403` | `FORBIDDEN` | Perfil sem autorização para a ação. |
