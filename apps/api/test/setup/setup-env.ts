@@ -10,6 +10,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = 'test_service_role_key_value';
 process.env.RESEND_API_KEY = 're_test_api_key';
 process.env.RESEND_TIMEOUT_MS = '5000';
 process.env.RESEND_MAX_ATTEMPTS = '3';
+process.env.RESEND_WEBHOOK_SECRET = 'whsec_test_webhook_signing_secret';
 process.env.MAIL_CONTACT_FROM = 'Vavito Archives <notifications@contact.vavitoarchives.com.br>';
 process.env.MAIL_NEWSLETTER_FROM = 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>';
 process.env.MAIL_ADMIN_RECIPIENT = 'admin@example.com';
