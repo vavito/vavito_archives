@@ -356,10 +356,10 @@ Ao editar `html`, o marcador `{{unsubscribeUrl}}` é obrigatório. A API preserv
 
 ```ts
 interface CreateContactMessageDto {
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
+  name: string; // 2..120, normalizado
+  email: string; // email válido, até 320, normalizado
+  subject?: string; // 1..255; padrão "Contato pelo site"
+  message: string; // 10..5000
 }
 ```
 
@@ -469,7 +469,7 @@ As três rotas públicas aceitam inicialmente até `5` solicitações por IP e p
 | --- | --- | --- | --- | --- |
 | `POST` | `/contact` | Público limitado | `CreateContactMessageDto` | `202`; persiste e solicita email ao administrador. |
 
-Falha no envio do email não desfaz a mensagem persistida.
+O endpoint aceita inicialmente até `5` mensagens por IP a cada minuto e retorna apenas uma mensagem genérica, sem email, ID interno ou ID do provedor. Falha no envio do email não desfaz a mensagem persistida.
 
 ### Webhooks
 
