@@ -25,6 +25,7 @@ describe('validateEnvironment', () => {
 
     expect(environment).toMatchObject({
       APP_VERSION: '0.0.0',
+      CORS_ALLOWED_ORIGINS: 'http://localhost:3000',
       DATABASE_CONNECT_ON_START: true,
       NODE_ENV: 'development',
       PORT: 3001,
@@ -35,6 +36,21 @@ describe('validateEnvironment', () => {
       SUPABASE_MEDIA_BUCKET: 'media',
       SWAGGER_ENABLED: true,
     });
+  });
+
+  it('aceita somente origins HTTP(S) exatas no CORS', () => {
+    expect(
+      validateEnvironment({
+        ...validEnvironment(),
+        CORS_ALLOWED_ORIGINS: 'https://vavitoarchives.com.br,https://preview.example.com',
+      }).CORS_ALLOWED_ORIGINS,
+    ).toBe('https://vavitoarchives.com.br,https://preview.example.com');
+
+    for (const value of ['*', 'https://*.example.com', 'https://example.com/app']) {
+      expect(() =>
+        validateEnvironment({ ...validEnvironment(), CORS_ALLOWED_ORIGINS: value }),
+      ).toThrow('CORS_ALLOWED_ORIGINS');
+    }
   });
 
   it('rejeita configuração obrigatória ausente ou inválida', () => {
