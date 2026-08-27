@@ -3,7 +3,6 @@ import { AuthModule } from '@api/core/auth/auth.module';
 import { AdminCampaignsController } from '@api/modules/newsletter/controllers/admin-campaigns.controller';
 import { NewsletterController } from '@api/modules/newsletter/controllers/newsletter.controller';
 import { ResendWebhooksController } from '@api/modules/newsletter/controllers/resend-webhooks.controller';
-import { NewsletterRateLimitGuard } from '@api/modules/newsletter/guards/newsletter-rate-limit.guard';
 import { PrismaSubscribersRepository } from '@api/modules/newsletter/repositories/prisma-subscribers.repository';
 import { SubscribersRepository } from '@api/modules/newsletter/repositories/subscribers.repository';
 import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
@@ -24,7 +23,6 @@ import { Module } from '@nestjs/common';
     CampaignsService,
     NewsletterService,
     NewsletterWebhooksService,
-    NewsletterRateLimitGuard,
     SubscriberTokenService,
     { provide: CampaignsRepository, useClass: PrismaCampaignsRepository },
     { provide: SubscribersRepository, useClass: PrismaSubscribersRepository },
