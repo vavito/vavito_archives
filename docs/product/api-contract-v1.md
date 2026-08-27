@@ -499,7 +499,7 @@ Eventos da V1:
 - Upload verifica tamanho, MIME real, extensão e autorização antes de disponibilizar o objeto.
 - Tokens de confirmação e cancelamento são armazenados como hash.
 - Webhook usa corpo bruto para verificação de assinatura antes do parse de negócio.
-- Logs incluem `requestId`, rota, status, duração e ator técnico seguro, sem tokens ou conteúdo sensível.
+- Logs JSON incluem `requestId`, método, rota sem query string, status, duração e ator técnico seguro. Corpo, email, cookies, Bearer token e demais segredos não são registrados; a política completa está em `docs/development/structured-logging.md`.
 
 ## Concorrência e idempotência
 
