@@ -10,8 +10,8 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -32,6 +32,7 @@ import { CurrentUser } from '@api/core/auth/decorators/current-user.decorator';
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { ListCommentsQueryDto } from '@api/modules/comments/dto/query/list-comments-query.dto';
 import { CreateCommentDto } from '@api/modules/comments/dto/request/create-comment.dto';
 import { UpdateCommentDto } from '@api/modules/comments/dto/request/update-comment.dto';
@@ -39,7 +40,6 @@ import {
   CommentResponseDto,
   PaginatedCommentsResponseDto,
 } from '@api/modules/comments/dto/response/comment-response.dto';
-import { CommentsRateLimitGuard } from '@api/modules/comments/guards/comments-rate-limit.guard';
 import { CommentsService } from '@api/modules/comments/services/comments.service';
 
 @ApiTags('Comments')
@@ -64,7 +64,7 @@ export class CommentsController {
   }
 
   @Post('posts/:slug/comments')
-  @UseGuards(CommentsRateLimitGuard)
+  @Throttle({ default: RATE_LIMITS.comments })
   @ApiBearerAuth('supabase-jwt')
   @ApiOperation({ summary: 'Publica um comentário ou resposta' })
   @ApiCreatedResponse({ type: CommentResponseDto })
