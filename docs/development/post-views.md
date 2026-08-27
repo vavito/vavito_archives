@@ -12,9 +12,9 @@ O servidor confia em um proxy reverso para interpretar corretamente o IP encamin
 
 ## Proteção básica
 
-A rota aceita até 30 tentativas por IP a cada minuto. A chave do limitador também é um HMAC e permanece somente na memória do processo. Ao exceder a janela, a API responde `429 RATE_LIMIT_EXCEEDED`.
+A rota aceita até 30 tentativas por IP a cada minuto. A identidade do limitador vira SHA-256 e permanece somente na memória do processo. Ao exceder a janela, a API responde `429 RATE_LIMIT_EXCEEDED`.
 
-Este limite específico atende à proteção básica da Task 4.8. A revisão e centralização de rate limits por rota permanece na Task 8.1; uma solução distribuída será necessária se a API operar com múltiplas instâncias.
+O limite agora usa a camada central descrita em `docs/development/http-security.md`. Uma solução distribuída continuará necessária se a API operar com múltiplas instâncias.
 
 ## Ranking e retenção
 

@@ -23,9 +23,9 @@ Nome, email e assunto são normalizados antes da persistência. Caracteres de co
 
 ## Proteção contra abuso
 
-O endpoint aceita inicialmente até 5 mensagens por IP a cada minuto. O IP é transformado em SHA-256 antes de ser usado como chave e não é registrado em logs.
+O endpoint aceita até 5 mensagens por IP a cada minuto. O IP é transformado em SHA-256 antes de ser usado como chave e não é registrado em logs.
 
-O contador atual fica em memória e atende ao desenvolvimento e a uma única instância. Antes de escalar horizontalmente, ele deve ser substituído por um armazenamento compartilhado, como Redis ou o rate limit do gateway.
+O contador usa a camada central descrita em `docs/development/http-security.md`. Ele fica em memória e atende a uma única instância; antes de escalar horizontalmente, deve ser substituído por um armazenamento compartilhado, como Redis ou o rate limit do gateway.
 
 ## Persistência e estados
 

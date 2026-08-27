@@ -29,6 +29,6 @@ Enquanto as páginas do frontend não forem implementadas, o fluxo backend pode 
 - Falha no envio da confirmação é registrada sem email ou token e não altera a resposta pública.
 - Unsubscribe retorna `204` para token desconhecido, assinatura já cancelada ou outro estado já inelegível.
 - Confirmação retorna `400` para token inválido e `410` para token expirado; tokens consumidos deixam de ser válidos.
-- Cada endpoint aceita inicialmente cinco solicitações por IP a cada minuto. A chave mantida em memória usa apenas o hash do IP e da rota.
+- Cada endpoint aceita cinco solicitações por IP a cada minuto. A chave mantida em memória usa apenas o hash do IP; controller e handler separam os contadores.
 
-O limitador em memória protege uma instância durante a V1. Um limitador compartilhado deverá substituí-lo caso a API opere com múltiplas réplicas.
+O limitador central está descrito em `docs/development/http-security.md`. Seu armazenamento em memória protege uma instância durante a V1 e deverá ser substituído caso a API opere com múltiplas réplicas.
