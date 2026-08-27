@@ -20,9 +20,11 @@ import {
   ApiTags,
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { ListPublicPostsQueryDto } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
 import { SearchPostsQueryDto } from '@api/modules/posts/dto/query/search-posts-query.dto';
 import { PaginatedPostSummaryDto } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
@@ -56,8 +58,13 @@ export class PostsController {
   }
 
   @Get('search')
+  @Throttle({ default: RATE_LIMITS.postSearch })
   @ApiOperation({ summary: 'Busca posts publicados por título, resumo ou tag' })
   @ApiOkResponse({ type: [PostSummaryDto] })
+  @ApiTooManyRequestsResponse({
+    description: 'Limite de buscas excedido.',
+    type: ErrorResponseDto,
+  })
   search(@Query() query: SearchPostsQueryDto): Promise<PostSummaryDto[]> {
     return this.postsService.searchPublic(query);
   }
