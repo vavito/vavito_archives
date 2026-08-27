@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { PinoLogger } from 'nestjs-pino';
 
 import { AppController } from '@api/app.controller';
 import { AppModule } from '@api/app.module';
@@ -37,12 +38,14 @@ describe('AppModule', () => {
     await moduleRef.close();
   });
 
-  it('carrega os módulos essenciais e a configuração validada', () => {
+  it('carrega os módulos essenciais e a configuração validada', async () => {
     const configService = moduleRef.get(ConfigService<ApplicationConfig, true>);
+    const pinoLogger = await moduleRef.resolve(PinoLogger);
 
     expect(moduleRef.get(AppController)).toBeInstanceOf(AppController);
     expect(moduleRef.get(AppService)).toBeInstanceOf(AppService);
     expect(moduleRef.get(PrismaService)).toBeDefined();
+    expect(pinoLogger).toBeInstanceOf(PinoLogger);
     expect(moduleRef.get(SupabaseJwtService)).toBeInstanceOf(SupabaseJwtService);
     expect(moduleRef.get(SupabaseAuthGuard)).toBeInstanceOf(SupabaseAuthGuard);
     expect(moduleRef.get(RolesGuard)).toBeInstanceOf(RolesGuard);
