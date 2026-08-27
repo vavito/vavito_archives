@@ -8,6 +8,7 @@ import configuration, { environmentFilePaths } from '@api/core/config/configurat
 import { validateEnvironment } from '@api/core/config/env.validation';
 import { PrismaModule } from '@api/core/database/prisma.module';
 import { HttpSecurityModule } from '@api/core/http/security/http-security.module';
+import { ObservabilityModule } from '@api/core/observability/observability.module';
 import { CommentsModule } from '@api/modules/comments/comments.module';
 import { ContactModule } from '@api/modules/contact/contact.module';
 import { EngagementModule } from '@api/modules/engagement/engagement.module';
@@ -28,6 +29,7 @@ import { ProfilesModule } from '@api/modules/profiles/profiles.module';
     }),
     PrismaModule,
     AuthModule,
+    ObservabilityModule,
     HttpSecurityModule,
     CommentsModule,
     ContactModule,
