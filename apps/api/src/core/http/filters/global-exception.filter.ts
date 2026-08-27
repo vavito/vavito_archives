@@ -37,6 +37,8 @@ const publicMessagesByStatus: Readonly<Partial<Record<number, string>>> = {
   [HttpStatus.UNAUTHORIZED]: 'Autenticação necessária.',
   [HttpStatus.FORBIDDEN]: 'Acesso não autorizado.',
   [HttpStatus.NOT_FOUND]: 'Rota não encontrada.',
+  [HttpStatus.PAYLOAD_TOO_LARGE]: 'Corpo da requisição acima do limite permitido.',
+  [HttpStatus.TOO_MANY_REQUESTS]: 'Limite de requisições excedido.',
   [HttpStatus.INTERNAL_SERVER_ERROR]: 'Erro interno do servidor.',
   [HttpStatus.NOT_IMPLEMENTED]: 'Erro interno do servidor.',
   [HttpStatus.BAD_GATEWAY]: 'Serviço temporariamente indisponível.',
@@ -105,6 +107,19 @@ function normalizeException(exception: unknown): NormalizedError {
     };
   }
 
+  if (exception instanceof Error && 'status' in exception) {
+    const statusCode = exception.status;
+
+    if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
+      return {
+        code: errorCodeForStatus(statusCode),
+        details: null,
+        message: publicMessagesByStatus[statusCode] ?? 'Requisição inválida.',
+        statusCode,
+      };
+    }
+  }
+
   return {
     code: 'INTERNAL_ERROR',
     details: null,
@@ -124,7 +139,7 @@ export class GlobalExceptionFilter implements ExceptionFilter<unknown> {
     const normalizedError = normalizeException(exception);
     const requestId = requestIdFrom(request);
 
-    if (!(exception instanceof HttpException) || exception.getStatus() >= 500) {
+    if (normalizedError.statusCode >= 500) {
       this.logger.error(
         `Falha inesperada em ${request.originalUrl ?? request.url} [requestId=${requestId}]`,
         exception instanceof Error ? exception.stack : undefined,

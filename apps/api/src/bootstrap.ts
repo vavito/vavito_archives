@@ -5,6 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from '@api/app.module';
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
+import { setupHttpSecurity } from '@api/core/http/security/setup-http-security';
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { setupOpenApi } from '@api/core/openapi/setup-openapi';
 
@@ -16,6 +17,7 @@ export function configureApplication(
 ): INestApplication {
   app.enableShutdownHooks();
   app.setGlobalPrefix(globalApiPrefix);
+  setupHttpSecurity(app, configService);
   setupErrorHandling(app);
   setupOpenApi(app, configService);
 
