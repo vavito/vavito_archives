@@ -33,6 +33,9 @@ function requiredEnvironmentValue(name: string): string {
 export default function configuration(): ApplicationConfig {
   return {
     app: {
+      corsAllowedOrigins: requiredEnvironmentValue('CORS_ALLOWED_ORIGINS')
+        .split(',')
+        .map((origin) => origin.trim()),
       environment: requiredEnvironmentValue('NODE_ENV') as AppEnvironment,
       frontendUrl: requiredEnvironmentValue('FRONTEND_URL'),
       port: Number(requiredEnvironmentValue('PORT')),

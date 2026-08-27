@@ -4,6 +4,7 @@ export type AppEnvironment = (typeof environments)[number];
 
 export interface ApplicationConfig {
   app: {
+    corsAllowedOrigins: string[];
     environment: AppEnvironment;
     frontendUrl: string;
     port: number;
@@ -40,6 +41,7 @@ export interface ApplicationConfig {
 
 export interface EnvironmentVariables {
   APP_VERSION: string;
+  CORS_ALLOWED_ORIGINS: string;
   DATABASE_CONNECT_ON_START: boolean;
   DATABASE_URL: string;
   DIRECT_URL: string;
