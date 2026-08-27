@@ -8,7 +8,6 @@ import {
   Query,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
@@ -30,7 +29,6 @@ import { SearchPostsQueryDto } from '@api/modules/posts/dto/query/search-posts-q
 import { PaginatedPostSummaryDto } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
 import { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
 import { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
-import { PostViewsRateLimitGuard } from '@api/modules/posts/guards/post-views-rate-limit.guard';
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 interface RedirectResponse {
@@ -97,7 +95,7 @@ export class PostsController {
 
   @Post(':slug/views')
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseGuards(PostViewsRateLimitGuard)
+  @Throttle({ default: RATE_LIMITS.postViews })
   @ApiOperation({ summary: 'Registra uma visualização do post publicado' })
   @ApiAcceptedResponse({ description: 'Visualização aceita para processamento.' })
   @ApiNotFoundResponse({
