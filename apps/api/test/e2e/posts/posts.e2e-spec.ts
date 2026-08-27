@@ -16,8 +16,6 @@ import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
 import { TagsController } from '@api/modules/posts/controllers/tags.controller';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
-import { PostViewsRateLimitGuard } from '@api/modules/posts/guards/post-views-rate-limit.guard';
-import { PostViewFingerprintService } from '@api/modules/posts/services/post-view-fingerprint.service';
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 const USER: AuthenticatedUser = {
@@ -77,11 +75,6 @@ describe('Endpoints de Posts (e2e)', () => {
         },
         { provide: APP_GUARD, useExisting: SupabaseAuthGuard },
         { provide: APP_GUARD, useExisting: RolesGuard },
-        { provide: PostViewsRateLimitGuard, useValue: { canActivate: () => true } },
-        {
-          provide: PostViewFingerprintService,
-          useValue: { createRateLimitKey: (ip: string) => ip },
-        },
         {
           provide: PostsService,
           useValue: {

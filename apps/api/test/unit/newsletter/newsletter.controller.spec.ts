@@ -1,12 +1,13 @@
 import { PUBLIC_ROUTE_METADATA_KEY } from '@api/core/auth/constants/auth.constants';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { NewsletterController } from '@api/modules/newsletter/controllers/newsletter.controller';
 import { SubscriberConsentSource } from '@api/modules/newsletter/domain/enums/subscriber-consent-source.enum';
-import { NewsletterRateLimitGuard } from '@api/modules/newsletter/guards/newsletter-rate-limit.guard';
 import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
 import { HttpStatus } from '@nestjs/common';
-import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { THROTTLER_LIMIT } from '@nestjs/throttler/dist/throttler.constants';
 
 describe('NewsletterController', () => {
   const subscribe = jest.fn();
@@ -18,8 +19,8 @@ describe('NewsletterController', () => {
 
   it('declara rotas públicas limitadas e status idempotentes', () => {
     expect(Reflect.getMetadata(PUBLIC_ROUTE_METADATA_KEY, NewsletterController)).toBe(true);
-    expect(Reflect.getMetadata(GUARDS_METADATA, NewsletterController)).toContain(
-      NewsletterRateLimitGuard,
+    expect(Reflect.getMetadata(`${THROTTLER_LIMIT}default`, NewsletterController)).toBe(
+      RATE_LIMITS.newsletter.limit,
     );
     expect(
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -54,7 +55,7 @@ describe('NewsletterController', () => {
   it('publica DTOs e respostas no OpenAPI', async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [NewsletterController],
-      providers: [NewsletterRateLimitGuard, { provide: NewsletterService, useValue: service }],
+      providers: [{ provide: NewsletterService, useValue: service }],
     }).compile();
     const app = moduleRef.createNestApplication();
     const document = SwaggerModule.createDocument(

@@ -20,7 +20,6 @@ import { Comment } from '@api/modules/comments/domain/entities/comment.entity';
 import { CommentStatus } from '@api/modules/comments/domain/enums/comment-status.enum';
 import { CommentContent } from '@api/modules/comments/domain/value-objects/comment-content.value-object';
 import { CommentModerationStatus } from '@api/modules/comments/dto/request/moderate-comment.dto';
-import { CommentsRateLimitGuard } from '@api/modules/comments/guards/comments-rate-limit.guard';
 import { CommentsRepository } from '@api/modules/comments/repositories/comments.repository';
 import type {
   AdminCommentsFilters,
@@ -177,7 +176,6 @@ describe('Autorização de comentários por usuário (e2e)', () => {
           provide: MailService,
           useValue: { sendNewCommentNotification: () => Promise.resolve() },
         },
-        { provide: CommentsRateLimitGuard, useValue: { canActivate: () => true } },
         { provide: APP_GUARD, useExisting: SupabaseAuthGuard },
         { provide: APP_GUARD, useExisting: RolesGuard },
       ],
