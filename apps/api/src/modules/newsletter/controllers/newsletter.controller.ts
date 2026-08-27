@@ -1,5 +1,6 @@
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { ConfirmSubscriptionDto } from '@api/modules/newsletter/dto/request/confirm-subscription.dto';
 import { SubscribeNewsletterDto } from '@api/modules/newsletter/dto/request/subscribe-newsletter.dto';
 import { UnsubscribeDto } from '@api/modules/newsletter/dto/request/unsubscribe.dto';
@@ -7,9 +8,8 @@ import {
   SubscriptionAcceptedResponseDto,
   SubscriptionConfirmedResponseDto,
 } from '@api/modules/newsletter/dto/response/subscription-response.dto';
-import { NewsletterRateLimitGuard } from '@api/modules/newsletter/guards/newsletter-rate-limit.guard';
 import { NewsletterService } from '@api/modules/newsletter/services/newsletter.service';
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBadRequestResponse,
@@ -21,9 +21,10 @@ import {
   ApiTooManyRequestsResponse,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 @Public()
-@UseGuards(NewsletterRateLimitGuard)
+@Throttle({ default: RATE_LIMITS.newsletter })
 @ApiTags('Newsletter')
 @ApiTooManyRequestsResponse({
   description: 'Limite de solicitações da newsletter excedido.',
