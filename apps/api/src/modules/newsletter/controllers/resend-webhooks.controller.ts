@@ -1,5 +1,6 @@
 import { Public } from '@api/core/auth/decorators/public.decorator';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { MailWebhookVerifier } from '@api/core/mail/services/mail-webhook-verifier.service';
 import { WebhookReceivedResponseDto } from '@api/modules/newsletter/dto/response/webhook-received-response.dto';
 import { throwResendWebhookException } from '@api/modules/newsletter/errors/resend-webhook.exception';
@@ -13,8 +14,10 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 function singleHeader(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -30,6 +33,7 @@ export class ResendWebhooksController {
   ) {}
 
   @Post()
+  @Throttle({ default: RATE_LIMITS.resendWebhook })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Processa eventos assinados do Resend' })
   @ApiHeader({ name: 'svix-id', required: true })
@@ -39,6 +43,10 @@ export class ResendWebhooksController {
   @ApiOkResponse({ type: WebhookReceivedResponseDto })
   @ApiBadRequestResponse({ description: 'Payload inválido.', type: ErrorResponseDto })
   @ApiUnauthorizedResponse({ description: 'Assinatura inválida.', type: ErrorResponseDto })
+  @ApiTooManyRequestsResponse({
+    description: 'Limite de eventos recebidos excedido.',
+    type: ErrorResponseDto,
+  })
   async process(
     @Req() request: RawBodyRequest<object>,
     @Headers('svix-id') id: string | string[] | undefined,
