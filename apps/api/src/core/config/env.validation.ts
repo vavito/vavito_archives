@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
 
-import { environments, type EnvironmentVariables } from '@api/core/config/app.config';
+import { environments, type EnvironmentVariables, logLevels } from '@api/core/config/app.config';
 
 const mailboxPattern =
   /^(?:[^<>\r\n]+\s+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>|[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+)$/;
@@ -55,6 +55,9 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   FRONTEND_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .required(),
+  LOG_LEVEL: Joi.string()
+    .valid(...logLevels)
+    .default('info'),
   MAIL_ADMIN_RECIPIENT: Joi.string().email().required(),
   MAIL_CONTACT_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
   MAIL_NEWSLETTER_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
