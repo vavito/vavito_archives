@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import {
   type ArgumentsHost,
   Catch,
@@ -12,9 +10,12 @@ import {
 import type { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import { errorCodeForStatus } from '@api/core/http/error-codes';
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
+import { requestIdFrom } from '@api/core/observability/request-id';
 
 interface HttpRequest {
   headers?: Record<string, string | string[] | undefined>;
+  id?: unknown;
+  method?: string;
   originalUrl?: string;
   url: string;
 }
@@ -45,17 +46,6 @@ const publicMessagesByStatus: Readonly<Partial<Record<number, string>>> = {
   [HttpStatus.SERVICE_UNAVAILABLE]: 'Serviço temporariamente indisponível.',
   [HttpStatus.GATEWAY_TIMEOUT]: 'Serviço temporariamente indisponível.',
 };
-
-function isSafeRequestId(value: string): boolean {
-  return /^[a-zA-Z0-9._:-]{1,128}$/.test(value);
-}
-
-function requestIdFrom(request: HttpRequest): string {
-  const header = request.headers?.['x-request-id'];
-  const candidate = Array.isArray(header) ? header[0] : header;
-
-  return candidate && isSafeRequestId(candidate) ? candidate : randomUUID();
-}
 
 function messageFromHttpException(exception: HttpException, statusCode: number): string {
   const configuredMessage = publicMessagesByStatus[statusCode];
@@ -140,10 +130,14 @@ export class GlobalExceptionFilter implements ExceptionFilter<unknown> {
     const requestId = requestIdFrom(request);
 
     if (normalizedError.statusCode >= 500) {
-      this.logger.error(
-        `Falha inesperada em ${request.originalUrl ?? request.url} [requestId=${requestId}]`,
-        exception instanceof Error ? exception.stack : undefined,
-      );
+      this.logger.error({
+        errorType: exception instanceof Error ? exception.name : 'UnknownError',
+        event: 'http_request_failed',
+        method: request.method,
+        path: request.originalUrl ?? request.url,
+        requestId,
+        statusCode: normalizedError.statusCode,
+      });
     }
 
     const body: ErrorResponseDto = {
