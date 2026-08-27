@@ -7,6 +7,7 @@ import { AuthModule } from '@api/core/auth/auth.module';
 import configuration, { environmentFilePaths } from '@api/core/config/configuration';
 import { validateEnvironment } from '@api/core/config/env.validation';
 import { PrismaModule } from '@api/core/database/prisma.module';
+import { HttpSecurityModule } from '@api/core/http/security/http-security.module';
 import { CommentsModule } from '@api/modules/comments/comments.module';
 import { ContactModule } from '@api/modules/contact/contact.module';
 import { EngagementModule } from '@api/modules/engagement/engagement.module';
@@ -27,6 +28,7 @@ import { ProfilesModule } from '@api/modules/profiles/profiles.module';
     }),
     PrismaModule,
     AuthModule,
+    HttpSecurityModule,
     CommentsModule,
     ContactModule,
     EngagementModule,
