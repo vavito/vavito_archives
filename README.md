@@ -48,6 +48,7 @@ pnpm format     # formata os arquivos com Prettier
 pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
+pnpm test:regression:api # executa cobertura e integração da API
 pnpm check      # executa format check, lint, typecheck, test e build
 ```
 
@@ -140,6 +141,8 @@ pnpm --filter @vavito/api test   # testes unitários e e2e da API
 ```
 
 Os testes de integração usam exclusivamente o PostgreSQL local `vavito_integration`. Consulte [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) antes de executá-los.
+
+Os limites de cobertura, a política contra testes ignorados e o helper local da regressão estão em [`docs/development/backend-regression.md`](docs/development/backend-regression.md).
 
 A documentação de produto e arquitetura está em `docs/product`.
 
