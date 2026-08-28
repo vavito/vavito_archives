@@ -1,5 +1,5 @@
-import { MonorepoStatus } from '@web/components/monorepo-status';
+import { DesignSystemDemo } from '@web/components/design-system-demo';
 
 export default function HomePage() {
-  return <MonorepoStatus />;
+  return <DesignSystemDemo />;
 }
