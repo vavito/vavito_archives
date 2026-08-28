@@ -9,6 +9,8 @@ Este documento define o contrato HTTP inicial compartilhado entre `apps/api`, `a
 - API REST em JSON sobre HTTPS.
 - Prefixo global: `/api/v1`.
 - Swagger/OpenAPI disponível apenas conforme configuração do ambiente; o documento OpenAPI gerado pela API será a fonte técnica para `packages/api-client`.
+- O contrato versionado fica em `packages/api-client/openapi/openapi.json` e é atualizado por `pnpm openapi:export`.
+- Cada operação possui `operationId` único no formato `<controller>_<método>`, tag de módulo, resumo, respostas de erro padronizadas e exemplos seguros.
 - Identificadores internos usam UUID.
 - Datas usam ISO 8601 em UTC, por exemplo `2026-07-30T20:15:00.000Z`.
 - Campos desconhecidos em requests são rejeitados.

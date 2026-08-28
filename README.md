@@ -59,6 +59,14 @@ As rotas da API usam o prefixo global `/api/v1`. Em desenvolvimento, os principa
 
 O Swagger é habilitado por padrão em desenvolvimento e teste. Em produção, permanece desabilitado por padrão e só é publicado quando `SWAGGER_ENABLED=true` for definido explicitamente no ambiente.
 
+Para atualizar o contrato versionado consumido pelo futuro cliente tipado:
+
+```bash
+pnpm openapi:export
+```
+
+O comando gera `packages/api-client/openapi/openapi.json` sem iniciar o servidor nem acessar o banco. O procedimento e as garantias do contrato estão documentados em `docs/development/openapi.md`.
+
 ## Banco de dados
 
 As migrations e o seed administrativo ficam em `apps/api/prisma`. Os comandos seguros para consultar, aplicar e popular o banco estão documentados em `docs/development/database.md`.
