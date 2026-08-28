@@ -74,11 +74,11 @@ jobs:
       - name: Aplicar migrations no PostgreSQL de integração
         run: pnpm --filter @vavito/api prisma:migrate:deploy
 
-      - name: Testar persistência no PostgreSQL de integração
-        run: pnpm --filter @vavito/api test:integration
+      - name: Executar regressão da API com cobertura
+        run: pnpm test:regression:api
 
       - name: Validar API e dependências internas
-        run: pnpm turbo run lint typecheck test build --filter=@vavito/api...
+        run: pnpm turbo run lint typecheck build --filter=@vavito/api...
 
   web:
     name: Quality / Web
