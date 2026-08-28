@@ -17,8 +17,10 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage",
     "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.integration.config.cjs --runInBand",
     "test:integration:prepare": "tsx test/helpers/prepare-auth-schema.ts",
+    "test:regression": "pnpm test:coverage && pnpm test:integration",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
