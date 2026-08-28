@@ -19,7 +19,11 @@ export class SubscribeNewsletterDto {
   @Equals(true)
   consent!: true;
 
-  @ApiProperty({ enum: SubscriberConsentSource, enumName: 'SubscriberConsentSource' })
+  @ApiProperty({
+    enum: SubscriberConsentSource,
+    enumName: 'SubscriberConsentSource',
+    example: SubscriberConsentSource.ARTICLE,
+  })
   @IsEnum(SubscriberConsentSource)
   source!: SubscriberConsentSource;
 }

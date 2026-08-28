@@ -4,7 +4,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
 
 export class ListCampaignsQueryDto extends AdminPaginationQueryDto {
-  @ApiPropertyOptional({ enum: CampaignStatus })
+  @ApiPropertyOptional({
+    enum: CampaignStatus,
+    enumName: 'CampaignStatus',
+    example: CampaignStatus.DRAFT,
+  })
   @IsOptional()
   @IsEnum(CampaignStatus)
   status?: CampaignStatus;
