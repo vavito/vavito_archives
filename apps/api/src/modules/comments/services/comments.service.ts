@@ -55,16 +55,16 @@ export class CommentsService {
   ) {}
 
   async create(actorId: string, slug: string, dto: CreateCommentDto): Promise<CommentResponseDto> {
-    const [postAggregate] = await Promise.all([
-      this.postsRepository.findBySlug(slug),
+    const [post] = await Promise.all([
+      this.postsRepository.findPublishedReferenceBySlug(slug),
       this.ensureActiveActor(actorId),
     ]);
 
-    if (!postAggregate) {
+    if (!post) {
       throwCommentDomainException(new PostNotOpenForCommentsError());
     }
 
-    if (dto.parentId) await this.ensureValidParent(dto.parentId, postAggregate.post.id);
+    if (dto.parentId) await this.ensureValidParent(dto.parentId, post.id);
 
     const comment = this.executeDomainAction(() =>
       Comment.create({
@@ -73,13 +73,13 @@ export class CommentsService {
         id: randomUUID(),
         now: new Date(),
         ...(dto.parentId ? { parentId: dto.parentId } : {}),
-        postId: postAggregate.post.id,
+        postId: post.id,
       }),
     );
     await this.commentsRepository.create(comment);
 
     const record = await this.requireComment(comment.id);
-    await this.notifyNewComment(record, postAggregate.post.title);
+    await this.notifyNewComment(record, post.title);
     return CommentResponseMapper.toPublic(record, this.toAuthorDto(record.author));
   }
 
@@ -113,12 +113,12 @@ export class CommentsService {
     slug: string,
     query: ListCommentsQueryDto,
   ): Promise<PaginatedCommentsResponseDto> {
-    const post = await this.postsRepository.findBySlug(slug);
+    const post = await this.postsRepository.findPublishedReferenceBySlug(slug);
     if (!post) throwCommentDomainException(new PostNotOpenForCommentsError());
 
     const result = await this.commentsRepository.listPublicThreads({
       ...query,
-      postId: post.post.id,
+      postId: post.id,
     });
     return {
       items: result.items.map((thread) =>
