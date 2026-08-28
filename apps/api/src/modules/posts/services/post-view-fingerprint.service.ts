@@ -22,10 +22,6 @@ export class PostViewFingerprintService {
     return this.hash(['post-view', bucketDate, signal.ip, signal.userAgent]);
   }
 
-  createRateLimitKey(ip: string): string {
-    return this.hash(['post-view-rate-limit', ip]);
-  }
-
   private hash(parts: readonly string[]): string {
     const hmac = createHmac('sha256', this.secret);
 

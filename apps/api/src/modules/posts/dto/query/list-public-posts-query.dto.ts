@@ -24,6 +24,7 @@ export class ListPublicPostsQueryDto extends PublicPostsPaginationQueryDto {
     default: PublicPostsSort.RECENT,
     enum: PublicPostsSort,
     enumName: 'PublicPostsSort',
+    example: PublicPostsSort.RECENT,
   })
   @IsOptional()
   @IsEnum(PublicPostsSort)

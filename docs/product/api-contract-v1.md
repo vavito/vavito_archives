@@ -9,6 +9,8 @@ Este documento define o contrato HTTP inicial compartilhado entre `apps/api`, `a
 - API REST em JSON sobre HTTPS.
 - Prefixo global: `/api/v1`.
 - Swagger/OpenAPI disponível apenas conforme configuração do ambiente; o documento OpenAPI gerado pela API será a fonte técnica para `packages/api-client`.
+- O contrato versionado fica em `packages/api-client/openapi/openapi.json` e é atualizado por `pnpm openapi:export`.
+- Cada operação possui `operationId` único no formato `<controller>_<método>`, tag de módulo, resumo, respostas de erro padronizadas e exemplos seguros.
 - Identificadores internos usam UUID.
 - Datas usam ISO 8601 em UTC, por exemplo `2026-07-30T20:15:00.000Z`.
 - Campos desconhecidos em requests são rejeitados.
@@ -490,14 +492,16 @@ Eventos da V1:
 
 ## CORS, limites e segurança
 
-- Produção aceita apenas origens explicitamente configuradas do frontend.
-- Requests com credenciais usam política compatível com o fluxo real do Supabase; o Bearer token não depende de cookie da API.
-- Rate limits são mais restritos em login indireto, busca, views, comentários, contato, newsletter e webhooks.
-- Limites exatos de tamanho ficam em configuração validada e são publicados no OpenAPI.
+- Produção aceita apenas as origins HTTP(S) exatas declaradas em `CORS_ALLOWED_ORIGINS`; curingas, caminhos, query strings e fragments são rejeitados na inicialização.
+- Requests do frontend não enviam cookies à API: a política CORS usa `credentials: false` e o Bearer token do Supabase segue no header `Authorization`.
+- Corpos JSON e URL-encoded aceitam no máximo `1 MiB`; uploads multipart mantêm os limites próprios documentados em suas rotas. O limite global também aparece na descrição do OpenAPI.
+- O limitador global aceita `300` requests por minuto e aplica janelas mais restritas por rota: busca `60`, views `30`, comentários `5`, contato `5`, cada endpoint da newsletter `5` e webhook do Resend `120` requests por minuto.
+- Usuários autenticados são limitados pelo ID; visitantes, pelo IP interpretado após o proxy confiável. A chave fica somente como SHA-256 em memória e cada controller/handler possui contador independente.
+- O armazenamento em memória atende uma instância; múltiplas réplicas exigem Redis ou limitação equivalente no gateway.
 - Upload verifica tamanho, MIME real, extensão e autorização antes de disponibilizar o objeto.
 - Tokens de confirmação e cancelamento são armazenados como hash.
 - Webhook usa corpo bruto para verificação de assinatura antes do parse de negócio.
-- Logs incluem `requestId`, rota, status, duração e ator técnico seguro, sem tokens ou conteúdo sensível.
+- Logs JSON incluem `requestId`, método, rota sem query string, status, duração e ator técnico seguro. Corpo, email, cookies, Bearer token e demais segredos não são registrados; a política completa está em `docs/development/structured-logging.md`.
 
 ## Concorrência e idempotência
 

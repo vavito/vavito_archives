@@ -1,9 +1,9 @@
 import type { Server } from 'node:http';
 
 import { setupErrorHandling } from '@api/core/http/setup-error-handling';
+import { HttpSecurityModule } from '@api/core/http/security/http-security.module';
 import { CONTACT_ACCEPTED_MESSAGE } from '@api/modules/contact/contact.constants';
 import { ContactController } from '@api/modules/contact/controllers/contact.controller';
-import { ContactRateLimitGuard } from '@api/modules/contact/guards/contact-rate-limit.guard';
 import { ContactService } from '@api/modules/contact/services/contact.service';
 import type { INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
@@ -18,7 +18,8 @@ describe('Contact (e2e)', () => {
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       controllers: [ContactController],
-      providers: [ContactRateLimitGuard, { provide: ContactService, useValue: { create } }],
+      imports: [HttpSecurityModule],
+      providers: [{ provide: ContactService, useValue: { create } }],
     }).compile();
     app = moduleRef.createNestApplication<NestExpressApplication>();
     (app as NestExpressApplication).set('trust proxy', 1);

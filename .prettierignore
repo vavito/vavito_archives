@@ -9,3 +9,4 @@ docs_personal/
 pnpm-lock.yaml
 next-env.d.ts
 *.svg
+apps/api/test/helpers/run-local-regression.ps1

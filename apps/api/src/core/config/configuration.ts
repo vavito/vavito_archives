@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import type { ApplicationConfig, AppEnvironment } from '@api/core/config/app.config';
+import type { ApplicationConfig, AppEnvironment, LogLevel } from '@api/core/config/app.config';
 
 const workingDirectory = process.cwd();
 const workspaceRootCandidate = resolve(workingDirectory, '../..');
@@ -33,6 +33,9 @@ function requiredEnvironmentValue(name: string): string {
 export default function configuration(): ApplicationConfig {
   return {
     app: {
+      corsAllowedOrigins: requiredEnvironmentValue('CORS_ALLOWED_ORIGINS')
+        .split(',')
+        .map((origin) => origin.trim()),
       environment: requiredEnvironmentValue('NODE_ENV') as AppEnvironment,
       frontendUrl: requiredEnvironmentValue('FRONTEND_URL'),
       port: Number(requiredEnvironmentValue('PORT')),
@@ -43,6 +46,9 @@ export default function configuration(): ApplicationConfig {
       connectOnStart: requiredEnvironmentValue('DATABASE_CONNECT_ON_START') === 'true',
       directUrl: requiredEnvironmentValue('DIRECT_URL'),
       url: requiredEnvironmentValue('DATABASE_URL'),
+    },
+    logging: {
+      level: requiredEnvironmentValue('LOG_LEVEL') as LogLevel,
     },
     resend: {
       adminRecipient: requiredEnvironmentValue('MAIL_ADMIN_RECIPIENT'),

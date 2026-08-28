@@ -124,6 +124,8 @@ model Post {
 
   @@index([status, publishedAt(sort: Desc), id])
   @@index([status, viewsCount(sort: Desc), id])
+  @@index([updatedAt(sort: Desc), id])
+  @@index([status, updatedAt(sort: Desc), id])
 }
 
 model PostSlug {
@@ -193,7 +195,8 @@ model MediaAsset {
   createdBy Profile          @relation("MediaAssetCreator", fields: [createdById], references: [id], onDelete: Restrict)
   posts     PostMediaAsset[]
 
-  @@index([status, orphanedAt])
+  @@index([status, orphanedAt, id])
+  @@index([status, createdAt, id])
 }
 
 model PostMediaAsset {
@@ -229,7 +232,9 @@ model Comment {
 
   @@unique([id, postId])
   @@index([postId, parentId, createdAt, id])
-  @@index([status, createdAt])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([postId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
 }
 
 model Reaction {
@@ -316,7 +321,8 @@ model EmailCampaign {
   createdBy  Profile         @relation("EmailCampaignCreator", fields: [createdById], references: [id], onDelete: Restrict)
   deliveries EmailDelivery[]
 
-  @@index([status, createdAt, id])
+  @@index([createdAt(sort: Desc), id])
+  @@index([status, createdAt(sort: Desc), id])
 }
 
 model EmailDelivery {

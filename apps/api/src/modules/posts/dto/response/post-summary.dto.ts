@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
 
 export class PostSummaryDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   id!: string;
 
   @ApiProperty({ example: 'arquitetura-aplicacoes-nestjs' })
@@ -24,7 +24,7 @@ export class PostSummaryDto {
   @ApiProperty({ type: () => [TagResponseDto] })
   tags!: TagResponseDto[];
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-20T12:00:00.000Z', format: 'date-time' })
   publishedAt!: string;
 
   @ApiProperty({ example: 6, minimum: 0 })

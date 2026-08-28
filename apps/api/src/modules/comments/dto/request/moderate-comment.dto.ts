@@ -8,11 +8,15 @@ export enum CommentModerationStatus {
 }
 
 export class ModerateCommentDto {
-  @ApiProperty({ enum: CommentModerationStatus, enumName: 'CommentModerationStatus' })
+  @ApiProperty({
+    enum: CommentModerationStatus,
+    enumName: 'CommentModerationStatus',
+    example: CommentModerationStatus.HIDDEN,
+  })
   @IsEnum(CommentModerationStatus)
   status!: CommentModerationStatus;
 
-  @ApiPropertyOptional({ maxLength: 500 })
+  @ApiPropertyOptional({ example: 'Conteúdo fora das regras da comunidade.', maxLength: 500 })
   @IsOptional()
   @IsString()
   @MaxLength(500)

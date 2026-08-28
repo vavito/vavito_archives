@@ -33,7 +33,6 @@ import {
 } from '@api/modules/newsletter/repositories/campaigns.repository';
 import { SubscribersRepository } from '@api/modules/newsletter/repositories/subscribers.repository';
 import { SubscriberTokenService } from '@api/modules/newsletter/services/subscriber-token.service';
-import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -72,35 +71,28 @@ export class CampaignsService {
   async create(actorId: string, dto: CreateCampaignDto): Promise<EmailCampaignAdminDto> {
     await this.ensureAdminActor(actorId);
     const post = await this.requirePublishedPost(dto.postId);
-    const currentSlug = post.post.currentSlug;
-    const publishedAt = post.post.publishedAt;
-    const excerpt = post.post.excerpt;
 
-    if (!currentSlug || !publishedAt || !excerpt) {
-      throwCampaignDomainException(new CampaignPostNotPublishedError());
-    }
-
-    const previewText = dto.previewText?.trim() || `Leia o novo artigo: ${post.post.title}`;
-    const articleUrl = this.articleUrl(currentSlug.value);
+    const previewText = dto.previewText?.trim() || `Leia o novo artigo: ${post.title}`;
+    const articleUrl = this.articleUrl(post.slug);
     const campaign = this.executeDomainAction(() =>
       EmailCampaign.create({
         createdById: actorId,
         htmlSnapshot: newsletterCampaignSnapshot({
           articleUrl,
-          excerpt,
+          excerpt: post.excerpt,
           previewText,
-          title: post.post.title,
+          title: post.title,
         }),
         id: randomUUID(),
         now: new Date(),
-        postId: post.post.id,
+        postId: post.id,
         postSnapshot: {
-          excerpt,
-          id: post.post.id,
-          publishedAt: publishedAt.toISOString(),
-          readingTimeMinutes: post.post.readingTimeMinutes,
-          slug: currentSlug.value,
-          title: post.post.title,
+          excerpt: post.excerpt,
+          id: post.id,
+          publishedAt: post.publishedAt.toISOString(),
+          readingTimeMinutes: post.readingTimeMinutes,
+          slug: post.slug,
+          title: post.title,
         },
         previewText,
         subject: dto.subject,
@@ -278,8 +270,8 @@ export class CampaignsService {
   }
 
   private async requirePublishedPost(id: string) {
-    const post = await this.postsRepository.findById(id);
-    if (!post || post.post.status !== PostStatus.PUBLISHED) {
+    const post = await this.postsRepository.findPublishedReferenceById(id);
+    if (!post) {
       throwCampaignDomainException(new CampaignPostNotPublishedError());
     }
     return post;

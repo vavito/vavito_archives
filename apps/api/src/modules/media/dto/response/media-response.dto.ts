@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MediaAssetStatus } from '@api/modules/media/domain/enums/media-asset-status.enum';
 
 export class MediaResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000020', format: 'uuid' })
   id!: string;
 
   @ApiProperty({
@@ -29,9 +29,13 @@ export class MediaResponseDto {
   @ApiProperty({ example: 'Diagrama da arquitetura da aplicação' })
   altText!: string;
 
-  @ApiProperty({ enum: MediaAssetStatus, enumName: 'MediaAssetStatus' })
+  @ApiProperty({
+    enum: MediaAssetStatus,
+    enumName: 'MediaAssetStatus',
+    example: MediaAssetStatus.READY,
+  })
   status!: MediaAssetStatus;
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-22T15:00:00.000Z', format: 'date-time' })
   createdAt!: string;
 }

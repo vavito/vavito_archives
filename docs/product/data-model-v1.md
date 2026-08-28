@@ -510,14 +510,15 @@ Mensagens são arquivadas, não apagadas pela operação comum. A política de r
 
 - `Post(status, publishedAt desc, id)` para listagem recente.
 - `Post(status, viewsCount desc, id)` para mais acessados.
+- `Post(updatedAt desc, id)` e `Post(status, updatedAt desc, id)` para administração.
 - índice de busca PostgreSQL para título, excerpt e tags, detalhado na Task 4.7.
 - `PostSlug(postId, isCurrent)`.
-- `Comment(postId, parentId, createdAt, id)` e `Comment(status, createdAt)`.
+- `Comment(postId, parentId, createdAt, id)` para threads públicas; índices por data, post e status para moderação.
 - `Reaction(postId, type)` para contadores.
 - `Bookmark(profileId, createdAt desc, id)`.
-- `MediaAsset(status, orphanedAt)`.
+- `MediaAsset(status, orphanedAt, id)` e `MediaAsset(status, createdAt, id)`.
 - `NewsletterSubscriber(status, createdAt, id)`.
-- `EmailCampaign(status, createdAt, id)`.
+- `EmailCampaign(createdAt desc, id)` e `EmailCampaign(status, createdAt desc, id)`.
 - `EmailDelivery(campaignId, status)` e `EmailDelivery(subscriberId, createdAt)`.
 - `ContactMessage(status, createdAt, id)`.
 

@@ -21,10 +21,4 @@ describe('PostViewFingerprintService', () => {
     expect(first).not.toContain(signal.ip);
     expect(first).not.toContain(signal.userAgent);
   });
-
-  it('separa a chave de rate limit do fingerprint persistido', () => {
-    expect(service.createRateLimitKey(signal.ip)).not.toBe(
-      service.createDailyFingerprint(signal, '2026-08-19'),
-    );
-  });
 });

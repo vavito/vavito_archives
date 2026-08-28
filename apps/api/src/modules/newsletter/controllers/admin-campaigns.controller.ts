@@ -99,9 +99,14 @@ export class AdminCampaignsController {
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Envia uma campanha uma única vez' })
   @ApiHeader({
+    description: 'UUID gerado pelo cliente e reutilizado apenas ao repetir a mesma tentativa.',
     name: 'Idempotency-Key',
     required: true,
-    schema: { format: 'uuid', type: 'string' },
+    schema: {
+      example: '019c2d62-6e90-7000-8000-000000000051',
+      format: 'uuid',
+      type: 'string',
+    },
   })
   @ApiAcceptedResponse({ type: EmailCampaignAdminDto })
   @ApiConflictResponse({ description: 'Envio duplicado ou indisponível.', type: ErrorResponseDto })

@@ -16,7 +16,6 @@ import type { CampaignsRepository } from '@api/modules/newsletter/repositories/c
 import type { SubscribersRepository } from '@api/modules/newsletter/repositories/subscribers.repository';
 import { CampaignsService } from '@api/modules/newsletter/services/campaigns.service';
 import type { SubscriberTokenService } from '@api/modules/newsletter/services/subscriber-token.service';
-import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import type { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
 import { ConfigService } from '@nestjs/config';
 
@@ -28,19 +27,13 @@ const IDEMPOTENCY_KEY = 'e1903668-2b3e-4df8-b945-eddb4ef53f90';
 
 function publishedPost() {
   return {
-    author: { displayName: 'Admin', id: ACTOR_ID },
-    cover: null,
-    post: {
-      currentSlug: { value: 'artigo-publicado' },
-      excerpt: 'Resumo do artigo.',
-      id: POST_ID,
-      publishedAt: new Date('2026-08-24T12:00:00.000Z'),
-      readingTimeMinutes: 5,
-      status: PostStatus.PUBLISHED,
-      title: 'Artigo publicado',
-    },
-    tags: [],
-  } as unknown as Awaited<ReturnType<PostsRepository['findById']>>;
+    excerpt: 'Resumo do artigo.',
+    id: POST_ID,
+    publishedAt: new Date('2026-08-24T12:00:00.000Z'),
+    readingTimeMinutes: 5,
+    slug: 'artigo-publicado',
+    title: 'Artigo publicado',
+  } as Awaited<ReturnType<PostsRepository['findPublishedReferenceById']>>;
 }
 
 function confirmedSubscriber(): Subscriber {
@@ -88,8 +81,10 @@ describe('CampaignsService', () => {
   } as unknown as CampaignsRepository;
   const listEligibleForCampaign = jest.fn();
   const subscribersRepository = { listEligibleForCampaign } as unknown as SubscribersRepository;
-  const findPostById = jest.fn();
-  const postsRepository = { findById: findPostById } as unknown as PostsRepository;
+  const findPublishedReferenceById = jest.fn();
+  const postsRepository = {
+    findPublishedReferenceById,
+  } as unknown as PostsRepository;
   const findActiveRoleByProfileId = jest.fn();
   const authorizationRepository = {
     findActiveRoleByProfileId,
@@ -120,7 +115,7 @@ describe('CampaignsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     findActiveRoleByProfileId.mockResolvedValue(UserRole.ADMIN);
-    findPostById.mockResolvedValue(publishedPost());
+    findPublishedReferenceById.mockResolvedValue(publishedPost());
     create.mockResolvedValue(undefined);
     save.mockResolvedValue(undefined);
     startSending.mockResolvedValue(true);

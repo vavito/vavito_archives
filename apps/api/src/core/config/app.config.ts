@@ -1,9 +1,12 @@
 export const environments = ['development', 'test', 'production'] as const;
+export const logLevels = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const;
 
 export type AppEnvironment = (typeof environments)[number];
+export type LogLevel = (typeof logLevels)[number];
 
 export interface ApplicationConfig {
   app: {
+    corsAllowedOrigins: string[];
     environment: AppEnvironment;
     frontendUrl: string;
     port: number;
@@ -14,6 +17,9 @@ export interface ApplicationConfig {
     connectOnStart: boolean;
     directUrl: string;
     url: string;
+  };
+  logging: {
+    level: LogLevel;
   };
   resend: {
     adminRecipient: string;
@@ -40,10 +46,12 @@ export interface ApplicationConfig {
 
 export interface EnvironmentVariables {
   APP_VERSION: string;
+  CORS_ALLOWED_ORIGINS: string;
   DATABASE_CONNECT_ON_START: boolean;
   DATABASE_URL: string;
   DIRECT_URL: string;
   FRONTEND_URL: string;
+  LOG_LEVEL: LogLevel;
   MAIL_ADMIN_RECIPIENT: string;
   MAIL_CONTACT_FROM: string;
   MAIL_NEWSLETTER_FROM: string;

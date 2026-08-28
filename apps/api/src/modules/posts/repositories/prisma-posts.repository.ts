@@ -20,6 +20,7 @@ import {
   type PaginatedRecords,
   type PostAggregateRecord,
   type PostCoverRecord,
+  type PublishedPostReferenceRecord,
   type PostRevisionRecord,
   type PostSlugLookupRecord,
   type PostTagRecord,
@@ -130,6 +131,19 @@ const ADMIN_POST_SUMMARY_SELECT = {
   updatedAt: true,
 } satisfies Prisma.PostSelect;
 
+const PUBLISHED_POST_REFERENCE_SELECT = {
+  excerpt: true,
+  id: true,
+  publishedAt: true,
+  readingTimeMinutes: true,
+  slugs: {
+    take: 1,
+    where: { isCurrent: true },
+    select: { slug: true },
+  },
+  title: true,
+} satisfies Prisma.PostSelect;
+
 type PrismaPostAggregate = Prisma.PostGetPayload<{
   select: typeof POST_AGGREGATE_SELECT;
 }>;
@@ -138,6 +152,9 @@ type PrismaPublicPostSummary = Prisma.PostGetPayload<{
 }>;
 type PrismaAdminPostSummary = Prisma.PostGetPayload<{
   select: typeof ADMIN_POST_SUMMARY_SELECT;
+}>;
+type PrismaPublishedPostReference = Prisma.PostGetPayload<{
+  select: typeof PUBLISHED_POST_REFERENCE_SELECT;
 }>;
 
 const postStatusByPrisma: Readonly<Record<PrismaPostStatus, PostStatus>> = {
@@ -194,6 +211,23 @@ function mapAdminSummary(record: PrismaAdminPostSummary): AdminPostSummaryRecord
     status: postStatusByPrisma[record.status],
     title: record.title,
     updatedAt: record.updatedAt,
+  };
+}
+
+function mapPublishedReference(record: PrismaPublishedPostReference): PublishedPostReferenceRecord {
+  const slug = record.slugs[0]?.slug;
+
+  if (!record.excerpt || !record.publishedAt || !slug) {
+    throw new Error('Published post persistence is missing required reference fields.');
+  }
+
+  return {
+    excerpt: record.excerpt,
+    id: record.id,
+    publishedAt: record.publishedAt,
+    readingTimeMinutes: record.readingTimeMinutes,
+    slug,
+    title: record.title,
   };
 }
 
@@ -278,6 +312,24 @@ export class PrismaPostsRepository implements PostsRepository {
       requestedSlug: record.slug,
       requestedSlugIsCurrent: record.isCurrent,
     };
+  }
+
+  async findPublishedReferenceById(id: string): Promise<PublishedPostReferenceRecord | null> {
+    const record = await this.prisma.post.findFirst({
+      select: PUBLISHED_POST_REFERENCE_SELECT,
+      where: { id, status: PrismaPostStatus.PUBLISHED },
+    });
+
+    return record ? mapPublishedReference(record) : null;
+  }
+
+  async findPublishedReferenceBySlug(slug: string): Promise<PublishedPostReferenceRecord | null> {
+    const record = await this.prisma.postSlug.findFirst({
+      select: { post: { select: PUBLISHED_POST_REFERENCE_SELECT } },
+      where: { post: { status: PrismaPostStatus.PUBLISHED }, slug },
+    });
+
+    return record ? mapPublishedReference(record.post) : null;
   }
 
   async findSlugOwner(slug: string): Promise<SlugOwnerRecord | null> {

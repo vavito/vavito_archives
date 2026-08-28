@@ -1,10 +1,12 @@
 import { HttpStatus } from '@nestjs/common';
-import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { THROTTLER_LIMIT } from '@nestjs/throttler/dist/throttler.constants';
 
 import {
   PUBLIC_ROUTE_METADATA_KEY,
   ROLES_METADATA_KEY,
 } from '@api/core/auth/constants/auth.constants';
+import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { UserRole } from '@api/generated/prisma/client';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
@@ -12,7 +14,6 @@ import { TagsController } from '@api/modules/posts/controllers/tags.controller';
 import { PublicPostsSort } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
 import type { PostAdminDetailDto } from '@api/modules/posts/dto/response/post-admin-response.dto';
 import type { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
-import { PostViewsRateLimitGuard } from '@api/modules/posts/guards/post-views-rate-limit.guard';
 import type { PostsService } from '@api/modules/posts/services/posts.service';
 
 const ADMIN_ID = '4ef89da4-7cd3-48e4-972a-7855f24d9da7';
@@ -84,8 +85,12 @@ describe('Controllers de Posts', () => {
     );
     expect(
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      Reflect.getMetadata(GUARDS_METADATA, PostsController.prototype.registerView),
-    ).toContain(PostViewsRateLimitGuard);
+      Reflect.getMetadata(`${THROTTLER_LIMIT}default`, PostsController.prototype.registerView),
+    ).toBe(RATE_LIMITS.postViews.limit);
+    expect(
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      Reflect.getMetadata(`${THROTTLER_LIMIT}default`, PostsController.prototype.search),
+    ).toBe(RATE_LIMITS.postSearch.limit);
   });
 
   it('lista posts públicos e tags por meio do service', async () => {

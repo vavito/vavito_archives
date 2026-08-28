@@ -11,7 +11,12 @@ export class ReactionCountsDto {
 }
 
 export class ReactionResponseDto {
-  @ApiProperty({ enum: ReactionType, enumName: 'ReactionType', nullable: true })
+  @ApiProperty({
+    enum: ReactionType,
+    enumName: 'ReactionType',
+    example: ReactionType.LIKE,
+    nullable: true,
+  })
   reaction!: ReactionType | null;
 
   @ApiProperty({ type: () => ReactionCountsDto })

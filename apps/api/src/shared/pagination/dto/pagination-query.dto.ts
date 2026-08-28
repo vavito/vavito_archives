@@ -9,7 +9,7 @@ export const ADMIN_DEFAULT_LIMIT = 20;
 export const ADMIN_MAX_LIMIT = 100;
 
 export class PublicPostsPaginationQueryDto {
-  @ApiPropertyOptional({ default: FIRST_PAGE, minimum: FIRST_PAGE })
+  @ApiPropertyOptional({ default: FIRST_PAGE, example: FIRST_PAGE, minimum: FIRST_PAGE })
   @Type(() => Number)
   @IsInt()
   @Min(FIRST_PAGE)
@@ -17,6 +17,7 @@ export class PublicPostsPaginationQueryDto {
 
   @ApiPropertyOptional({
     default: PUBLIC_POSTS_DEFAULT_LIMIT,
+    example: PUBLIC_POSTS_DEFAULT_LIMIT,
     maximum: PUBLIC_POSTS_MAX_LIMIT,
     minimum: 1,
   })
@@ -28,7 +29,7 @@ export class PublicPostsPaginationQueryDto {
 }
 
 export class AdminPaginationQueryDto {
-  @ApiPropertyOptional({ default: FIRST_PAGE, minimum: FIRST_PAGE })
+  @ApiPropertyOptional({ default: FIRST_PAGE, example: FIRST_PAGE, minimum: FIRST_PAGE })
   @Type(() => Number)
   @IsInt()
   @Min(FIRST_PAGE)
@@ -36,6 +37,7 @@ export class AdminPaginationQueryDto {
 
   @ApiPropertyOptional({
     default: ADMIN_DEFAULT_LIMIT,
+    example: ADMIN_DEFAULT_LIMIT,
     maximum: ADMIN_MAX_LIMIT,
     minimum: 1,
   })

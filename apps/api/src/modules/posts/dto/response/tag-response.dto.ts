@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class TagResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000011', format: 'uuid' })
   id!: string;
 
   @ApiProperty({ example: 'TypeScript' })

@@ -1,14 +1,50 @@
 import * as Joi from 'joi';
 
-import { environments, type EnvironmentVariables } from '@api/core/config/app.config';
+import { environments, type EnvironmentVariables, logLevels } from '@api/core/config/app.config';
 
 const mailboxPattern =
   /^(?:[^<>\r\n]+\s+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>|[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+)$/;
+
+function exactOrigins(value: string, helpers: Joi.CustomHelpers): string | Joi.ErrorReport {
+  const origins = value.split(',').map((origin) => origin.trim());
+
+  if (origins.some((origin) => !origin || origin.includes('*'))) {
+    return helpers.error('string.exactOrigins');
+  }
+
+  try {
+    for (const origin of origins) {
+      const url = new URL(origin);
+
+      if (
+        !['http:', 'https:'].includes(url.protocol) ||
+        url.username ||
+        url.password ||
+        url.pathname !== '/' ||
+        url.search ||
+        url.hash
+      ) {
+        return helpers.error('string.exactOrigins');
+      }
+    }
+  } catch {
+    return helpers.error('string.exactOrigins');
+  }
+
+  return origins.join(',');
+}
 
 const environmentSchema = Joi.object<EnvironmentVariables>({
   APP_VERSION: Joi.string()
     .pattern(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
     .default('0.0.0'),
+  CORS_ALLOWED_ORIGINS: Joi.string()
+    .custom(exactOrigins)
+    .default(Joi.ref('FRONTEND_URL'))
+    .messages({
+      'string.exactOrigins':
+        '"CORS_ALLOWED_ORIGINS" must contain only exact HTTP(S) origins separated by commas',
+    }),
   DATABASE_CONNECT_ON_START: Joi.boolean().default(true),
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgres', 'postgresql'] })
@@ -19,6 +55,9 @@ const environmentSchema = Joi.object<EnvironmentVariables>({
   FRONTEND_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .required(),
+  LOG_LEVEL: Joi.string()
+    .valid(...logLevels)
+    .default('info'),
   MAIL_ADMIN_RECIPIENT: Joi.string().email().required(),
   MAIL_CONTACT_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
   MAIL_NEWSLETTER_FROM: Joi.string().trim().pattern(mailboxPattern).required(),
