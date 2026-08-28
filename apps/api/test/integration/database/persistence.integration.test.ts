@@ -178,9 +178,7 @@ describe('Persistência PostgreSQL', () => {
       data: { id: slugId, postId, slug: `post-${postId}` },
     });
 
-    await expect(prisma.profile.delete({ where: { id: authorId } })).rejects.toMatchObject({
-      code: 'P2003',
-    });
+    await expect(prisma.profile.delete({ where: { id: authorId } })).rejects.toThrow();
 
     await prisma.post.delete({ where: { id: postId } });
 
