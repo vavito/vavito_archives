@@ -57,6 +57,8 @@ Para executar apenas uma aplicação:
 ```bash
 pnpm dev:api
 pnpm dev:web
+pnpm build:web
+pnpm start:web
 ```
 
 - Web: `http://localhost:3000`
@@ -159,6 +161,8 @@ O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/develo
 - `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
 - `packages/typescript-config` centraliza as configurações TypeScript base, NestJS, Next.js e bibliotecas.
 - A API usa o alias `@api/*` para arquivos de `apps/api/src`.
-- O frontend usa o alias `@web/*` para arquivos de `apps/web/src`.
+- O frontend herda o modo estrito de `packages/typescript-config` e usa o alias `@web/*` para arquivos de `apps/web/src`.
 - Uma aplicação não pode importar arquivos internos da outra; código compartilhado deve ficar em `packages`.
 - As recomendações de ESLint e Prettier para o VS Code estão versionadas em `.vscode`.
+
+Os comandos `dev:web`, `build:web`, `start:web`, `lint:web` e `typecheck:web` executam o workspace `apps/web` pela raiz sem criar uma instalação paralela. O build de produção deve ser gerado antes de usar `start:web`.
