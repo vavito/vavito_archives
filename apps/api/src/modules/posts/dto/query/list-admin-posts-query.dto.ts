@@ -6,7 +6,7 @@ import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { AdminPaginationQueryDto } from '@api/shared/pagination/dto/pagination-query.dto';
 
 export class ListAdminPostsQueryDto extends AdminPaginationQueryDto {
-  @ApiPropertyOptional({ enum: PostStatus, enumName: 'PostStatus' })
+  @ApiPropertyOptional({ enum: PostStatus, enumName: 'PostStatus', example: PostStatus.PUBLISHED })
   @IsOptional()
   @IsEnum(PostStatus)
   status?: PostStatus;

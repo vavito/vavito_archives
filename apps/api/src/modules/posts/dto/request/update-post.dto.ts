@@ -72,19 +72,27 @@ export class UpdatePostDto {
   @ArrayUnique((value: string) => value.toLowerCase())
   tagNames?: string[];
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({
+    example: '019c2d62-6e90-7000-8000-000000000020',
+    format: 'uuid',
+    nullable: true,
+  })
   @IsOptional()
   @IsUUID()
   coverMediaId?: string | null;
 
-  @ApiPropertyOptional({ maxLength: 70, nullable: true })
+  @ApiPropertyOptional({ example: 'Arquitetura NestJS', maxLength: 70, nullable: true })
   @Transform(({ value }: { value: unknown }) => trimText(value))
   @IsOptional()
   @IsString()
   @MaxLength(MAX_POST_SEO_TITLE_LENGTH)
   seoTitle?: string | null;
 
-  @ApiPropertyOptional({ maxLength: 160, nullable: true })
+  @ApiPropertyOptional({
+    example: 'Aprenda a organizar uma aplicação NestJS.',
+    maxLength: 160,
+    nullable: true,
+  })
   @Transform(({ value }: { value: unknown }) => trimText(value))
   @IsOptional()
   @IsString()
