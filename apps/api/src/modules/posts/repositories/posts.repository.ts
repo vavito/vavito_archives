@@ -34,6 +34,15 @@ export interface PostSlugLookupRecord extends PostAggregateRecord {
   requestedSlugIsCurrent: boolean;
 }
 
+export interface PublishedPostReferenceRecord {
+  excerpt: string;
+  id: string;
+  publishedAt: Date;
+  readingTimeMinutes: number;
+  slug: string;
+  title: string;
+}
+
 export interface PublicPostSummaryRecord {
   cover: PostCoverRecord | null;
   excerpt: string;
@@ -124,6 +133,8 @@ export abstract class PostsRepository {
   abstract delete(id: string): Promise<void>;
   abstract findById(id: string): Promise<PostAggregateRecord | null>;
   abstract findBySlug(slug: string): Promise<PostSlugLookupRecord | null>;
+  abstract findPublishedReferenceById(id: string): Promise<PublishedPostReferenceRecord | null>;
+  abstract findPublishedReferenceBySlug(slug: string): Promise<PublishedPostReferenceRecord | null>;
   abstract findSlugOwner(slug: string): Promise<SlugOwnerRecord | null>;
   abstract listAdmin(filters: AdminPostsFilters): Promise<PaginatedRecords<AdminPostSummaryRecord>>;
   abstract listPublic(
