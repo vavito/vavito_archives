@@ -12,7 +12,12 @@ export class PostReactionCountsDto {
 }
 
 export class PostViewerStateDto {
-  @ApiProperty({ enum: ReactionType, enumName: 'ReactionType', nullable: true })
+  @ApiProperty({
+    enum: ReactionType,
+    enumName: 'ReactionType',
+    example: ReactionType.LIKE,
+    nullable: true,
+  })
   reaction!: ReactionType | null;
 
   @ApiProperty({ example: true })
