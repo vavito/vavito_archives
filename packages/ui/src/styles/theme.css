@@ -1,0 +1,95 @@
+@theme static {
+  --color-*: initial;
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-background: #18191b;
+  --color-foreground: #e6e5e1;
+  --color-overlay: #1a1b1e;
+  --color-floating: #1f2023;
+
+  --color-accent: #7dd3fc;
+  --color-accent-soft: rgb(125 211 252 / 0.12);
+
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+
+  --color-divider: rgb(255 255 255 / 0.05);
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-medium: rgb(255 255 255 / 0.15);
+  --color-border-emphasis: rgb(255 255 255 / 0.2);
+  --color-border-hover: rgb(255 255 255 / 0.25);
+  --color-border-strong: rgb(255 255 255 / 0.3);
+  --color-surface-card: rgb(255 255 255 / 0.02);
+  --color-surface-raised: rgb(255 255 255 / 0.04);
+
+  --color-destructive: #f87171;
+  --color-destructive-border: rgb(239 68 68 / 0.3);
+  --color-destructive-hover: rgb(239 68 68 / 0.1);
+
+  --spacing: 0.25rem;
+
+  --container-reading: 40rem;
+  --container-prose: 42.5rem;
+  --container-editor: 47.5rem;
+  --container-cover: 68.75rem;
+
+  --radius-*: initial;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --tracking-eyebrow: 0.22em;
+  --opacity-disabled: 0.65;
+}
+
+@layer base {
+  :root {
+    --state-default-border: var(--color-border);
+    --state-hover-border: var(--color-border-hover);
+    --state-hover-foreground: var(--color-neutral-100);
+    --state-active-foreground: var(--color-accent);
+    --state-active-background: var(--color-accent-soft);
+    --state-focus-ring: var(--color-accent);
+    --state-disabled-opacity: var(--opacity-disabled);
+
+    color-scheme: dark;
+  }
+
+  html {
+    min-width: 20rem;
+    min-height: 100%;
+    scroll-behavior: smooth;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-background);
+  }
+
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--state-focus-ring);
+    outline-offset: 2px;
+  }
+
+  :where(button, input, textarea, select):disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: var(--state-disabled-opacity);
+  }
+}
