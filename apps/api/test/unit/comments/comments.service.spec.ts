@@ -15,12 +15,8 @@ import type {
   CommentsRepository,
 } from '@api/modules/comments/repositories/comments.repository';
 import { CommentsService } from '@api/modules/comments/services/comments.service';
-import { Post } from '@api/modules/posts/domain/entities/post.entity';
-import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
-import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
-import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import type {
-  PostSlugLookupRecord,
+  PublishedPostReferenceRecord,
   PostsRepository,
 } from '@api/modules/posts/repositories/posts.repository';
 
@@ -31,34 +27,14 @@ const POST_ID = '9de46532-a170-46c0-90dd-0b3cbf7794be';
 const COMMENT_ID = 'df23c92d-71e4-400b-805e-975bbc3e1788';
 const NOW = new Date('2026-08-22T12:00:00.000Z');
 
-function publishedPost(): PostSlugLookupRecord {
-  const post = Post.restore({
-    archivedAt: null,
-    authorId: ADMIN_ID,
-    content: PostContent.create({ content: [], type: 'doc' }, 1),
-    createdAt: NOW,
-    currentSlug: Slug.create('artigo-publicado'),
-    editedAt: null,
+function publishedPost(): PublishedPostReferenceRecord {
+  return {
     excerpt: 'Resumo.',
     id: POST_ID,
     publishedAt: NOW,
     readingTimeMinutes: 1,
-    seoDescription: null,
-    seoTitle: null,
-    status: PostStatus.PUBLISHED,
+    slug: 'artigo-publicado',
     title: 'Artigo publicado',
-    updatedAt: NOW,
-    viewsCount: 0,
-  });
-
-  return {
-    author: { displayName: 'Admin', id: ADMIN_ID },
-    cover: null,
-    post,
-    reactionCounts: { dislike: 0, like: 0 },
-    requestedSlug: 'artigo-publicado',
-    requestedSlugIsCurrent: true,
-    tags: [],
   };
 }
 
@@ -92,7 +68,7 @@ describe('CommentsService', () => {
   const listAdmin = jest.fn();
   const listPublicThreads = jest.fn();
   const save = jest.fn();
-  const findBySlug = jest.fn();
+  const findPublishedReferenceBySlug = jest.fn();
   const findActiveRoleByProfileId = jest.fn();
   const publicUrl = jest.fn((path: string) => `https://storage.example/${path}`);
   const sendNewCommentNotification = jest.fn();
@@ -104,7 +80,7 @@ describe('CommentsService', () => {
     listPublicThreads,
     save,
   } as unknown as CommentsRepository;
-  const postsRepository = { findBySlug } as unknown as PostsRepository;
+  const postsRepository = { findPublishedReferenceBySlug } as unknown as PostsRepository;
   const authorizationRepository = {
     findActiveRoleByProfileId,
   } as unknown as ProfileAuthorizationRepository;
@@ -124,7 +100,7 @@ describe('CommentsService', () => {
     jest.useFakeTimers().setSystemTime(NOW);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     findActiveRoleByProfileId.mockResolvedValue(UserRole.USER);
-    findBySlug.mockResolvedValue(publishedPost());
+    findPublishedReferenceBySlug.mockResolvedValue(publishedPost());
     create.mockImplementation((comment: Comment) => {
       createdComment = comment;
       return Promise.resolve();

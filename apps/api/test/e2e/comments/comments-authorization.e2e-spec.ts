@@ -28,12 +28,8 @@ import type {
   PublicCommentsFilters,
 } from '@api/modules/comments/repositories/comments.repository';
 import { CommentsService } from '@api/modules/comments/services/comments.service';
-import { Post } from '@api/modules/posts/domain/entities/post.entity';
-import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
-import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
-import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
-import type { PostSlugLookupRecord } from '@api/modules/posts/repositories/posts.repository';
+import type { PublishedPostReferenceRecord } from '@api/modules/posts/repositories/posts.repository';
 
 const OWNER: AuthenticatedUser = {
   email: 'dono@vavitoarchives.com.br',
@@ -55,32 +51,14 @@ function bearer(token: 'owner' | 'other' | 'admin'): string {
   return `Bearer ${token}`;
 }
 
-function publishedPost(): PostSlugLookupRecord {
+function publishedPost(): PublishedPostReferenceRecord {
   return {
-    author: { displayName: 'Admin', id: ADMIN.id },
-    cover: null,
-    post: Post.restore({
-      archivedAt: null,
-      authorId: ADMIN.id,
-      content: PostContent.create({ content: [], type: 'doc' }, 1),
-      createdAt: NOW,
-      currentSlug: Slug.create('artigo-publicado'),
-      editedAt: null,
-      excerpt: 'Resumo.',
-      id: POST_ID,
-      publishedAt: NOW,
-      readingTimeMinutes: 1,
-      seoDescription: null,
-      seoTitle: null,
-      status: PostStatus.PUBLISHED,
-      title: 'Artigo publicado',
-      updatedAt: NOW,
-      viewsCount: 0,
-    }),
-    reactionCounts: { dislike: 0, like: 0 },
-    requestedSlug: 'artigo-publicado',
-    requestedSlugIsCurrent: true,
-    tags: [],
+    excerpt: 'Resumo.',
+    id: POST_ID,
+    publishedAt: NOW,
+    readingTimeMinutes: 1,
+    slug: 'artigo-publicado',
+    title: 'Artigo publicado',
   };
 }
 
@@ -169,7 +147,9 @@ describe('Autorização de comentários por usuário (e2e)', () => {
         { provide: CommentsRepository, useValue: fixture.repository },
         {
           provide: PostsRepository,
-          useValue: { findBySlug: () => Promise.resolve(publishedPost()) },
+          useValue: {
+            findPublishedReferenceBySlug: () => Promise.resolve(publishedPost()),
+          },
         },
         { provide: AvatarStorageService, useValue: { publicUrl: (path: string) => path } },
         {

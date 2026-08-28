@@ -168,6 +168,31 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     await expect(repository.findById(post.id)).resolves.toBeNull();
   });
 
+  it('carrega somente a referência publicada necessária para integrações internas', async () => {
+    const authorId = await createAuthor();
+    const post = buildPost(authorId, {
+      currentSlug: 'referencia-publicada',
+      title: 'Referência publicada',
+    });
+    await createPost(post);
+
+    const expectedReference = {
+      excerpt: 'Resumo para os testes.',
+      id: post.id,
+      publishedAt: post.publishedAt,
+      readingTimeMinutes: 3,
+      slug: 'referencia-publicada',
+      title: 'Referência publicada',
+    };
+
+    await expect(repository.findPublishedReferenceById(post.id)).resolves.toEqual(
+      expectedReference,
+    );
+    await expect(repository.findPublishedReferenceBySlug('referencia-publicada')).resolves.toEqual(
+      expectedReference,
+    );
+  });
+
   it('lista apenas posts publicados com filtro, paginação, ordem estável e relações necessárias', async () => {
     const authorId = await createAuthor('Autora pública');
     const publishedAt = new Date('2026-08-16T12:00:00.000Z');
