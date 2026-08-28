@@ -42,7 +42,7 @@ export function DesignSystemDemo() {
   const [activeTopic, setActiveTopic] = useState('Todos');
 
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-5xl gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+    <div className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <header className="grid max-w-prose gap-4">
         <p className="text-accent text-xs font-medium tracking-eyebrow uppercase">
           Design system · Task 9.3
@@ -148,6 +148,6 @@ export function DesignSystemDemo() {
           </div>
         </ComponentSection>
       </div>
-    </main>
+    </div>
   );
 }
