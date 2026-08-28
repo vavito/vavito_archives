@@ -6,6 +6,7 @@
     "build": "nest build && tsc-alias -p tsconfig.build.json",
     "lint": "eslint . --max-warnings=0",
     "media:cleanup": "tsx src/modules/media/commands/media-cleanup.command.ts",
+    "openapi:export": "pnpm build && node dist/core/openapi/commands/export-openapi.command.js && pnpm exec prettier ../../packages/api-client/openapi/openapi.json --write",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",

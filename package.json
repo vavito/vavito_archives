@@ -17,6 +17,7 @@
     "format:check": "prettier . --check",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
+    "openapi:export": "pnpm --filter @vavito/api openapi:export",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
   },
