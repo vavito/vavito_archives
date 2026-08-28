@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "build:web": "pnpm --filter @vavito/web build",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "dev": "turbo run dev",
     "dev:api": "pnpm --filter @vavito/api start:dev",
@@ -17,10 +18,13 @@
     "format:check": "prettier . --check",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
+    "lint:web": "pnpm --filter @vavito/web lint",
     "openapi:export": "pnpm --filter @vavito/api openapi:export",
+    "start:web": "pnpm --filter @vavito/web start",
     "test": "turbo run test",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "typecheck:web": "pnpm --filter @vavito/web typecheck"
   },
   "devDependencies": {
     "prettier": "3.9.6",
