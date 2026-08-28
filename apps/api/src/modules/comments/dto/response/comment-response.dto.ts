@@ -4,42 +4,45 @@ import { CommentStatus } from '@api/modules/comments/domain/enums/comment-status
 import { PaginationMetaDto } from '@api/shared/pagination/dto/pagination-meta.dto';
 
 export class CommentAuthorDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000003', format: 'uuid' })
   id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'Leitor do Vavito' })
   displayName!: string;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ example: 'https://cdn.example.com/avatars/leitor.webp', nullable: true })
   avatarUrl!: string | null;
 }
 
 export class CommentResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000040', format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   postId!: string;
 
-  @ApiProperty({ format: 'uuid', nullable: true })
+  @ApiProperty({ example: null, format: 'uuid', nullable: true })
   parentId!: string | null;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ example: 'Excelente explicação sobre o tema.', nullable: true })
   content!: string | null;
 
-  @ApiProperty({ enum: [CommentStatus.VISIBLE, CommentStatus.DELETED] })
+  @ApiProperty({
+    enum: [CommentStatus.VISIBLE, CommentStatus.DELETED],
+    example: CommentStatus.VISIBLE,
+  })
   status!: CommentStatus.VISIBLE | CommentStatus.DELETED;
 
   @ApiProperty({ nullable: true, type: () => CommentAuthorDto })
   author!: CommentAuthorDto | null;
 
-  @ApiProperty()
+  @ApiProperty({ example: false })
   edited!: boolean;
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-24T14:30:00.000Z', format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true })
   editedAt!: string | null;
 
   @ApiProperty({ type: () => [CommentResponseDto] })
@@ -47,34 +50,34 @@ export class CommentResponseDto {
 }
 
 export class CommentAdminResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000040', format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   postId!: string;
 
-  @ApiProperty({ format: 'uuid', nullable: true })
+  @ApiProperty({ example: null, format: 'uuid', nullable: true })
   parentId!: string | null;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ example: 'Conteúdo em análise pela moderação.', nullable: true })
   content!: string | null;
 
-  @ApiProperty({ enum: CommentStatus, enumName: 'CommentStatus' })
+  @ApiProperty({ enum: CommentStatus, enumName: 'CommentStatus', example: CommentStatus.HIDDEN })
   status!: CommentStatus;
 
   @ApiProperty({ nullable: true, type: () => CommentAuthorDto })
   author!: CommentAuthorDto | null;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ example: 'Conteúdo fora das regras da comunidade.', nullable: true })
   moderationReason!: string | null;
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-24T14:30:00.000Z', format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true })
   editedAt!: string | null;
 
-  @ApiProperty({ format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true })
   deletedAt!: string | null;
 }
 
