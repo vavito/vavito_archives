@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '@api/generated/prisma/client';
 
 export class ProfileResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000001', format: 'uuid' })
   id!: string;
 
   @ApiProperty({ example: 'João Victor' })
@@ -15,12 +15,12 @@ export class ProfileResponseDto {
   })
   avatarUrl!: string | null;
 
-  @ApiProperty({ enum: UserRole, enumName: 'UserRole' })
+  @ApiProperty({ enum: UserRole, enumName: 'UserRole', example: UserRole.USER })
   role!: UserRole;
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-12T20:15:00.000Z', format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ format: 'date-time' })
+  @ApiProperty({ example: '2026-08-27T20:15:00.000Z', format: 'date-time' })
   updatedAt!: string;
 }

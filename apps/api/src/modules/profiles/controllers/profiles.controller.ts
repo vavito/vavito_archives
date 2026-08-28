@@ -12,17 +12,24 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiForbiddenResponse,
   ApiNoContentResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiPayloadTooLargeResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
+  ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '@api/core/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
+import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import type { AvatarUpload } from '@api/core/storage/services/avatar-storage.service';
 import { DeleteAccountDto } from '@api/modules/profiles/dto/request/delete-account.dto';
 import { UpdateProfileDto } from '@api/modules/profiles/dto/request/update-profile.dto';
@@ -35,6 +42,10 @@ import { ProfilesService } from '@api/modules/profiles/services/profiles.service
 
 @ApiBearerAuth('supabase-jwt')
 @ApiTags('Profiles')
+@ApiBadRequestResponse({ description: 'Dados ou parâmetros inválidos.', type: ErrorResponseDto })
+@ApiUnauthorizedResponse({ description: 'Autenticação necessária.', type: ErrorResponseDto })
+@ApiForbiddenResponse({ description: 'Perfil inativo ou sem acesso.', type: ErrorResponseDto })
+@ApiNotFoundResponse({ description: 'Perfil não encontrado.', type: ErrorResponseDto })
 @Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
@@ -68,6 +79,11 @@ export class ProfilesController {
   })
   @ApiOperation({ summary: 'Envia ou substitui o avatar do usuário autenticado' })
   @ApiOkResponse({ type: ProfileResponseDto })
+  @ApiPayloadTooLargeResponse({ description: 'Arquivo maior que 2 MB.', type: ErrorResponseDto })
+  @ApiUnsupportedMediaTypeResponse({
+    description: 'Conteúdo, MIME ou extensão não suportado.',
+    type: ErrorResponseDto,
+  })
   uploadAvatar(
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile(AvatarFilePipe) file: AvatarUpload,
