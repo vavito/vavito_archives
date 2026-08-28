@@ -162,6 +162,8 @@ O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/develo
 - `packages/typescript-config` centraliza as configurações TypeScript base, NestJS, Next.js e bibliotecas.
 - A API usa o alias `@api/*` para arquivos de `apps/api/src`.
 - O frontend herda o modo estrito de `packages/typescript-config` e usa o alias `@web/*` para arquivos de `apps/web/src`.
+- O Tailwind CSS 4 é processado por PostCSS em `apps/web` e também detecta classes dos componentes em `packages/ui`.
+- Os tokens visuais V2 ficam em `packages/ui/src/styles/theme.css`, exportados como `@vavito/ui/theme.css`; estilos novos devem priorizar as utilities semânticas em vez de repetir valores da paleta.
 - Uma aplicação não pode importar arquivos internos da outra; código compartilhado deve ficar em `packages`.
 - As recomendações de ESLint e Prettier para o VS Code estão versionadas em `.vscode`.
 
