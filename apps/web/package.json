@@ -10,17 +10,21 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@vavito/ui": "workspace:*",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@vavito/eslint-config": "workspace:*",
-    "@vavito/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@vavito/eslint-config": "workspace:*",
+    "@vavito/typescript-config": "workspace:*",
     "eslint": "9.39.5",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
     "typescript": "5.9.3"
   }
 }
