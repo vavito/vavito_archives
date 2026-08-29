@@ -1,6 +1,7 @@
 {
   "extends": "@vavito/typescript-config/nextjs.json",
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
       "@web/*": ["src/*"]

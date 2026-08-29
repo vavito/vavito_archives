@@ -1,9 +1,9 @@
 import createClient, { type Client, type ClientOptions } from 'openapi-fetch';
 
-import type { paths } from '../generated/schema.js';
-import { createAuthMiddleware, type AccessTokenProvider } from './auth-middleware.js';
-import { normalizeApiBaseUrl } from './base-url.js';
-import { createErrorMiddleware } from './error-middleware.js';
+import type { paths } from '../generated/schema.ts';
+import { createAuthMiddleware, type AccessTokenProvider } from './auth-middleware.ts';
+import { normalizeApiBaseUrl } from './base-url.ts';
+import { createErrorMiddleware } from './error-middleware.ts';
 
 export type ApiClient = Client<paths>;
 
@@ -36,4 +36,4 @@ export function createAuthenticatedApiClient(options: AuthenticatedApiClientOpti
   return client;
 }
 
-export type { AccessTokenProvider } from './auth-middleware.js';
+export type { AccessTokenProvider } from './auth-middleware.ts';

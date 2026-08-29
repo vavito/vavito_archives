@@ -2,6 +2,7 @@
   "extends": "@vavito/typescript-config/library.json",
   "compilerOptions": {
     "outDir": "dist",
+    "rewriteRelativeImportExtensions": true,
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"]
