@@ -33,7 +33,7 @@ Crie também o ambiente local do frontend:
 cp apps/web/.env.example apps/web/.env.local
 ```
 
-No PowerShell, use `Copy-Item apps/web/.env.example apps/web/.env.local`. A variável pública define somente a origem HTTP da API e não deve conter credenciais.
+No PowerShell, use `Copy-Item apps/web/.env.example apps/web/.env.local`. As variáveis públicas definem as origens HTTP da API e do Supabase, além da publishable key. Elas não devem conter segredos ou a `service_role`.
 
 Para executar a API completa:
 
