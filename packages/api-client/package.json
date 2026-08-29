@@ -16,6 +16,7 @@
     "generate": "node scripts/generate-openapi.mjs --write",
     "generate:check": "node scripts/generate-openapi.mjs --check",
     "lint": "eslint . --max-warnings=0",
+    "test": "tsx --test test/client/api-client.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
