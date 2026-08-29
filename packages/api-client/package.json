@@ -20,6 +20,12 @@
     "@vavito/eslint-config": "workspace:*",
     "@vavito/typescript-config": "workspace:*",
     "eslint": "9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "3.9.6",
+    "tsx": "4.21.0",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
   }
 }
