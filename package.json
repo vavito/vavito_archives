@@ -25,6 +25,7 @@
     "start:web": "pnpm --filter @vavito/web start",
     "test": "turbo run test",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
+    "test:web": "pnpm --filter @vavito/web test",
     "typecheck": "turbo run typecheck",
     "typecheck:web": "pnpm --filter @vavito/web typecheck"
   },

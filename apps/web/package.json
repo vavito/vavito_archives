@@ -7,6 +7,8 @@
     "dev": "next dev",
     "lint": "eslint . --max-warnings=0",
     "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -21,14 +23,20 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vavito/eslint-config": "workspace:*",
     "@vavito/typescript-config": "workspace:*",
+    "@vitejs/plugin-react": "^6.1.0",
     "eslint": "9.39.5",
+    "jsdom": "^30.0.1",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.1.11"
   }
 }
