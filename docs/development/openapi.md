@@ -48,6 +48,6 @@ O teste `apps/api/test/e2e/openapi/openapi-contract.e2e-spec.ts` verifica automa
 
 Se o teste acusar divergência após uma alteração legítima do contrato, revise o documento gerado e execute `pnpm openapi:export` antes de criar o commit.
 
-## Limite desta etapa
+## Cliente tipado
 
-A Task 8.4 prepara e valida o contrato dos endpoints implementados. A geração dos tipos TypeScript e o wrapper de `fetch` pertencem à Task 9.5; até lá, `packages/api-client` preserva o JSON como entrada estável para o codegen.
+O artefato versionado alimenta o codegen de `packages/api-client`. Depois de atualizar o contrato, execute `pnpm api-client:generate` e revise tanto o JSON quanto o schema TypeScript gerado. A estrutura do cliente, sua integração com o frontend e a verificação da CI estão documentadas em [`api-client.md`](api-client.md).

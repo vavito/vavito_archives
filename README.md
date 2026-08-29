@@ -27,6 +27,14 @@ cp .env.example .env
 
 No PowerShell, use `Copy-Item .env.example .env`. O arquivo `.env` não deve ser versionado e os placeholders devem ser substituídos por credenciais reais apenas no ambiente apropriado.
 
+Crie também o ambiente local do frontend:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+No PowerShell, use `Copy-Item apps/web/.env.example apps/web/.env.local`. A variável pública define somente a origem HTTP da API e não deve conter credenciais.
+
 Para executar a API completa:
 
 1. configure PostgreSQL, Auth e Storage no Supabase;
@@ -49,6 +57,8 @@ pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
 pnpm test:regression:api # executa cobertura e integração da API
+pnpm api-client:generate # gera os tipos e o cliente a partir do OpenAPI versionado
+pnpm api-client:check # verifica se os tipos gerados estão sincronizados
 pnpm check      # executa format check, lint, typecheck, test e build
 ```
 
@@ -74,13 +84,14 @@ As rotas da API usam o prefixo global `/api/v1`. Em desenvolvimento, os principa
 
 O Swagger é habilitado por padrão em desenvolvimento e teste. Em produção, permanece desabilitado por padrão e só é publicado quando `SWAGGER_ENABLED=true` for definido explicitamente no ambiente.
 
-Para atualizar o contrato versionado consumido pelo futuro cliente tipado:
+Para atualizar o contrato versionado e gerar novamente seus tipos:
 
 ```bash
 pnpm openapi:export
+pnpm api-client:generate
 ```
 
-O comando gera `packages/api-client/openapi/openapi.json` sem iniciar o servidor nem acessar o banco. O procedimento e as garantias do contrato estão documentados em `docs/development/openapi.md`.
+O primeiro comando gera `packages/api-client/openapi/openapi.json` sem iniciar o servidor nem acessar o banco. O segundo atualiza o schema TypeScript consumido pelo cliente HTTP. O fluxo completo está documentado em `docs/development/api-client.md`.
 
 ## Banco de dados
 
@@ -102,7 +113,7 @@ apps/
       setup/    preparação global do ambiente de testes
   web/          aplicação Next.js com App Router
 packages/
-  api-client/   cliente tipado da API (gerado em task futura)
+  api-client/   tipos OpenAPI, cliente HTTP e contrato normalizado de erros
   eslint-config/ configuração compartilhada do ESLint
   typescript-config/ configurações compartilhadas do TypeScript
   ui/           componentes compartilhados de interface
