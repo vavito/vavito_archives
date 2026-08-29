@@ -57,6 +57,7 @@ pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
 pnpm test:regression:api # executa cobertura e integração da API
+pnpm test:web   # executa os testes de componente e integração do frontend
 pnpm api-client:generate # gera os tipos e o cliente a partir do OpenAPI versionado
 pnpm api-client:check # verifica se os tipos gerados estão sincronizados
 pnpm check      # executa format check, lint, typecheck, test e build
@@ -151,6 +152,7 @@ O fluxo autentica pelo Supabase, captura o JWT, cria e publica um artigo, consul
 ```bash
 pnpm check                       # qualidade completa do monorepo
 pnpm --filter @vavito/api test   # testes unitários e e2e da API
+pnpm test:web                    # testes Vitest do frontend
 ```
 
 Os testes de integração usam exclusivamente o PostgreSQL local `vavito_integration`. Consulte [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) antes de executá-los.
