@@ -111,5 +111,8 @@ jobs:
       - name: Validar formatação
         run: pnpm format:check
 
+      - name: Verificar tipos gerados pelo contrato OpenAPI
+        run: pnpm api-client:check
+
       - name: Validar Web e dependências internas
         run: pnpm turbo run lint typecheck test build --filter=@vavito/web...
