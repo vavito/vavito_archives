@@ -15,10 +15,14 @@ export class PostSummaryDto {
   @ApiProperty({ example: 'Uma introdução prática à arquitetura do projeto.' })
   excerpt!: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/posts/capa.webp', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/posts/capa.webp',
+    nullable: true,
+    type: String,
+  })
   coverUrl!: string | null;
 
-  @ApiProperty({ example: 'Diagrama de arquitetura', nullable: true })
+  @ApiProperty({ example: 'Diagrama de arquitetura', nullable: true, type: String })
   coverAlt!: string | null;
 
   @ApiProperty({ type: () => [TagResponseDto] })

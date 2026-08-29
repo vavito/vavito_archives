@@ -758,9 +758,9 @@ export interface components {
       /** @example Uma introdução prática à arquitetura do projeto. */
       excerpt: string;
       /** @example https://cdn.example.com/posts/capa.webp */
-      coverUrl: Record<string, never> | null;
+      coverUrl: string | null;
       /** @example Diagrama de arquitetura */
-      coverAlt: Record<string, never> | null;
+      coverAlt: string | null;
       tags: components['schemas']['TagResponseDto'][];
       /**
        * Format: date-time
@@ -803,9 +803,9 @@ export interface components {
       /** @example Uma introdução prática à arquitetura do projeto. */
       excerpt: string;
       /** @example https://cdn.example.com/posts/capa.webp */
-      coverUrl: Record<string, never> | null;
+      coverUrl: string | null;
       /** @example Diagrama de arquitetura */
-      coverAlt: Record<string, never> | null;
+      coverAlt: string | null;
       tags: components['schemas']['TagResponseDto'][];
       /**
        * Format: date-time
@@ -1794,9 +1794,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
         /** @example 019c2d62-6e90-7000-8000-000000000010 */
         postId?: string;
         /** @example VISIBLE */
@@ -1984,9 +1984,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 12 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
         /** @example typescript */
         tag?: string;
         /** @example popular */
@@ -2313,9 +2313,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
         /** @example ARCHIVED */
         status?: components['schemas']['PostStatus'];
         /** @example arquitetura */
@@ -2544,9 +2544,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
       };
       header?: never;
       path: {
@@ -3724,9 +3724,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 12 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
       };
       header?: never;
       path?: never;
@@ -4427,9 +4427,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
         /** @example DRAFT */
         status?: components['schemas']['CampaignStatus'];
       };
