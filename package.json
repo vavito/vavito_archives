@@ -10,6 +10,8 @@
   "scripts": {
     "build": "turbo run build",
     "build:web": "pnpm --filter @vavito/web build",
+    "api-client:check": "pnpm --filter @vavito/api-client generate:check",
+    "api-client:generate": "pnpm --filter @vavito/api-client generate",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "dev": "turbo run dev",
     "dev:api": "pnpm --filter @vavito/api start:dev",
