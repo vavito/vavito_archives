@@ -111,5 +111,11 @@ jobs:
       - name: Validar formatação
         run: pnpm format:check
 
-      - name: Validar Web e dependências internas
-        run: pnpm turbo run lint typecheck test build --filter=@vavito/web...
+      - name: Verificar tipos gerados pelo contrato OpenAPI
+        run: pnpm api-client:check
+
+      - name: Executar testes do frontend
+        run: pnpm turbo run test --filter=@vavito/web...
+
+      - name: Validar lint, tipos e build Vercel
+        run: pnpm turbo run lint typecheck build --filter=@vavito/web...

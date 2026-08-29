@@ -27,6 +27,14 @@ cp .env.example .env
 
 No PowerShell, use `Copy-Item .env.example .env`. O arquivo `.env` não deve ser versionado e os placeholders devem ser substituídos por credenciais reais apenas no ambiente apropriado.
 
+Crie também o ambiente local do frontend:
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+No PowerShell, use `Copy-Item apps/web/.env.example apps/web/.env.local`. As variáveis públicas definem as origens HTTP da API e do Supabase, além da publishable key. Elas não devem conter segredos ou a `service_role`.
+
 Para executar a API completa:
 
 1. configure PostgreSQL, Auth e Storage no Supabase;
@@ -49,6 +57,9 @@ pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
 pnpm test:regression:api # executa cobertura e integração da API
+pnpm test:web   # executa os testes de componente e integração do frontend
+pnpm api-client:generate # gera os tipos e o cliente a partir do OpenAPI versionado
+pnpm api-client:check # verifica se os tipos gerados estão sincronizados
 pnpm check      # executa format check, lint, typecheck, test e build
 ```
 
@@ -57,6 +68,8 @@ Para executar apenas uma aplicação:
 ```bash
 pnpm dev:api
 pnpm dev:web
+pnpm build:web
+pnpm start:web
 ```
 
 - Web: `http://localhost:3000`
@@ -72,13 +85,14 @@ As rotas da API usam o prefixo global `/api/v1`. Em desenvolvimento, os principa
 
 O Swagger é habilitado por padrão em desenvolvimento e teste. Em produção, permanece desabilitado por padrão e só é publicado quando `SWAGGER_ENABLED=true` for definido explicitamente no ambiente.
 
-Para atualizar o contrato versionado consumido pelo futuro cliente tipado:
+Para atualizar o contrato versionado e gerar novamente seus tipos:
 
 ```bash
 pnpm openapi:export
+pnpm api-client:generate
 ```
 
-O comando gera `packages/api-client/openapi/openapi.json` sem iniciar o servidor nem acessar o banco. O procedimento e as garantias do contrato estão documentados em `docs/development/openapi.md`.
+O primeiro comando gera `packages/api-client/openapi/openapi.json` sem iniciar o servidor nem acessar o banco. O segundo atualiza o schema TypeScript consumido pelo cliente HTTP. O fluxo completo está documentado em `docs/development/api-client.md`.
 
 ## Banco de dados
 
@@ -100,7 +114,7 @@ apps/
       setup/    preparação global do ambiente de testes
   web/          aplicação Next.js com App Router
 packages/
-  api-client/   cliente tipado da API (gerado em task futura)
+  api-client/   tipos OpenAPI, cliente HTTP e contrato normalizado de erros
   eslint-config/ configuração compartilhada do ESLint
   typescript-config/ configurações compartilhadas do TypeScript
   ui/           componentes compartilhados de interface
@@ -138,6 +152,7 @@ O fluxo autentica pelo Supabase, captura o JWT, cria e publica um artigo, consul
 ```bash
 pnpm check                       # qualidade completa do monorepo
 pnpm --filter @vavito/api test   # testes unitários e e2e da API
+pnpm test:web                    # testes Vitest do frontend
 ```
 
 Os testes de integração usam exclusivamente o PostgreSQL local `vavito_integration`. Consulte [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) antes de executá-los.
@@ -159,6 +174,10 @@ O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/develo
 - `packages/eslint-config` centraliza as regras de ESLint para NestJS, Next.js, bibliotecas e testes Node.js.
 - `packages/typescript-config` centraliza as configurações TypeScript base, NestJS, Next.js e bibliotecas.
 - A API usa o alias `@api/*` para arquivos de `apps/api/src`.
-- O frontend usa o alias `@web/*` para arquivos de `apps/web/src`.
+- O frontend herda o modo estrito de `packages/typescript-config` e usa o alias `@web/*` para arquivos de `apps/web/src`.
+- O Tailwind CSS 4 é processado por PostCSS em `apps/web` e também detecta classes dos componentes em `packages/ui`.
+- Os tokens visuais V2 ficam em `packages/ui/src/styles/theme.css`, exportados como `@vavito/ui/theme.css`; estilos novos devem priorizar as utilities semânticas em vez de repetir valores da paleta.
 - Uma aplicação não pode importar arquivos internos da outra; código compartilhado deve ficar em `packages`.
 - As recomendações de ESLint e Prettier para o VS Code estão versionadas em `.vscode`.
+
+Os comandos `dev:web`, `build:web`, `start:web`, `lint:web` e `typecheck:web` executam o workspace `apps/web` pela raiz sem criar uma instalação paralela. O build de produção deve ser gerado antes de usar `start:web`.

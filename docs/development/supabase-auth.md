@@ -142,3 +142,27 @@ A configuração foi validada em desenvolvimento com os fluxos de confirmação 
 - `SUPABASE_SERVICE_ROLE_KEY` é exclusiva da API e nunca pode chegar ao navegador.
 - O frontend usará somente a URL pública do projeto e a publishable key.
 - Credenciais reais ficam em arquivos locais ignorados pelo Git ou nas variáveis protegidas do provedor de deploy.
+
+## Clientes SSR do frontend
+
+O frontend usa `@supabase/ssr` com o fluxo PKCE e mantém a sessão em cookies compartilhados entre navegador e servidor. O ambiente de `apps/web` exige somente:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+```
+
+Os clientes ficam separados por runtime em `apps/web/src/lib/auth/supabase`:
+
+- `client.ts` cria o cliente usado por Client Components;
+- `server.ts` cria um cliente novo por requisição e integra o `cookies()` assíncrono do Next.js;
+- `proxy.ts` valida as claims e replica cookies e cabeçalhos de cache produzidos pela renovação da sessão.
+
+O arquivo `apps/web/src/proxy.ts` executa essa renovação antes da renderização e exclui apenas assets estáticos. Ele não concede autorização de negócio nem substitui a validação do JWT feita pela API NestJS.
+
+Os callbacks públicos são:
+
+- `GET /auth/callback`, que troca o código PKCE pela sessão;
+- `GET /auth/confirm`, que valida o `token_hash` de confirmação, convite, magic link ou recuperação.
+
+O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gravam ou renovam cookies de autenticação usam cache privado para impedir que uma sessão seja reutilizada por outro visitante.

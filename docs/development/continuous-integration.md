@@ -5,11 +5,19 @@ O workflow `.github/workflows/quality.yml` executa a qualidade do monorepo em pu
 ## Checks
 
 - `Quality / API`: formatação, regressão com cobertura, lint, typecheck e build da API e de suas dependências internas.
-- `Quality / Web`: formatação, lint, typecheck, testes disponíveis e build do frontend e de suas dependências internas.
+- `Quality / Web`: formatação, sincronização do cliente OpenAPI, testes de componente, lint, typecheck e build do frontend e de suas dependências internas.
 
 Cada job usa Node.js 24.18.0 e a versão do pnpm declarada em `packageManager`, instala o monorepo pela raiz com `pnpm install --frozen-lockfile` e mantém caches separados do pnpm e do Turborepo.
 
-O job da API sobe um service container PostgreSQL exclusivo, aguarda o `pg_isready`, prepara um fixture mínimo de `auth.users`, aplica as migrations versionadas com `prisma migrate deploy` e executa `test:regression:api`. A regressão cobre testes unitários, E2E, cobertura mínima, ausência de testes ignorados e toda a suíte de integração. O job da Web não sobe banco.
+O job da API sobe um service container PostgreSQL exclusivo, aguarda o `pg_isready`, prepara um fixture mínimo de `auth.users`, aplica as migrations versionadas com `prisma migrate deploy` e executa `test:regression:api`. A regressão cobre testes unitários, E2E, cobertura mínima, ausência de testes ignorados e toda a suíte de integração. O job da Web não sobe banco: ele executa o Vitest com jsdom e Testing Library antes do lint, typecheck e build de produção compatível com a Vercel.
+
+Os testes do frontend ficam em `apps/web/test`, separados por nível (`component` e `integration`) e por módulo. O setup compartilhado da Testing Library fica em `apps/web/test/helpers`. Para executar apenas essa suíte pela raiz:
+
+```bash
+pnpm test:web
+```
+
+O comando equivalente usado pela CI é `pnpm turbo run test --filter=@vavito/web...`. O sufixo `...` inclui as dependências internas do workspace Web, enquanto o cache persistido em `.turbo` evita repetir tarefas cujo conteúdo não mudou.
 
 O fixture existe apenas porque o PostgreSQL puro da CI não inclui o schema gerenciado pelo Supabase Auth. Ele contém somente as colunas consumidas pelo trigger de criação de `Profile`, é protegido pela mesma validação de URL local da suíte e nunca é aplicado ao Supabase.
 

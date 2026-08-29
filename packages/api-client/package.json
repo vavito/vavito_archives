@@ -3,23 +3,32 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "generate": "node scripts/generate-openapi.mjs --write",
+    "generate:check": "node scripts/generate-openapi.mjs --check",
     "lint": "eslint . --max-warnings=0",
+    "test": "tsx --test test/client/api-client.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@vavito/eslint-config": "workspace:*",
     "@vavito/typescript-config": "workspace:*",
     "eslint": "9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "3.9.6",
+    "tsx": "4.21.0",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
   }
 }
