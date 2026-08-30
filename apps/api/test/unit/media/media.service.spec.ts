@@ -69,6 +69,12 @@ describe('MediaService', () => {
     expect(storage.hasObject('media', result.mediaAsset.storagePath)).toBe(true);
   });
 
+  it('resolve a URL pública de um objeto do bucket de mídia', () => {
+    expect(service.publicUrl('2026/08/capa.webp')).toBe(
+      'https://storage.test/media/2026/08/capa.webp',
+    );
+  });
+
   it('registra FAILED quando o upload no Storage falha', async () => {
     const storageError = new Error('storage unavailable');
     storage.failNextUpload(storageError);
