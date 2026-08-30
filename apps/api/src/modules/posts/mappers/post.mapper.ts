@@ -74,7 +74,7 @@ function cloneTags(tags: readonly TagResponseDto[]): TagResponseDto[] {
   return tags.map((tag) => ({ ...tag }));
 }
 
-function coverView(cover: PostCoverRecord | null): PostCoverView | null {
+function coverView(cover: PostCoverRecord | null, url: string | null): PostCoverView | null {
   if (!cover) {
     return null;
   }
@@ -82,8 +82,7 @@ function coverView(cover: PostCoverRecord | null): PostCoverView | null {
   return {
     alt: cover.altText,
     mediaId: cover.id,
-    // A URL pública será derivada pelo StorageService do módulo Media na Sprint 5.
-    url: null,
+    url,
   };
 }
 
@@ -158,8 +157,11 @@ export class PostMapper {
     };
   }
 
-  static fromPublicSummaryRecord(record: PublicPostSummaryRecord): PostSummaryDto {
-    const cover = coverView(record.cover);
+  static fromPublicSummaryRecord(
+    record: PublicPostSummaryRecord,
+    coverUrl: string | null = null,
+  ): PostSummaryDto {
+    const cover = coverView(record.cover, coverUrl);
 
     return {
       coverAlt: cover?.alt ?? null,
@@ -188,17 +190,23 @@ export class PostMapper {
     };
   }
 
-  static fromAggregateToAdminDetail(record: PostAggregateRecord): PostAdminDetailDto {
+  static fromAggregateToAdminDetail(
+    record: PostAggregateRecord,
+    coverUrl: string | null = null,
+  ): PostAdminDetailDto {
     return this.toAdminDetail(record.post, {
       author: record.author,
-      cover: coverView(record.cover),
+      cover: coverView(record.cover, coverUrl),
       tags: responseTags(record.tags),
     });
   }
 
-  static fromSlugLookupToPublicDetail(record: PostSlugLookupRecord): PostDetailResponseDto {
+  static fromSlugLookupToPublicDetail(
+    record: PostSlugLookupRecord,
+    coverUrl: string | null = null,
+  ): PostDetailResponseDto {
     return this.toPublicDetail(record.post, {
-      cover: coverView(record.cover),
+      cover: coverView(record.cover, coverUrl),
       reactionCounts: record.reactionCounts,
       tags: responseTags(record.tags),
       viewer: null,
