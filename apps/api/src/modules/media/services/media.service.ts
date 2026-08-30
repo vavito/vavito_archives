@@ -61,6 +61,10 @@ export class MediaService {
     this.bucket = configService.get('supabase.mediaBucket', { infer: true });
   }
 
+  publicUrl(storagePath: string): string {
+    return this.storage.publicUrl(this.bucket, storagePath);
+  }
+
   async upload(input: UploadMediaInput): Promise<UploadMediaResult> {
     const createdAt = new Date();
     const path = storagePath(createdAt, input.extension);
@@ -113,7 +117,7 @@ export class MediaService {
 
     return {
       mediaAsset: readyAsset,
-      publicUrl: this.storage.publicUrl(this.bucket, readyAsset.storagePath),
+      publicUrl: this.publicUrl(readyAsset.storagePath),
     };
   }
 
