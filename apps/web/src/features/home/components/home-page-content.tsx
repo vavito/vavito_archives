@@ -1,6 +1,5 @@
 import { chipVariants, cn } from '@vavito/ui';
 import { ArrowRight } from 'lucide-react';
-import type { Route } from 'next';
 import Link from 'next/link';
 
 import { NewsletterSignup } from '@web/features/newsletter/components/newsletter-signup';
@@ -63,7 +62,7 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
           <div>
             <Link
               className="text-neutral-200 hover:text-accent inline-flex items-center gap-2 text-sm font-medium transition-colors"
-              href={'/artigos' as Route}
+              href="/artigos"
             >
               Explorar todos os artigos
               <ArrowRight aria-hidden="true" className="size-4" />
