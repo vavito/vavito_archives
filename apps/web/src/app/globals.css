@@ -2,3 +2,108 @@
 @import '@vavito/ui/theme.css';
 
 @source '../../../../packages/ui/src';
+
+@layer components {
+  .article-prose {
+    color: var(--color-neutral-200);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .article-prose > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .article-prose :where(h2, h3, h4) {
+    color: var(--color-neutral-100);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 6rem;
+  }
+
+  .article-prose h2 {
+    margin-top: 3rem;
+    font-size: 1.5rem;
+  }
+
+  .article-prose h3 {
+    margin-top: 2.5rem;
+    font-size: 1.25rem;
+  }
+
+  .article-prose h4 {
+    margin-top: 2rem;
+    font-size: 1.125rem;
+  }
+
+  .article-prose :where(ul, ol) {
+    display: grid;
+    gap: 0.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .article-prose ul {
+    list-style: disc;
+  }
+
+  .article-prose ol {
+    list-style: decimal;
+  }
+
+  .article-prose blockquote {
+    border-left: 2px solid var(--color-accent);
+    color: var(--color-neutral-300);
+    font-style: italic;
+    padding-left: 1.25rem;
+  }
+
+  .article-prose a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .article-prose :not(pre) > code {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    color: var(--color-accent);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 0.125rem 0.375rem;
+  }
+
+  .article-prose pre {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-floating);
+    padding: 1.25rem;
+  }
+
+  .article-prose pre code {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .article-prose figure {
+    display: grid;
+    gap: 0.75rem;
+    margin-block: 2.5rem;
+  }
+
+  .article-prose figcaption {
+    color: var(--color-neutral-500);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .article-prose hr {
+    border: 0;
+    border-top: 1px solid var(--color-divider);
+    margin-block: 3rem;
+  }
+}
