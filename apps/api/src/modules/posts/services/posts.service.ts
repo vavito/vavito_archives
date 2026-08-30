@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { UserRole } from '@api/generated/prisma/client';
+import { MediaService } from '@api/modules/media/services/media.service';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import {
@@ -99,6 +100,7 @@ export class PostsService {
     private readonly postsRepository: PostsRepository,
     private readonly profileAuthorizationRepository: ProfileAuthorizationRepository,
     private readonly postViewFingerprintService: PostViewFingerprintService,
+    private readonly mediaService: MediaService,
   ) {}
 
   async archive(actorId: string, postId: string): Promise<Post> {
@@ -116,7 +118,7 @@ export class PostsService {
       throw new PostNotFoundException();
     }
 
-    return PostMapper.fromAggregateToAdminDetail(aggregate);
+    return PostMapper.fromAggregateToAdminDetail(aggregate, this.coverUrl(aggregate.cover));
   }
 
   async getPublicDetail(slug: string): Promise<PublicPostDetailResult> {
@@ -134,7 +136,7 @@ export class PostsService {
 
     return {
       canonicalSlug,
-      data: PostMapper.fromSlugLookupToPublicDetail(record),
+      data: PostMapper.fromSlugLookupToPublicDetail(record, this.coverUrl(record.cover)),
       shouldRedirect: !record.requestedSlugIsCurrent,
     };
   }
@@ -156,7 +158,9 @@ export class PostsService {
     const result = await this.postsRepository.listPublic(query);
 
     return {
-      items: result.items.map((item) => PostMapper.fromPublicSummaryRecord(item)),
+      items: result.items.map((item) =>
+        PostMapper.fromPublicSummaryRecord(item, this.coverUrl(item.cover)),
+      ),
       meta: paginationMeta(query.page, query.limit, result.total),
     };
   }
@@ -191,7 +195,9 @@ export class PostsService {
       POST_SEARCH_MAX_RESULTS,
     );
 
-    return records.map((record) => PostMapper.fromPublicSummaryRecord(record));
+    return records.map((record) =>
+      PostMapper.fromPublicSummaryRecord(record, this.coverUrl(record.cover)),
+    );
   }
 
   async listTags(): Promise<TagResponseDto[]> {
@@ -332,6 +338,10 @@ export class PostsService {
       ...(tags ? { tags } : {}),
     });
     return post;
+  }
+
+  private coverUrl(cover: PostAggregateRecord['cover']): string | null {
+    return cover ? this.mediaService.publicUrl(cover.storagePath) : null;
   }
 
   private async ensureActiveActor(actorId: string): Promise<UserRole> {
