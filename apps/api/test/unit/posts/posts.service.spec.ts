@@ -2,6 +2,7 @@ import type { ProfileAuthorizationRepository } from '@api/core/auth/repositories
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 import { UserRole } from '@api/generated/prisma/client';
+import type { MediaService } from '@api/modules/media/services/media.service';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
@@ -96,7 +97,14 @@ describe('PostsService', () => {
   const fingerprintService = {
     createDailyFingerprint,
   } as unknown as PostViewFingerprintService;
-  const service = new PostsService(repository, authorizationRepository, fingerprintService);
+  const publicUrl = jest.fn((storagePath: string) => `https://storage.test/media/${storagePath}`);
+  const mediaService = { publicUrl } as unknown as MediaService;
+  const service = new PostsService(
+    repository,
+    authorizationRepository,
+    fingerprintService,
+    mediaService,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -156,6 +164,11 @@ describe('PostsService', () => {
   it('retorna detalhe público e sinaliza redirecionamento de slug histórico', async () => {
     findBySlug.mockResolvedValueOnce({
       ...aggregate(post(PostStatus.PUBLISHED)),
+      cover: {
+        altText: 'Diagrama da arquitetura',
+        id: OTHER_ID,
+        storagePath: '2026/08/arquitetura.webp',
+      },
       reactionCounts: { dislike: 1, like: 4 },
       requestedSlug: 'post-antigo',
       requestedSlugIsCurrent: false,
@@ -164,12 +177,15 @@ describe('PostsService', () => {
     await expect(service.getPublicDetail('post-antigo')).resolves.toMatchObject({
       canonicalSlug: 'post-original',
       data: {
+        coverAlt: 'Diagrama da arquitetura',
+        coverUrl: 'https://storage.test/media/2026/08/arquitetura.webp',
         id: POST_ID,
         reactionCounts: { dislike: 1, like: 4 },
         viewer: null,
       },
       shouldRedirect: true,
     });
+    expect(publicUrl).toHaveBeenCalledWith('2026/08/arquitetura.webp');
   });
 
   it('registra fingerprint diário para uma visualização aceita', async () => {
