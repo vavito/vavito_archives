@@ -3,6 +3,8 @@ export { ArticlePageContent } from './components/article-page-content';
 export { ArticlesPageContent } from './components/articles-page-content';
 export { ArticlesPageSkeleton } from './components/articles-page-skeleton';
 export { ArticlePageSkeleton } from './components/article-page-skeleton';
+export { SearchOverlay } from './components/search-overlay';
 export { getArticlePageData } from './services/get-article-page-data';
 export { getArticlesData } from './services/get-articles-data';
+export { searchPublishedPosts } from './services/search-published-posts';
 export type { ArticlesData, ArticlesFilters, PostSummary, TagSummary } from './types/posts.types';
