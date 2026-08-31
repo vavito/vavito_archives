@@ -1,4 +1,3 @@
-import type { Route } from 'next';
 import Link from 'next/link';
 
 export function SiteFooter() {
@@ -14,13 +13,19 @@ export function SiteFooter() {
         <nav aria-label="Links do rodapé" className="flex items-center gap-5">
           <Link
             className="text-neutral-500 hover:text-neutral-200 text-xs transition-colors"
-            href={'/privacidade' as Route}
+            href="/sobre"
+          >
+            Sobre
+          </Link>
+          <Link
+            className="text-neutral-500 hover:text-neutral-200 text-xs transition-colors"
+            href="/privacidade"
           >
             Privacidade
           </Link>
           <Link
             className="text-neutral-500 hover:text-neutral-200 text-xs transition-colors"
-            href={'/contato' as Route}
+            href="/contato"
           >
             Contato
           </Link>
