@@ -832,9 +832,9 @@ export interface components {
       /** @example 1 */
       contentSchemaVersion: number;
       /** @example Arquitetura NestJS */
-      seoTitle: Record<string, never> | null;
+      seoTitle: string | null;
       /** @example Aprenda a organizar uma aplicação NestJS. */
-      seoDescription: Record<string, never> | null;
+      seoDescription: string | null;
       reactionCounts: components['schemas']['PostReactionCountsDto'];
       viewer: components['schemas']['PostViewerStateDto'] | null;
     };

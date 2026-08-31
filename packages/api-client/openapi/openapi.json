@@ -7630,12 +7630,12 @@
             "minimum": 1
           },
           "seoTitle": {
-            "type": "object",
+            "type": "string",
             "example": "Arquitetura NestJS",
             "nullable": true
           },
           "seoDescription": {
-            "type": "object",
+            "type": "string",
             "example": "Aprenda a organizar uma aplicação NestJS.",
             "nullable": true
           },
