@@ -4,6 +4,7 @@ export { ArticlesPageContent } from './components/articles-page-content';
 export { ArticlesPageSkeleton } from './components/articles-page-skeleton';
 export { ArticlePageSkeleton } from './components/article-page-skeleton';
 export { SearchOverlay } from './components/search-overlay';
+export { createArticleMetadata, createArticleStructuredData } from './services/create-article-seo';
 export { getArticlePageData } from './services/get-article-page-data';
 export { getArticlesData } from './services/get-articles-data';
 export { searchPublishedPosts } from './services/search-published-posts';
