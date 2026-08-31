@@ -30,7 +30,7 @@ async function listPosts(
   });
 
   if (!data) {
-    throw new Error('A API não retornou os artigos esperados para a Home.');
+    throw new Error('Não foi possível carregar os artigos da página inicial.');
   }
 
   return data;
@@ -63,7 +63,7 @@ export async function getHomeData({
   ]);
 
   if (!tagsResponse.data) {
-    throw new Error('A API não retornou as tags esperadas para a Home.');
+    throw new Error('Não foi possível carregar os tópicos da página inicial.');
   }
 
   return {
