@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 
+import { PageError } from '@web/components/feedback/page-error';
 import { ArticlesPageContent, getArticlesData } from '@web/features/posts';
+import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
 
 export const metadata: Metadata = {
   description:
@@ -30,12 +32,25 @@ function parsePage(value: string | undefined): number {
 
 export default async function ArticlesPage({ searchParams }: Readonly<ArticlesPageProps>) {
   const parameters = await searchParams;
-  const data = await getArticlesData({
-    filters: {
-      page: parsePage(firstParameter(parameters.page)),
-      tag: firstParameter(parameters.tag) ?? null,
-    },
-  });
+  let data: Awaited<ReturnType<typeof getArticlesData>>;
+
+  try {
+    data = await withPageDataTimeout(() =>
+      getArticlesData({
+        filters: {
+          page: parsePage(firstParameter(parameters.page)),
+          tag: firstParameter(parameters.tag) ?? null,
+        },
+      }),
+    );
+  } catch {
+    return (
+      <PageError
+        description="Não conseguimos buscar os artigos agora. Tente novamente em alguns instantes."
+        title="Não foi possível carregar os artigos."
+      />
+    );
+  }
 
   return <ArticlesPageContent data={data} />;
 }
