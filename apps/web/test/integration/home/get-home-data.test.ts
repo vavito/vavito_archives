@@ -68,7 +68,7 @@ describe('getHomeData', () => {
     const client = { GET: get } as unknown as ApiClient;
 
     await expect(getHomeData({ client })).rejects.toThrow(
-      'A API não retornou as tags esperadas para a Home.',
+      'Não foi possível carregar os tópicos da página inicial.',
     );
   });
 });

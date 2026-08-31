@@ -78,7 +78,7 @@ describe('getArticlesData', () => {
     const client = { GET: get } as unknown as ApiClient;
 
     await expect(getArticlesData({ client, filters: { page: 1, tag: null } })).rejects.toThrow(
-      'A API não retornou a listagem de artigos esperada.',
+      'Não foi possível carregar a listagem de artigos.',
     );
   });
 });

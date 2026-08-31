@@ -95,7 +95,7 @@ describe('getArticlePageData', () => {
     const client = { GET: get } as unknown as ApiClient;
 
     await expect(getArticlePageData({ client, slug: post.slug })).rejects.toThrow(
-      'A API não retornou os artigos relacionados esperados.',
+      'Não foi possível carregar os artigos relacionados.',
     );
   });
 });
