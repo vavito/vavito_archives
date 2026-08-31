@@ -33,7 +33,7 @@ export async function getArticlePageData({
   const post = detailResponse.data;
 
   if (!post) {
-    throw new Error('A API não retornou o artigo esperado.');
+    throw new Error('Não foi possível carregar este artigo.');
   }
 
   const primaryTag = post.tags[0]?.slug;
@@ -49,7 +49,7 @@ export async function getArticlePageData({
   });
 
   if (!relatedResponse.data) {
-    throw new Error('A API não retornou os artigos relacionados esperados.');
+    throw new Error('Não foi possível carregar os artigos relacionados.');
   }
 
   return {

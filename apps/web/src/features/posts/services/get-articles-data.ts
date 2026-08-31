@@ -37,11 +37,11 @@ export async function getArticlesData({
   const posts = postsResponse.data as PaginatedPosts | undefined;
 
   if (!posts) {
-    throw new Error('A API não retornou a listagem de artigos esperada.');
+    throw new Error('Não foi possível carregar a listagem de artigos.');
   }
 
   if (!tagsResponse.data) {
-    throw new Error('A API não retornou as tags esperadas para a listagem de artigos.');
+    throw new Error('Não foi possível carregar os tópicos da listagem de artigos.');
   }
 
   return {
