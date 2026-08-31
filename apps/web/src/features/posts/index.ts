@@ -7,5 +7,6 @@ export { SearchOverlay } from './components/search-overlay';
 export { createArticleMetadata, createArticleStructuredData } from './services/create-article-seo';
 export { getArticlePageData } from './services/get-article-page-data';
 export { getArticlesData } from './services/get-articles-data';
+export { getPostSitemapData } from './services/get-post-sitemap-data';
 export { searchPublishedPosts } from './services/search-published-posts';
 export type { ArticlesData, ArticlesFilters, PostSummary, TagSummary } from './types/posts.types';
