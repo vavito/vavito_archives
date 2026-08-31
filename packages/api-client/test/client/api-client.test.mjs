@@ -103,6 +103,32 @@ test('normaliza o contrato de erro retornado pela API', async () => {
   });
 });
 
+test('substitui detalhes de falhas internas por uma orientação amigável', async () => {
+  const client = createPublicApiClient({
+    baseUrl: apiBaseUrl,
+    fetch: () =>
+      Promise.resolve(
+        createJsonResponse(
+          {
+            code: 'INTERNAL_ERROR',
+            message: 'Erro interno do servidor.',
+          },
+          { status: 500 },
+        ),
+      ),
+  });
+
+  await assert.rejects(client.GET('/api/v1/health'), (error) => {
+    assert.ok(error instanceof ApiClientError);
+    assert.equal(
+      error.message,
+      'Algo deu errado do nosso lado. Tente novamente em alguns instantes.',
+    );
+    assert.doesNotMatch(error.message, /interno|API|HTTP/i);
+    return true;
+  });
+});
+
 test('normaliza falhas de rede sem expor a causa na mensagem', async () => {
   const client = createPublicApiClient({
     baseUrl: apiBaseUrl,
@@ -112,7 +138,35 @@ test('normaliza falhas de rede sem expor a causa na mensagem', async () => {
   await assert.rejects(client.GET('/api/v1/health'), (error) => {
     assert.ok(error instanceof ApiClientError);
     assert.equal(error.code, 'NETWORK_ERROR');
+    assert.equal(
+      error.message,
+      'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+    );
     assert.doesNotMatch(error.message, /socket details/);
+    return true;
+  });
+});
+
+test('interrompe requisições que ultrapassam o tempo limite configurado', async () => {
+  const client = createPublicApiClient({
+    baseUrl: apiBaseUrl,
+    fetch: (request) =>
+      new Promise((_, reject) => {
+        const signal = request.signal;
+
+        signal.addEventListener(
+          'abort',
+          () => reject(signal.reason ?? new Error('request aborted')),
+          { once: true },
+        );
+      }),
+    requestTimeoutMs: 10,
+  });
+
+  await assert.rejects(client.GET('/api/v1/health'), (error) => {
+    assert.ok(error instanceof ApiClientError);
+    assert.equal(error.code, 'REQUEST_TIMEOUT');
+    assert.equal(error.message, 'O servidor demorou mais que o esperado. Tente novamente.');
     return true;
   });
 });
