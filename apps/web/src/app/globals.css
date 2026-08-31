@@ -3,6 +3,22 @@
 
 @source '../../../../packages/ui/src';
 
+@keyframes retry-spin-counterclockwise {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@layer utilities {
+  .retry-icon-spinning {
+    -webkit-animation: retry-spin-counterclockwise 700ms linear infinite;
+    animation: retry-spin-counterclockwise 700ms linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform;
+  }
+}
+
 @layer components {
   .article-prose {
     color: var(--color-neutral-200);

@@ -1,35 +1,13 @@
 'use client';
 
-import { Button } from '@vavito/ui';
-import { RotateCcw } from 'lucide-react';
+import { PageError, type RouteErrorProps } from '@web/components/feedback/page-error';
 
-interface HomeErrorProps {
-  error: Error & { digest?: string };
-  retry: () => void;
-}
-
-export default function HomeError({ error, retry }: Readonly<HomeErrorProps>) {
+export default function HomeError({ retry }: Readonly<RouteErrorProps>) {
   return (
-    <div className="mx-auto grid min-h-[55vh] w-full max-w-3xl place-items-center px-4 py-16 sm:px-6">
-      <section aria-labelledby="home-error-title" className="grid max-w-md gap-4 text-center">
-        <p className="text-accent font-mono text-xs tracking-eyebrow uppercase">Falha temporária</p>
-        <h1 className="text-neutral-100 text-2xl font-semibold" id="home-error-title">
-          Não foi possível carregar os artigos.
-        </h1>
-        <p className="text-neutral-400 text-sm leading-relaxed">
-          A página continua disponível, mas a API não respondeu como esperado. Tente novamente em
-          instantes.
-        </p>
-        <div>
-          <Button onClick={retry}>
-            <RotateCcw aria-hidden="true" />
-            Tentar novamente
-          </Button>
-        </div>
-        {error.digest ? (
-          <p className="text-neutral-600 font-mono text-[10px]">Referência: {error.digest}</p>
-        ) : null}
-      </section>
-    </div>
+    <PageError
+      description="Não conseguimos buscar os conteúdos agora. Tente novamente em alguns instantes."
+      retry={retry}
+      title="Não foi possível carregar os artigos."
+    />
   );
 }
