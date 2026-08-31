@@ -1,14 +1,15 @@
-import type { Metadata } from 'next';
-
 import { PageError } from '@web/components/feedback/page-error';
 import { getHomeData, HomePageContent } from '@web/features/home';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
+import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
-export const metadata: Metadata = {
+export const metadata = createPublicPageMetadata({
+  absoluteTitle: true,
   description:
     'Artigos sobre desenvolvimento de software, arquitetura, produto e os aprendizados por trás de cada projeto.',
+  pathname: '/',
   title: 'Vavito Archives — ideias de quem constrói software',
-};
+});
 
 interface HomePageProps {
   searchParams: Promise<{ tag?: string | string[] }>;

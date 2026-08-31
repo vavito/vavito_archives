@@ -3,12 +3,10 @@ import type { Metadata } from 'next';
 import { PageError } from '@web/components/feedback/page-error';
 import { ArticlesPageContent, getArticlesData } from '@web/features/posts';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
+import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  description:
-    'Explore todos os artigos do Vavito Archives sobre desenvolvimento, arquitetura e produto.',
-  title: 'Artigos — Vavito Archives',
-};
+const articlesDescription =
+  'Explore todos os artigos do Vavito Archives sobre desenvolvimento, arquitetura e produto.';
 
 interface ArticlesPageProps {
   searchParams: Promise<{
@@ -28,6 +26,31 @@ function parsePage(value: string | undefined): number {
 
   const page = Number(value);
   return Number.isSafeInteger(page) && page > 0 ? page : 1;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: Readonly<ArticlesPageProps>): Promise<Metadata> {
+  const parameters = await searchParams;
+  const page = parsePage(firstParameter(parameters.page));
+  const tag = firstParameter(parameters.tag)?.trim().toLowerCase();
+  const canonicalParameters = new URLSearchParams();
+
+  if (tag) {
+    canonicalParameters.set('tag', tag);
+  }
+
+  if (page > 1) {
+    canonicalParameters.set('page', String(page));
+  }
+
+  const query = canonicalParameters.toString();
+
+  return createPublicPageMetadata({
+    description: articlesDescription,
+    pathname: query ? `/artigos?${query}` : '/artigos',
+    title: 'Artigos',
+  });
 }
 
 export default async function ArticlesPage({ searchParams }: Readonly<ArticlesPageProps>) {
