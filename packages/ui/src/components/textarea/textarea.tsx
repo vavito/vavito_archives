@@ -1,16 +1,16 @@
 'use client';
 
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useId, type ReactNode, type TextareaHTMLAttributes } from 'react';
 
 import { cn } from '../../lib/cn';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   description?: ReactNode;
   error?: ReactNode;
   label?: ReactNode;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
     { 'aria-describedby': ariaDescribedBy, className, description, error, id, label, ...props },
     ref,
@@ -31,12 +31,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         ) : null}
-        <input
+        <textarea
           ref={ref}
           aria-describedby={describedBy || undefined}
           aria-invalid={error ? true : undefined}
           className={cn(
-            'bg-surface-card text-neutral-100 placeholder:text-neutral-600 min-h-11 w-full rounded-xl border border-border px-4 py-3 text-base transition-colors focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none sm:text-sm',
+            'bg-surface-card text-neutral-100 placeholder:text-neutral-600 min-h-36 w-full resize-y rounded-xl border border-border px-4 py-3 text-base leading-relaxed transition-colors focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none sm:text-sm',
             error &&
               'border-destructive focus-visible:border-destructive focus-visible:ring-destructive',
             className,
@@ -59,4 +59,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
