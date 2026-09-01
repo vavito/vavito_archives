@@ -135,7 +135,7 @@ Para validar a configuração antes da implementação completa do fluxo de aute
 5. confirmar que o usuário passa a constar como verificado;
 6. entrar com email e senha e confirmar a criação da sessão.
 
-A configuração foi validada em desenvolvimento com os fluxos de confirmação de cadastro e recuperação de senha. Nos dois casos, o Resend entregou o email autenticado pelo domínio e o Supabase redirecionou o navegador para uma URL local autorizada. As páginas que concluem esses fluxos no frontend serão implementadas em tasks posteriores.
+A configuração foi validada em desenvolvimento com os fluxos de confirmação de cadastro e recuperação de senha. Nos dois casos, o Resend entregou o email autenticado pelo domínio e o Supabase redirecionou o navegador para uma URL local autorizada.
 
 ## Dados sensíveis
 
@@ -166,3 +166,9 @@ Os callbacks públicos são:
 - `GET /auth/confirm`, que valida o `token_hash` de confirmação, convite, magic link ou recuperação.
 
 O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gravam ou renovam cookies de autenticação usam cache privado para impedir que uma sessão seja reutilizada por outro visitante.
+
+## Cadastro e entrada no frontend
+
+A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão.
+
+O feedback de cadastro não revela se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
