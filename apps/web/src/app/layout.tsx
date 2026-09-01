@@ -72,8 +72,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       className={`${inter.variable} ${jetBrainsMono.variable}`}
-      lang={SITE_LANGUAGE}
+      data-scroll-behavior="smooth"
       data-theme="dark"
+      lang={SITE_LANGUAGE}
     >
       <body className="bg-background text-foreground antialiased">
         <QueryProvider>{children}</QueryProvider>
