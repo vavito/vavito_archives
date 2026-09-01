@@ -1,6 +1,7 @@
 import { buttonVariants, cn } from '@vavito/ui';
-import { Search } from 'lucide-react';
 import Link from 'next/link';
+
+import { SearchOverlay } from '@web/features/posts';
 
 import { SiteNavigation } from '../navigation/site-navigation';
 
@@ -24,17 +25,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2 md:gap-6">
           <SiteNavigation />
-          <button
-            aria-label="Buscar artigos"
-            className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm transition-colors md:min-w-44 md:justify-between"
-            type="button"
-          >
-            <span className="flex items-center gap-2">
-              <Search aria-hidden="true" className="size-4" />
-              <span className="hidden md:inline">Buscar</span>
-            </span>
-            <kbd className="text-neutral-600 hidden font-mono text-[10px] md:inline">⌘ K</kbd>
-          </button>
+          <SearchOverlay />
           <Link
             className={cn(buttonVariants({ size: 'small' }), 'hidden sm:inline-flex')}
             href="/auth"

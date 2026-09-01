@@ -1,0 +1,17 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+import { DesignSystemDemo } from '@web/components/design-system-demo';
+
+export const metadata: Metadata = {
+  robots: { follow: false, index: false },
+  title: 'Design system',
+};
+
+export default function DesignSystemPage() {
+  if (process.env.NODE_ENV === 'production') {
+    notFound();
+  }
+
+  return <DesignSystemDemo />;
+}

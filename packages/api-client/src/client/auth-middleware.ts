@@ -1,6 +1,6 @@
 import type { Middleware } from 'openapi-fetch';
 
-import { ApiClientError } from '../errors/api-client.error.js';
+import { ApiClientError } from '../errors/api-client.error.ts';
 
 export type AccessTokenProvider = () =>
   Promise<string | null | undefined> | string | null | undefined;

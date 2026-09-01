@@ -179,6 +179,28 @@ describe('Contrato OpenAPI completo (e2e)', () => {
     }
   });
 
+  it('expõe tipos primitivos consumíveis pelo cliente da Home', () => {
+    const postsList = document.paths['/api/v1/posts']?.get;
+    const page = postsList?.parameters?.find(
+      (parameter) => !isReference(parameter) && parameter.name === 'page',
+    );
+    const limit = postsList?.parameters?.find(
+      (parameter) => !isReference(parameter) && parameter.name === 'limit',
+    );
+    const postSummary = document.components?.schemas?.['PostSummaryDto'];
+
+    expect(page && !isReference(page) ? page.schema : undefined).toMatchObject({ type: 'number' });
+    expect(limit && !isReference(limit) ? limit.schema : undefined).toMatchObject({
+      type: 'number',
+    });
+    expect(
+      postSummary && !isReference(postSummary) ? postSummary.properties?.['coverUrl'] : null,
+    ).toMatchObject({ nullable: true, type: 'string' });
+    expect(
+      postSummary && !isReference(postSummary) ? postSummary.properties?.['coverAlt'] : null,
+    ).toMatchObject({ nullable: true, type: 'string' });
+  });
+
   it('mantém o artefato exportado alinhado às operações servidas', async () => {
     const exportedPath = resolve(process.cwd(), '../../packages/api-client/openapi/openapi.json');
     const parsedDocument: unknown = JSON.parse(await readFile(exportedPath, 'utf8'));

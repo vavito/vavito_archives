@@ -35,10 +35,14 @@ export class PostDetailResponseDto extends PostSummaryDto {
   @ApiProperty({ example: 1, minimum: 1 })
   contentSchemaVersion!: number;
 
-  @ApiProperty({ example: 'Arquitetura NestJS', nullable: true })
+  @ApiProperty({ example: 'Arquitetura NestJS', nullable: true, type: String })
   seoTitle!: string | null;
 
-  @ApiProperty({ example: 'Aprenda a organizar uma aplicação NestJS.', nullable: true })
+  @ApiProperty({
+    example: 'Aprenda a organizar uma aplicação NestJS.',
+    nullable: true,
+    type: String,
+  })
   seoDescription!: string | null;
 
   @ApiProperty({ type: () => PostReactionCountsDto })

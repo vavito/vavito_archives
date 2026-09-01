@@ -30,6 +30,16 @@ function readResponsePath(response: Response): string | null {
   }
 }
 
+function readResponseMessage(response: Response, contract: Record<string, unknown>): string {
+  if (response.status >= 500) {
+    return 'Algo deu errado do nosso lado. Tente novamente em alguns instantes.';
+  }
+
+  return (
+    readString(contract, 'message') ?? 'Não foi possível concluir a solicitação. Tente novamente.'
+  );
+}
+
 export class ApiClientError extends Error {
   readonly code: string;
   readonly details: unknown;
@@ -55,8 +65,7 @@ export class ApiClientError extends Error {
     return new ApiClientError({
       code: readString(contract, 'code') ?? `HTTP_${response.status}`,
       details: contract.details ?? null,
-      message:
-        readString(contract, 'message') ?? `A API retornou uma resposta HTTP ${response.status}.`,
+      message: readResponseMessage(response, contract),
       path: readString(contract, 'path') ?? readResponsePath(response),
       requestId: readString(contract, 'requestId') ?? response.headers.get('x-request-id') ?? null,
       statusCode: response.status,
@@ -68,7 +77,7 @@ export class ApiClientError extends Error {
     return new ApiClientError({
       code: 'AUTH_TOKEN_MISSING',
       details: null,
-      message: 'A requisição autenticada exige um access token.',
+      message: 'Entre na sua conta para continuar.',
       path: null,
       requestId: null,
       statusCode: 0,
@@ -81,7 +90,22 @@ export class ApiClientError extends Error {
       {
         code: 'NETWORK_ERROR',
         details: null,
-        message: 'Não foi possível estabelecer comunicação com a API.',
+        message: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        path: null,
+        requestId: null,
+        statusCode: 0,
+        timestamp: null,
+      },
+      { cause },
+    );
+  }
+
+  static timeout(cause: unknown): ApiClientError {
+    return new ApiClientError(
+      {
+        code: 'REQUEST_TIMEOUT',
+        details: null,
+        message: 'O servidor demorou mais que o esperado. Tente novamente.',
         path: null,
         requestId: null,
         statusCode: 0,

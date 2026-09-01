@@ -1,7 +1,6 @@
 'use client';
 
 import { cn } from '@vavito/ui';
-import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -27,7 +26,7 @@ export function SiteNavigation() {
               'text-sm transition-colors hover:text-neutral-100',
               isActive ? 'text-accent' : 'text-neutral-400',
             )}
-            href={href as Route}
+            href={href}
           >
             {label}
           </Link>

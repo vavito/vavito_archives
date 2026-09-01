@@ -12,7 +12,7 @@ interface SiteShellProps {
 
 export function SiteShell({ children, contentClassName }: Readonly<SiteShellProps>) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pb-[calc(4rem+max(0.5rem,env(safe-area-inset-bottom)))] md:pb-0">
       <a
         className="bg-accent text-background fixed top-3 left-3 z-[60] -translate-y-20 rounded-md px-4 py-2 text-sm font-medium transition-transform focus:translate-y-0"
         href="#main-content"
@@ -20,10 +20,7 @@ export function SiteShell({ children, contentClassName }: Readonly<SiteShellProp
         Pular para o conteúdo
       </a>
       <SiteHeader />
-      <main
-        className={cn('flex flex-1 flex-col pb-20 md:pb-0', contentClassName)}
-        id="main-content"
-      >
+      <main className={cn('flex flex-1 flex-col', contentClassName)} id="main-content">
         {children}
       </main>
       <SiteFooter />

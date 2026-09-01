@@ -1,6 +1,6 @@
 import type { Middleware } from 'openapi-fetch';
 
-import { ApiClientError } from '../errors/api-client.error.js';
+import { ApiClientError } from '../errors/api-client.error.ts';
 
 async function readErrorBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get('content-type');
