@@ -18,7 +18,10 @@ const EMAIL_OTP_TYPES = new Set<EmailOtpType>([
 export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get('token_hash');
   const type = request.nextUrl.searchParams.get('type');
-  const nextPath = getSafeRedirectPath(request.nextUrl.searchParams.get('next'), '/auth');
+  const nextPath = getSafeRedirectPath(
+    request.nextUrl.searchParams.get('next'),
+    '/auth?auth_status=confirmed',
+  );
 
   if (tokenHash && isEmailOtpType(type)) {
     const supabase = await createServerSupabaseClient();
