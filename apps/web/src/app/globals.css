@@ -97,6 +97,16 @@
   }
 }
 
+@keyframes profile-avatar-loading {
+  from {
+    transform: translateY(-130%);
+  }
+
+  to {
+    transform: translateY(330%);
+  }
+}
+
 @keyframes dialog-overlay-enter {
   from {
     opacity: 0;
@@ -300,6 +310,23 @@
     animation: action-feedback-exit 240ms ease-in both;
   }
 
+  .profile-avatar-loading {
+    background: var(--color-surface-raised);
+  }
+
+  .profile-avatar-loading::after {
+    animation: profile-avatar-loading 1.25s ease-in-out infinite;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--color-accent) 20%, transparent),
+      transparent
+    );
+    content: '';
+    inset: 0;
+    position: absolute;
+  }
+
   .motion-link {
     transition:
       color 220ms ease,
@@ -463,6 +490,7 @@
   .page-state-enter,
   .action-feedback-enter,
   .action-feedback-exit,
+  .profile-avatar-loading::after,
   .dialog-overlay-motion,
   .dialog-content-motion,
   .auth-panel-enter,
