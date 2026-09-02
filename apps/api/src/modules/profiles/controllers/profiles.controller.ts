@@ -108,6 +108,6 @@ export class ProfilesController {
     @Body() dto: DeleteAccountDto,
   ): Promise<void> {
     void dto;
-    return this.profilesService.deleteAccount(user.id);
+    return this.profilesService.deleteAccount(user.id, user.email);
   }
 }
