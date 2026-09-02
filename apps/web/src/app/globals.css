@@ -85,6 +85,18 @@
   }
 }
 
+@keyframes action-feedback-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.985);
+  }
+}
+
 @keyframes dialog-overlay-enter {
   from {
     opacity: 0;
@@ -280,6 +292,14 @@
     animation: feedback-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
+  .action-feedback-enter {
+    animation: feedback-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .action-feedback-exit {
+    animation: action-feedback-exit 240ms ease-in both;
+  }
+
   .motion-link {
     transition:
       color 220ms ease,
@@ -441,6 +461,8 @@
   .mobile-nav-enter,
   .feedback-enter,
   .page-state-enter,
+  .action-feedback-enter,
+  .action-feedback-exit,
   .dialog-overlay-motion,
   .dialog-content-motion,
   .auth-panel-enter,
