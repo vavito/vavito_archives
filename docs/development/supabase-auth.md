@@ -165,13 +165,15 @@ Os callbacks públicos são:
 - `GET /auth/callback`, que troca o código PKCE pela sessão;
 - `GET /auth/confirm`, que valida o `token_hash` de confirmação, convite, magic link ou recuperação.
 
+Depois que a confirmação do cadastro estabelece uma sessão válida, `/auth/confirmed` apresenta uma etapa dedicada informando que o email foi confirmado e que a conta está pronta. O leitor decide quando seguir para o próprio perfil pelo botão `Acessar minha conta`; a confirmação não o leva silenciosamente direto para essa página.
+
 O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gravam ou renovam cookies de autenticação usam cache privado para impedir que uma sessão seja reutilizada por outro visitante.
 
 ## Cadastro e entrada no frontend
 
-A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão.
+A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão. Em seguida, o navegador abre `/auth/confirmed` para comunicar claramente que o email foi confirmado e permitir que o leitor acesse a conta.
 
-O feedback de cadastro não revela se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
+Depois de um cadastro que exige confirmação, o formulário é substituído por um estado dedicado que identifica o endereço informado e orienta a abertura do email. O reenvio do link é liberado após 60 segundos e mantém uma resposta segura, sem revelar se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
 
 ## Recuperação e alteração de senha no frontend
 
