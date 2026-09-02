@@ -3,19 +3,467 @@
 
 @source '../../../../packages/ui/src';
 
-@keyframes retry-spin-counterclockwise {
+@keyframes spin-counterclockwise {
   to {
     transform: rotate(-360deg);
   }
 }
 
+@keyframes page-route-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.2rem);
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-element-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.125rem);
+    transform: translateY(0.625rem) scale(0.995);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shell-header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shell-footer-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobile-nav-enter {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes feedback-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.375rem) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialog-overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-overlay-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-content-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.2rem);
+    scale: 0.96;
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    scale: 1;
+  }
+}
+
+@keyframes dialog-content-exit {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+@keyframes auth-panel-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.25rem);
+    transform: translateY(1rem) scale(0.975);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes auth-element-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.1875rem);
+    transform: translateY(0.625rem) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes auth-mode-enter-forward {
+  from {
+    opacity: 0;
+    filter: blur(0.1875rem);
+    transform: translateX(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes auth-mode-enter-backward {
+  from {
+    opacity: 0;
+    filter: blur(0.1875rem);
+    transform: translateX(-0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes auth-icon-swap {
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes auth-ambient-drift {
+  from {
+    opacity: 0.35;
+    transform: translate3d(-56%, -54%, 0) scale(0.95);
+  }
+
+  to {
+    opacity: 0.7;
+    transform: translate3d(-42%, -44%, 0) scale(1.08);
+  }
+}
+
+@keyframes auth-feedback-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
-  .retry-icon-spinning {
-    -webkit-animation: retry-spin-counterclockwise 700ms linear infinite;
-    animation: retry-spin-counterclockwise 700ms linear infinite;
+  .page-route-enter {
+    animation: page-route-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .page-content-sequence > *,
+  .page-content-sequence :where(header, section, article, figure, form, nav, aside, dl, ul) > * {
+    animation: page-element-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .page-content-sequence
+    :where(header, section, article, figure, form, nav, aside, dl, ul)
+    > :nth-child(1) {
+    animation-delay: 70ms;
+  }
+
+  .page-content-sequence
+    :where(header, section, article, figure, form, nav, aside, dl, ul)
+    > :nth-child(2) {
+    animation-delay: 110ms;
+  }
+
+  .page-content-sequence
+    :where(header, section, article, figure, form, nav, aside, dl, ul)
+    > :nth-child(3) {
+    animation-delay: 150ms;
+  }
+
+  .page-content-sequence
+    :where(header, section, article, figure, form, nav, aside, dl, ul)
+    > :nth-child(4) {
+    animation-delay: 190ms;
+  }
+
+  .page-content-sequence
+    :where(header, section, article, figure, form, nav, aside, dl, ul)
+    > :nth-child(n + 5) {
+    animation-delay: 230ms;
+  }
+
+  .site-header-enter {
+    animation: shell-header-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .site-footer-enter {
+    animation: shell-footer-enter 480ms 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-nav-enter {
+    animation: mobile-nav-enter 420ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .feedback-enter,
+  .page-state-enter {
+    animation: feedback-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-link {
+    transition:
+      color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .motion-control {
+    transition:
+      border-color 260ms ease,
+      background-color 260ms ease,
+      color 260ms ease,
+      box-shadow 260ms ease,
+      transform 260ms ease;
+  }
+
+  .motion-card {
+    transition:
+      border-color 300ms ease,
+      background-color 300ms ease,
+      box-shadow 300ms ease,
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .motion-media {
+    transition:
+      filter 500ms ease,
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dialog-overlay-motion[data-state='open'] {
+    animation: dialog-overlay-enter 240ms ease-out both;
+  }
+
+  .dialog-overlay-motion[data-state='closed'] {
+    animation: dialog-overlay-exit 180ms ease-in both;
+  }
+
+  .dialog-content-motion[data-state='open'] {
+    animation: dialog-content-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .dialog-content-motion[data-state='closed'] {
+    animation: dialog-content-exit 200ms ease-in both;
+  }
+
+  @media (hover: hover) {
+    .motion-link:hover {
+      transform: translateY(-0.125rem);
+    }
+
+    .motion-control:hover {
+      box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.12);
+      transform: translateY(-0.125rem);
+    }
+
+    .motion-card:hover {
+      border-color: var(--color-border-medium);
+      box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.14);
+      transform: translateY(-0.1875rem);
+    }
+
+    .motion-media:hover {
+      filter: saturate(1.06);
+      transform: scale(1.008);
+    }
+  }
+
+  .counterclockwise-spinner {
+    -webkit-animation: spin-counterclockwise 700ms linear infinite;
+    animation: spin-counterclockwise 700ms linear infinite;
     transform-box: fill-box;
     transform-origin: center;
     will-change: transform;
+  }
+
+  .auth-panel-enter {
+    animation: auth-panel-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .auth-panel-surface {
+    box-shadow: 0 1.25rem 4rem rgb(0 0 0 / 0.16);
+    transition:
+      border-color 300ms ease,
+      box-shadow 300ms ease;
+  }
+
+  .auth-panel-surface:hover {
+    border-color: var(--color-border-medium);
+    box-shadow: 0 1.5rem 4.5rem rgb(0 0 0 / 0.22);
+  }
+
+  .auth-page-stage {
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .auth-page-stage::before {
+    animation: auth-ambient-drift 9s ease-in-out infinite alternate;
+    background: radial-gradient(circle, rgb(125 211 252 / 0.09), transparent 65%);
+    content: '';
+    height: min(36rem, 80vw);
+    left: 50%;
+    pointer-events: none;
+    position: absolute;
+    top: 42%;
+    width: min(36rem, 80vw);
+    z-index: -1;
+  }
+
+  .auth-sequence > * {
+    animation: auth-element-enter 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .auth-sequence > :nth-child(1) {
+    animation-delay: 80ms;
+  }
+
+  .auth-sequence > :nth-child(2) {
+    animation-delay: 130ms;
+  }
+
+  .auth-sequence > :nth-child(3) {
+    animation-delay: 180ms;
+  }
+
+  .auth-sequence > :nth-child(4) {
+    animation-delay: 230ms;
+  }
+
+  .auth-sequence > :nth-child(5) {
+    animation-delay: 280ms;
+  }
+
+  .auth-mode-enter-forward {
+    animation: auth-mode-enter-forward 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .auth-mode-enter-backward {
+    animation: auth-mode-enter-backward 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .auth-icon-swap {
+    animation: auth-icon-swap 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .auth-feedback-enter {
+    animation: auth-feedback-enter 220ms ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .counterclockwise-spinner,
+  .page-route-enter,
+  .page-content-sequence > *,
+  .page-content-sequence :where(header, section, article, figure, form, nav, aside, dl, ul) > *,
+  .site-header-enter,
+  .site-footer-enter,
+  .mobile-nav-enter,
+  .feedback-enter,
+  .page-state-enter,
+  .dialog-overlay-motion,
+  .dialog-content-motion,
+  .auth-panel-enter,
+  .auth-sequence > *,
+  .auth-mode-enter-forward,
+  .auth-mode-enter-backward,
+  .auth-icon-swap,
+  .auth-page-stage::before,
+  .auth-feedback-enter {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+    animation-iteration-count: 1;
+  }
+
+  .auth-panel-surface,
+  .auth-mode-indicator,
+  .auth-mode-fields,
+  .motion-link,
+  .motion-control,
+  .motion-card,
+  .motion-media {
+    transition-duration: 0.01ms;
+    transform: none;
   }
 }
 
