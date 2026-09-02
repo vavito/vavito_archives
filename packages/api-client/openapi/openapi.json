@@ -3664,6 +3664,191 @@
         "tags": ["Admin Posts"]
       }
     },
+    "/api/v1/admin/media": {
+      "post": {
+        "operationId": "adminMedia_upload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "altText": {
+                    "example": "Diagrama da arquitetura da aplicação",
+                    "type": "string"
+                  },
+                  "file": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": ["file", "altText"],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Arquivo ou texto alternativo inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticação necessária.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso exclusivo de administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Arquivo maior que 10 MB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Conteúdo, MIME ou extensão não suportado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/admin/media",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "supabase-jwt": []
+          }
+        ],
+        "summary": "Envia uma mídia para uso editorial",
+        "tags": ["Admin Media"]
+      }
+    },
     "/api/v1/contact": {
       "post": {
         "operationId": "contact_create",
@@ -4676,191 +4861,6 @@
         },
         "summary": "Verifica se a API consegue acessar o banco de dados",
         "tags": ["Health"]
-      }
-    },
-    "/api/v1/admin/media": {
-      "post": {
-        "operationId": "adminMedia_upload",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "properties": {
-                  "altText": {
-                    "example": "Diagrama da arquitetura da aplicação",
-                    "type": "string"
-                  },
-                  "file": {
-                    "format": "binary",
-                    "type": "string"
-                  }
-                },
-                "required": ["file", "altText"],
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MediaResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Arquivo ou texto alternativo inválido.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Autenticação necessária.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Acesso exclusivo de administrador.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Arquivo maior que 10 MB.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "Conteúdo, MIME ou extensão não suportado.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "code": "INTERNAL_ERROR",
-                  "details": null,
-                  "message": "Erro interno do servidor.",
-                  "path": "/api/v1/admin/media",
-                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
-                  "statusCode": 500,
-                  "timestamp": "2026-08-27T20:15:00.000Z"
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            },
-            "description": "Falha interna inesperada.",
-            "headers": {
-              "X-Request-Id": {
-                "description": "Identificador usado para correlacionar a requisição nos logs.",
-                "schema": {
-                  "example": "019c2d62-6e90-7000-8000-000000000000",
-                  "format": "uuid",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "supabase-jwt": []
-          }
-        ],
-        "summary": "Envia uma mídia para uso editorial",
-        "tags": ["Admin Media"]
       }
     },
     "/api/v1/newsletter/subscriptions": {
@@ -8043,6 +8043,68 @@
         },
         "required": ["confirm"]
       },
+      "MediaAssetStatus": {
+        "type": "string",
+        "enum": ["FAILED", "ORPHANED", "READY", "UPLOADING"]
+      },
+      "MediaResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "019c2d62-6e90-7000-8000-000000000020",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://project.supabase.co/storage/v1/object/public/media/2026/08/id.webp"
+          },
+          "path": {
+            "type": "string",
+            "example": "2026/08/0198f75f-89df-4ae7-a1ec-2e7834b3021a.webp"
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": ["image/jpeg", "image/png", "image/webp"],
+            "example": "image/webp"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "example": 153642,
+            "minimum": 1
+          },
+          "width": {
+            "type": "object",
+            "example": 1200,
+            "minimum": 1,
+            "nullable": true
+          },
+          "height": {
+            "type": "object",
+            "example": 630,
+            "minimum": 1,
+            "nullable": true
+          },
+          "altText": {
+            "type": "string",
+            "example": "Diagrama da arquitetura da aplicação"
+          },
+          "status": {
+            "example": "READY",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MediaAssetStatus"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-08-22T15:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "url", "path", "mimeType", "sizeBytes", "altText", "status", "createdAt"]
+      },
       "CreateContactMessageDto": {
         "type": "object",
         "properties": {
@@ -8219,68 +8281,6 @@
           }
         },
         "required": ["status", "timestamp", "checks"]
-      },
-      "MediaAssetStatus": {
-        "type": "string",
-        "enum": ["FAILED", "ORPHANED", "READY", "UPLOADING"]
-      },
-      "MediaResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "019c2d62-6e90-7000-8000-000000000020",
-            "format": "uuid"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://project.supabase.co/storage/v1/object/public/media/2026/08/id.webp"
-          },
-          "path": {
-            "type": "string",
-            "example": "2026/08/0198f75f-89df-4ae7-a1ec-2e7834b3021a.webp"
-          },
-          "mimeType": {
-            "type": "string",
-            "enum": ["image/jpeg", "image/png", "image/webp"],
-            "example": "image/webp"
-          },
-          "sizeBytes": {
-            "type": "number",
-            "example": 153642,
-            "minimum": 1
-          },
-          "width": {
-            "type": "object",
-            "example": 1200,
-            "minimum": 1,
-            "nullable": true
-          },
-          "height": {
-            "type": "object",
-            "example": 630,
-            "minimum": 1,
-            "nullable": true
-          },
-          "altText": {
-            "type": "string",
-            "example": "Diagrama da arquitetura da aplicação"
-          },
-          "status": {
-            "example": "READY",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MediaAssetStatus"
-              }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2026-08-22T15:00:00.000Z",
-            "format": "date-time"
-          }
-        },
-        "required": ["id", "url", "path", "mimeType", "sizeBytes", "altText", "status", "createdAt"]
       },
       "SubscriberConsentSource": {
         "type": "string",
@@ -8595,7 +8595,7 @@
             "example": "João Victor"
           },
           "avatarUrl": {
-            "type": "object",
+            "type": "string",
             "example": "https://project.supabase.co/storage/v1/object/public/avatars/id/avatar.webp",
             "nullable": true
           },
