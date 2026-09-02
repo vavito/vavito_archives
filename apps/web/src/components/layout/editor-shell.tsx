@@ -3,6 +3,8 @@ import { ArrowLeft, Eye, Save } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { RouteMotion } from '../feedback/route-motion';
+
 export function EditorShell({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -12,7 +14,7 @@ export function EditorShell({ children }: Readonly<{ children: ReactNode }>) {
       >
         Pular para o editor
       </a>
-      <header className="bg-background/90 sticky top-0 z-40 border-b border-divider backdrop-blur">
+      <header className="site-header-enter bg-background/90 sticky top-0 z-40 border-b border-divider backdrop-blur">
         <div className="mx-auto flex min-h-16 w-full items-center gap-3 px-4 sm:px-6">
           <Link
             aria-label="Voltar ao site"
@@ -37,11 +39,8 @@ export function EditorShell({ children }: Readonly<{ children: ReactNode }>) {
           </div>
         </div>
       </header>
-      <main
-        className="mx-auto flex w-full max-w-editor flex-1 flex-col px-4 py-10 sm:px-6"
-        id="main-content"
-      >
-        {children}
+      <main className="flex flex-1 flex-col" id="main-content">
+        <RouteMotion className="mx-auto max-w-editor px-4 py-10 sm:px-6">{children}</RouteMotion>
       </main>
     </div>
   );
