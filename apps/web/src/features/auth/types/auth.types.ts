@@ -4,6 +4,10 @@ export type AuthField = 'displayName' | 'email' | 'password' | 'passwordConfirma
 
 export type AuthFieldErrors = Partial<Record<AuthField, string>>;
 
+export type PasswordRecoveryField = 'email' | 'password' | 'passwordConfirmation';
+
+export type PasswordRecoveryFieldErrors = Partial<Record<PasswordRecoveryField, string>>;
+
 export interface SignInCredentials {
   email: string;
   password: string;

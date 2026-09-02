@@ -20,7 +20,7 @@ export const AUTH_LIMITS = {
 export const PASSWORD_REQUIREMENTS =
   'Use 8 ou mais caracteres, incluindo letra maiúscula, minúscula, número e símbolo.';
 
-const PASSWORD_REQUIREMENTS_ERROR = 'A senha ainda não atende a todos os critérios.';
+export const PASSWORD_REQUIREMENTS_ERROR = 'A senha ainda não atende a todos os critérios.';
 
 export interface AuthValidationResult {
   errors: AuthFieldErrors;
@@ -32,7 +32,15 @@ function formValue(formData: FormData, field: string, trim = true): string {
   return typeof value === 'string' ? (trim ? value.trim() : value) : '';
 }
 
-function isStrongPassword(password: string): boolean {
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function isValidEmail(email: string): boolean {
+  return EMAIL_PATTERN.test(email) && email.length <= AUTH_LIMITS.email;
+}
+
+export function isStrongPassword(password: string): boolean {
   return (
     password.length >= AUTH_LIMITS.password.min &&
     password.length <= AUTH_LIMITS.password.max &&
@@ -46,13 +54,13 @@ function isStrongPassword(password: string): boolean {
 export function validateAuthCredentials(formData: FormData, mode: AuthMode): AuthValidationResult {
   const values = {
     displayName: formValue(formData, 'displayName'),
-    email: formValue(formData, 'email').toLowerCase(),
+    email: normalizeEmail(formValue(formData, 'email')),
     password: formValue(formData, 'password', false),
     passwordConfirmation: formValue(formData, 'passwordConfirmation', false),
   };
   const errors: AuthFieldErrors = {};
 
-  if (!EMAIL_PATTERN.test(values.email) || values.email.length > AUTH_LIMITS.email) {
+  if (!isValidEmail(values.email)) {
     errors.email = 'Informe um endereço de e-mail válido.';
   }
 
