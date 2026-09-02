@@ -25,6 +25,10 @@ const AUTH_MESSAGES: Record<string, { message: string; tone: 'error' | 'success'
     message: 'E-mail confirmado. Sua conta está pronta para usar.',
     tone: 'success',
   },
+  password_updated: {
+    message: 'Senha alterada. Entre novamente com sua nova senha.',
+    tone: 'success',
+  },
 };
 
 export default async function AuthPage({ searchParams }: Readonly<AuthPageProps>) {
