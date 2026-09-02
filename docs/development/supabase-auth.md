@@ -172,3 +172,19 @@ O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gra
 A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão.
 
 O feedback de cadastro não revela se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
+
+## Recuperação e alteração de senha no frontend
+
+A entrada oferece acesso a `/auth/forgot-password`, onde o leitor informa o email para solicitar a recuperação. A resposta exibida é a mesma quando a conta existe ou não, evitando confirmar publicamente quais endereços estão cadastrados.
+
+O email direciona primeiro para um callback autorizado. O callback valida o código PKCE ou o token de recuperação, estabelece uma sessão temporária em cookies privados e permite seguir apenas para o caminho interno `/auth/reset-password`. Links inválidos ou expirados produzem feedback amigável e não expõem detalhes do provedor.
+
+Na redefinição, a nova senha precisa atender à política da aplicação e ser confirmada antes do envio. A alteração é aceita somente quando há uma sessão válida; depois do sucesso, a sessão local é encerrada e o leitor deve entrar novamente com a nova senha.
+
+O fluxo manual esperado em ambiente real é:
+
+1. solicitar a recuperação usando um email cadastrado;
+2. abrir o link entregue pelo Resend;
+3. definir e confirmar uma nova senha;
+4. confirmar o retorno para a entrada com mensagem de sucesso;
+5. entrar com a nova senha e confirmar que a anterior não é mais aceita.
