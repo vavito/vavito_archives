@@ -116,7 +116,7 @@ export function AuthForm({
       }
 
       const confirmationUrl = new URL('/auth/callback', window.location.origin);
-      confirmationUrl.searchParams.set('next', '/auth?auth_status=confirmed');
+      confirmationUrl.searchParams.set('next', '/auth/confirmed');
       const response = await signUp(toSignUpCredentials(result), confirmationUrl.toString());
 
       if (response.status === 'authenticated') {
