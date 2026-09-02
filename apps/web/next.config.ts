@@ -7,6 +7,11 @@ const configuredDevOrigins =
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['192.168.*.*', ...configuredDevOrigins],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb',
+    },
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ['@vavito/ui'],

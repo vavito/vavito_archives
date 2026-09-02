@@ -1,4 +1,5 @@
 export const WEB_API_REQUEST_TIMEOUT_MS = 8_000;
+export const WEB_API_UPLOAD_REQUEST_TIMEOUT_MS = 30_000;
 
 export class PageDataTimeoutError extends Error {
   constructor() {
