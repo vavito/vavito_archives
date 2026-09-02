@@ -1,6 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
+import { redirect } from 'next/navigation';
 
 import { AuthForm } from '@web/features/auth';
+import { getAuthenticatedSession } from '@web/lib/auth/authenticated-session';
 import { getSafeRedirectPath } from '@web/lib/auth/redirect-path';
 
 export const metadata: Metadata = {
@@ -34,7 +36,13 @@ const AUTH_MESSAGES: Record<string, { message: string; tone: 'error' | 'success'
 export default async function AuthPage({ searchParams }: Readonly<AuthPageProps>) {
   const parameters = await searchParams;
   const mode = singleValue(parameters.mode) === 'cadastro' ? 'sign-up' : 'sign-in';
-  const nextPath = getSafeRedirectPath(singleValue(parameters.next));
+  const nextPath = getSafeRedirectPath(singleValue(parameters.next), '/perfil');
+  const session = await getAuthenticatedSession();
+
+  if (session) {
+    redirect(nextPath as Route);
+  }
+
   const feedback = getInitialFeedback(parameters);
 
   return (
