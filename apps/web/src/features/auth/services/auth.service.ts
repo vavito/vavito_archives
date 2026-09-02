@@ -41,6 +41,28 @@ export async function signUp(
   return { status: data.session ? 'authenticated' : 'confirmation-required' };
 }
 
+export async function resendSignUpConfirmation(
+  email: string,
+  emailRedirectTo: string,
+): Promise<void> {
+  const supabase = createBrowserSupabaseClient();
+  const { error } = await supabase.auth.resend({
+    email,
+    options: { emailRedirectTo },
+    type: 'signup',
+  });
+
+  if (!error || error.code === 'user_not_found') {
+    return;
+  }
+
+  if (isRateLimitError(error)) {
+    throw new SafeAuthError('Aguarde um pouco antes de solicitar outro link.');
+  }
+
+  throw new SafeAuthError('Não foi possível reenviar o link agora. Tente novamente em instantes.');
+}
+
 export async function requestPasswordReset(email: string, redirectTo: string): Promise<void> {
   const supabase = createBrowserSupabaseClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });

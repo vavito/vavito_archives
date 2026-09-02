@@ -19,6 +19,7 @@ import {
 import { SafeAuthError, signIn, signUp } from '../services/auth.service';
 import type { AuthField, AuthFieldErrors, AuthMode } from '../types/auth.types';
 import { PasswordField } from './password-field';
+import { SignUpConfirmation } from './sign-up-confirmation';
 
 interface AuthFeedback {
   message: string;
@@ -32,15 +33,15 @@ interface AuthFormProps {
 }
 
 type SubmissionState =
-  { status: 'idle' } | { message: string; status: 'error' | 'success' } | { status: 'submitting' };
+  | { status: 'idle' }
+  | { email: string; emailRedirectTo: string; status: 'confirmation-required' }
+  | { message: string; status: 'error' | 'success' }
+  | { status: 'submitting' };
 
 const AUTH_FIELDS: Record<AuthMode, readonly AuthField[]> = {
   'sign-in': ['email', 'password'],
   'sign-up': ['displayName', 'email', 'password', 'passwordConfirmation'],
 };
-
-const SIGN_UP_SUCCESS_MESSAGE =
-  'Confira seu e-mail para confirmar o cadastro. Se ele já estiver associado a uma conta, nenhuma nova conta será criada.';
 
 function focusFirstInvalidField(
   form: HTMLFormElement,
@@ -125,7 +126,11 @@ export function AuthForm({
       }
 
       form.reset();
-      setState({ message: SIGN_UP_SUCCESS_MESSAGE, status: 'success' });
+      setState({
+        email: result.values.email,
+        emailRedirectTo: confirmationUrl.toString(),
+        status: 'confirmation-required',
+      });
     } catch (error) {
       setState({
         message:
@@ -157,6 +162,16 @@ export function AuthForm({
     observer.observe(content);
     return () => observer.disconnect();
   }, [mode]);
+
+  if (state.status === 'confirmation-required') {
+    return (
+      <SignUpConfirmation
+        email={state.email}
+        emailRedirectTo={state.emailRedirectTo}
+        onReturnToSignIn={() => changeMode('sign-in')}
+      />
+    );
+  }
 
   return (
     <section
