@@ -69,23 +69,6 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
             </Link>
           </div>
         </div>
-
-        <dl className="grid grid-cols-2 gap-4 border-y border-divider py-5 sm:grid-cols-3">
-          <div className="grid gap-1">
-            <dt className="text-neutral-500 text-xs">Artigos publicados</dt>
-            <dd className="text-neutral-100 font-mono text-xl">{data.publishedPostsCount}</dd>
-          </div>
-          <div className="grid gap-1">
-            <dt className="text-neutral-500 text-xs">Tópicos ativos</dt>
-            <dd className="text-neutral-100 font-mono text-xl">{data.tags.length}</dd>
-          </div>
-          <div className="col-span-2 grid gap-1 sm:col-span-1">
-            <dt className="text-neutral-500 text-xs">Leituras do destaque</dt>
-            <dd className="text-neutral-100 font-mono text-xl">
-              {mostReadPost?.viewCount.toLocaleString('pt-BR') ?? '0'}
-            </dd>
-          </div>
-        </dl>
       </section>
 
       <section aria-labelledby="topics-title" className="grid gap-5">
@@ -156,6 +139,23 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
           <EmptyPosts selectedTag={data.selectedTag} />
         )}
       </section>
+
+      <dl className="grid grid-cols-2 gap-4 border-y border-divider py-5 sm:grid-cols-3">
+        <div className="grid gap-1">
+          <dt className="text-neutral-500 text-xs">Artigos publicados</dt>
+          <dd className="text-neutral-100 font-mono text-xl">{data.publishedPostsCount}</dd>
+        </div>
+        <div className="grid gap-1">
+          <dt className="text-neutral-500 text-xs">Tópicos ativos</dt>
+          <dd className="text-neutral-100 font-mono text-xl">{data.tags.length}</dd>
+        </div>
+        <div className="col-span-2 grid gap-1 sm:col-span-1">
+          <dt className="text-neutral-500 text-xs">Leituras do destaque</dt>
+          <dd className="text-neutral-100 font-mono text-xl">
+            {mostReadPost?.viewCount.toLocaleString('pt-BR') ?? '0'}
+          </dd>
+        </div>
+      </dl>
 
       <NewsletterSignup />
     </div>
