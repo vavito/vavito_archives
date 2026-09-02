@@ -65,4 +65,15 @@ describe('callbacks de autenticação', () => {
       'http://localhost:3000/auth?auth_error=confirmation_failed',
     );
   });
+
+  it('valida o token de recuperação e abre a criação da nova senha', async () => {
+    const response = await confirmAuthEmail(
+      new NextRequest(
+        'http://localhost:3000/auth/confirm?token_hash=hash&type=recovery&next=/auth/reset-password',
+      ),
+    );
+
+    expect(supabaseMocks.verifyOtp).toHaveBeenCalledWith({ token_hash: 'hash', type: 'recovery' });
+    expect(response.headers.get('location')).toBe('http://localhost:3000/auth/reset-password');
+  });
 });

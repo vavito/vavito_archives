@@ -1,10 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SafeAuthError, signIn, signUp } from '@web/features/auth/services/auth.service';
+import {
+  requestPasswordReset,
+  SafeAuthError,
+  signIn,
+  signUp,
+  updatePassword,
+} from '@web/features/auth/services/auth.service';
 
 const supabaseMocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
+  signOut: vi.fn(),
   signUp: vi.fn(),
+  updateUser: vi.fn(),
 }));
 
 vi.mock('client-only', () => ({}));
@@ -15,8 +24,12 @@ vi.mock('@web/lib/auth/supabase/client', () => ({
 
 describe('serviço de autenticação', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     supabaseMocks.signInWithPassword.mockResolvedValue({ error: null });
+    supabaseMocks.resetPasswordForEmail.mockResolvedValue({ error: null });
+    supabaseMocks.signOut.mockResolvedValue({ error: null });
     supabaseMocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
+    supabaseMocks.updateUser.mockResolvedValue({ error: null });
   });
 
   it('encaminha as credenciais para o login do Supabase', async () => {
@@ -96,5 +109,47 @@ describe('serviço de autenticação', () => {
     ).rejects.toEqual(
       new SafeAuthError('Não foi possível criar sua conta agora. Tente novamente em instantes.'),
     );
+  });
+
+  it('solicita a recuperação com a URL de retorno informada', async () => {
+    await requestPasswordReset(
+      'leitor@example.com',
+      'https://vavitoarchives.com.br/auth/callback?next=/auth/reset-password',
+    );
+
+    expect(supabaseMocks.resetPasswordForEmail).toHaveBeenCalledWith('leitor@example.com', {
+      redirectTo: 'https://vavitoarchives.com.br/auth/callback?next=/auth/reset-password',
+    });
+  });
+
+  it('não revela quando o e-mail da recuperação não possui conta', async () => {
+    supabaseMocks.resetPasswordForEmail.mockResolvedValueOnce({
+      error: { code: 'user_not_found', message: 'User not found', status: 400 },
+    });
+
+    await expect(
+      requestPasswordReset(
+        'desconhecido@example.com',
+        'https://vavitoarchives.com.br/auth/callback',
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  it('altera a senha e encerra a sessão local de recuperação', async () => {
+    await updatePassword('Nova@Senha123');
+
+    expect(supabaseMocks.updateUser).toHaveBeenCalledWith({ password: 'Nova@Senha123' });
+    expect(supabaseMocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+  });
+
+  it('converte uma sessão expirada em feedback seguro', async () => {
+    supabaseMocks.updateUser.mockResolvedValueOnce({
+      error: { code: 'session_not_found', message: 'provider details', status: 401 },
+    });
+
+    await expect(updatePassword('Nova@Senha123')).rejects.toEqual(
+      new SafeAuthError('Este acesso expirou. Solicite um novo link para continuar.'),
+    );
+    expect(supabaseMocks.signOut).not.toHaveBeenCalled();
   });
 });

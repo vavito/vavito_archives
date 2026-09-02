@@ -82,6 +82,34 @@ describe('AuthForm', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha inválidos.');
   });
 
+  it('permite mostrar e ocultar a senha sem apagar seu conteúdo', () => {
+    render(<AuthForm />);
+    const password = screen.getByLabelText('Senha');
+    fireEvent.change(password, { target: { value: 'Senha@123' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mostrar conteúdo do campo Senha' }));
+
+    expect(password).toHaveAttribute('type', 'text');
+    expect(password).toHaveValue('Senha@123');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar conteúdo do campo Senha' }));
+
+    expect(password).toHaveAttribute('type', 'password');
+    expect(password).toHaveValue('Senha@123');
+  });
+
+  it('apresenta o spinner padronizado enquanto a entrada está em andamento', () => {
+    authMocks.signIn.mockReturnValueOnce(new Promise(() => undefined));
+    render(<AuthForm />);
+    fillSignIn();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    const submittingButton = screen.getByRole('button', { name: 'Aguarde…' });
+    expect(submittingButton).toBeDisabled();
+    expect(submittingButton.querySelector('svg')).toHaveClass('counterclockwise-spinner');
+  });
+
   it('aplica a política de senha ao criar uma conta', () => {
     render(<AuthForm />);
     fireEvent.click(screen.getByRole('button', { name: 'Selecionar criação de conta' }));
@@ -95,6 +123,26 @@ describe('AuthForm', () => {
     expect(screen.getByText('A senha ainda não atende a todos os critérios.')).toBeInTheDocument();
     expect(screen.getByText('As senhas precisam ser iguais.')).toBeInTheDocument();
     expect(authMocks.signUp).not.toHaveBeenCalled();
+  });
+
+  it('anima o indicador e o conteúdo ao alternar os modos', () => {
+    render(<AuthForm />);
+    const indicator = screen.getByTestId('auth-mode-indicator');
+    const fields = screen.getByTestId('auth-mode-fields');
+
+    expect(indicator).not.toHaveClass('translate-x-full');
+    expect(fields.firstElementChild).toHaveClass('auth-mode-enter-backward');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Selecionar criação de conta' }));
+
+    expect(indicator).toHaveClass('translate-x-full');
+    expect(fields.firstElementChild).toHaveClass('auth-mode-enter-forward');
+    expect(screen.getByRole('heading', { name: 'Crie sua conta' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Selecionar entrada' }));
+
+    expect(indicator).not.toHaveClass('translate-x-full');
+    expect(fields.firstElementChild).toHaveClass('auth-mode-enter-backward');
   });
 
   it('solicita o cadastro com nome público e feedback sem enumeração', async () => {
