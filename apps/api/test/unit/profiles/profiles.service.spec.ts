@@ -1,4 +1,5 @@
 import type { AuthAdminService } from '@api/core/auth/services/auth-admin.service';
+import type { MailService } from '@api/core/mail/services/mail.service';
 import type { AvatarStorageService } from '@api/core/storage/services/avatar-storage.service';
 import { UserRole } from '@api/generated/prisma/client';
 import { Profile } from '@api/modules/profiles/domain/entities/profile.entity';
@@ -30,6 +31,7 @@ describe('ProfilesService', () => {
   const remove = jest.fn();
   const publicUrl = jest.fn();
   const deleteUser = jest.fn();
+  const sendAccountDeletionNotification = jest.fn();
   const repository = {
     anonymizeAccount,
     findActiveById,
@@ -38,11 +40,16 @@ describe('ProfilesService', () => {
   } as unknown as ProfilesRepository;
   const avatarStorage = { publicUrl, remove, upload } as unknown as AvatarStorageService;
   const authAdmin = { deleteUser } as unknown as AuthAdminService;
-  const service = new ProfilesService(repository, avatarStorage, authAdmin);
+  const mailService = { sendAccountDeletionNotification } as unknown as MailService;
+  const service = new ProfilesService(repository, avatarStorage, authAdmin, mailService);
 
   beforeEach(() => {
     jest.clearAllMocks();
     publicUrl.mockImplementation((path: string) => `https://cdn.example/${path}`);
+    sendAccountDeletionNotification.mockResolvedValue({
+      messageId: 'email-id',
+      provider: 'resend',
+    });
   });
 
   it('retorna o perfil ativo com a URL pública derivada do avatarPath', async () => {
@@ -106,11 +113,15 @@ describe('ProfilesService', () => {
     const restoredProfile = profile('avatar.webp');
     findById.mockResolvedValueOnce(restoredProfile);
 
-    await service.deleteAccount(PROFILE_ID);
+    await service.deleteAccount(PROFILE_ID, 'leitor@example.com');
 
     expect(remove).toHaveBeenCalledWith('avatar.webp');
     expect(anonymizeAccount).toHaveBeenCalledWith(restoredProfile);
     expect(deleteUser).toHaveBeenCalledWith(PROFILE_ID);
+    expect(sendAccountDeletionNotification).toHaveBeenCalledWith({
+      profileId: PROFILE_ID,
+      recipient: 'leitor@example.com',
+    });
     expect(restoredProfile.deletedAt).not.toBeNull();
   });
 
@@ -120,10 +131,19 @@ describe('ProfilesService', () => {
     findById.mockResolvedValueOnce(restoredProfile);
     deleteUser.mockRejectedValueOnce(new Error('auth unavailable'));
 
-    await expect(service.deleteAccount(PROFILE_ID)).rejects.toBeInstanceOf(
+    await expect(service.deleteAccount(PROFILE_ID, 'leitor@example.com')).rejects.toBeInstanceOf(
       AccountDeletionException,
     );
     expect(anonymizeAccount).not.toHaveBeenCalled();
+    expect(deleteUser).toHaveBeenCalledWith(PROFILE_ID);
+    expect(sendAccountDeletionNotification).not.toHaveBeenCalled();
+  });
+
+  it('mantém a conta excluída quando o email de despedida falha', async () => {
+    findById.mockResolvedValueOnce(profile());
+    sendAccountDeletionNotification.mockRejectedValueOnce(new Error('mail unavailable'));
+
+    await expect(service.deleteAccount(PROFILE_ID, 'leitor@example.com')).resolves.toBeUndefined();
     expect(deleteUser).toHaveBeenCalledWith(PROFILE_ID);
   });
 });
