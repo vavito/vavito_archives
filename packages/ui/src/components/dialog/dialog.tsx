@@ -22,7 +22,10 @@ export const DialogOverlay = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn('fixed inset-0 z-50 bg-black/70 backdrop-blur-sm', className)}
+    className={cn(
+      'dialog-overlay-motion fixed inset-0 z-50 bg-black/70 backdrop-blur-sm',
+      className,
+    )}
     {...props}
   />
 ));
@@ -38,7 +41,7 @@ export const DialogContent = forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'bg-floating fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto rounded-2xl border border-border p-6 shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'dialog-content-motion bg-floating fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto rounded-2xl border border-border p-6 shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className,
       )}
       {...props}
@@ -46,7 +49,7 @@ export const DialogContent = forwardRef<
       {children}
       <DialogPrimitive.Close
         aria-label="Fechar"
-        className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 absolute top-4 right-4 inline-flex size-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 absolute top-4 right-4 inline-flex size-9 items-center justify-center rounded-full transition-[color,background-color,transform] duration-300 hover:rotate-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none"
       >
         <X aria-hidden="true" className="size-4" />
       </DialogPrimitive.Close>
