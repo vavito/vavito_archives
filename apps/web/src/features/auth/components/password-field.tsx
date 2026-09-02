@@ -5,12 +5,37 @@ import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { useState } from 'react';
 
 interface PasswordFieldProps extends Omit<InputProps, 'label' | 'type'> {
+  isVisible?: boolean | undefined;
   label: string;
+  onVisibilityChange?: ((isVisible: boolean) => void) | undefined;
+  visibilityLabel?: string | undefined;
 }
 
-export function PasswordField({ className, disabled, label, ...props }: PasswordFieldProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const actionLabel = `${isVisible ? 'Ocultar' : 'Mostrar'} conteúdo do campo ${label}`;
+export function PasswordField({
+  className,
+  disabled,
+  isVisible: controlledVisibility,
+  label,
+  onVisibilityChange,
+  visibilityLabel,
+  ...props
+}: PasswordFieldProps) {
+  const [internalVisibility, setInternalVisibility] = useState(false);
+  const isVisible = controlledVisibility ?? internalVisibility;
+  const visibilityAction = isVisible ? 'Ocultar' : 'Mostrar';
+  const actionLabel = visibilityLabel
+    ? `${visibilityAction} ${visibilityLabel}`
+    : `${visibilityAction} conteúdo do campo ${label}`;
+
+  function toggleVisibility() {
+    const nextVisibility = !isVisible;
+
+    if (controlledVisibility === undefined) {
+      setInternalVisibility(nextVisibility);
+    }
+
+    onVisibilityChange?.(nextVisibility);
+  }
 
   return (
     <div className="group relative">
@@ -30,7 +55,7 @@ export function PasswordField({ className, disabled, label, ...props }: Password
         aria-pressed={isVisible}
         className="text-neutral-500 hover:bg-surface-raised hover:text-neutral-100 absolute top-7 right-1.5 inline-flex size-10 items-center justify-center rounded-lg transition-[color,background-color,transform] duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none motion-reduce:transform-none"
         disabled={disabled}
-        onClick={() => setIsVisible((current) => !current)}
+        onClick={toggleVisibility}
         onMouseDown={(event) => event.preventDefault()}
         title={isVisible ? 'Ocultar senha' : 'Mostrar senha'}
         type="button"

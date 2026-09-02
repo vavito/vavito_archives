@@ -62,6 +62,7 @@ export function AuthForm({
 }: Readonly<AuthFormProps>) {
   const router = useRouter();
   const fieldsContentRef = useRef<HTMLDivElement>(null);
+  const [areSignUpPasswordsVisible, setAreSignUpPasswordsVisible] = useState(false);
   const [errors, setErrors] = useState<AuthFieldErrors>({});
   const [fieldsHeight, setFieldsHeight] = useState<number | null>(null);
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -73,6 +74,7 @@ export function AuthForm({
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
+    setAreSignUpPasswordsVisible(false);
     setErrors({});
     setState({ status: 'idle' });
   }
@@ -279,12 +281,15 @@ export function AuthForm({
               description={isSignUp ? PASSWORD_REQUIREMENTS : undefined}
               disabled={isSubmitting}
               error={errors.password}
+              isVisible={isSignUp ? areSignUpPasswordsVisible : undefined}
               label="Senha"
               maxLength={AUTH_LIMITS.password.max}
               name="password"
               onChange={() => clearFieldError('password')}
+              onVisibilityChange={isSignUp ? setAreSignUpPasswordsVisible : undefined}
               placeholder={isSignUp ? 'Crie uma senha segura' : 'Sua senha'}
               required
+              visibilityLabel={isSignUp ? 'as senhas do cadastro' : undefined}
             />
 
             {!isSignUp ? (
@@ -301,12 +306,15 @@ export function AuthForm({
                 autoComplete="new-password"
                 disabled={isSubmitting}
                 error={errors.passwordConfirmation}
+                isVisible={areSignUpPasswordsVisible}
                 label="Confirme a senha"
                 maxLength={AUTH_LIMITS.password.max}
                 name="passwordConfirmation"
                 onChange={() => clearFieldError('passwordConfirmation')}
+                onVisibilityChange={setAreSignUpPasswordsVisible}
                 placeholder="Digite a senha novamente"
                 required
+                visibilityLabel="as senhas do cadastro"
               />
             ) : null}
           </div>
