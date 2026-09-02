@@ -1,8 +1,10 @@
-import { buttonVariants, cn } from '@vavito/ui';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 import { SearchOverlay } from '@web/features/posts';
 
+import { AccountNavigationFallback } from '../navigation/account-navigation-action';
+import { AccountNavigation } from '../navigation/account-navigation';
 import { SiteNavigation } from '../navigation/site-navigation';
 
 export function SiteHeader() {
@@ -26,12 +28,9 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2 md:gap-6">
           <SiteNavigation />
           <SearchOverlay />
-          <Link
-            className={cn(buttonVariants({ size: 'small' }), 'hidden sm:inline-flex')}
-            href="/auth"
-          >
-            Entrar
-          </Link>
+          <Suspense fallback={<AccountNavigationFallback />}>
+            <AccountNavigation />
+          </Suspense>
         </div>
       </div>
     </header>
