@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  resendSignUpConfirmation,
   requestPasswordReset,
   SafeAuthError,
   signIn,
@@ -9,6 +10,7 @@ import {
 } from '@web/features/auth/services/auth.service';
 
 const supabaseMocks = vi.hoisted(() => ({
+  resend: vi.fn(),
   signInWithPassword: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   signOut: vi.fn(),
@@ -25,6 +27,7 @@ vi.mock('@web/lib/auth/supabase/client', () => ({
 describe('serviço de autenticação', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    supabaseMocks.resend.mockResolvedValue({ error: null });
     supabaseMocks.signInWithPassword.mockResolvedValue({ error: null });
     supabaseMocks.resetPasswordForEmail.mockResolvedValue({ error: null });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
@@ -89,6 +92,19 @@ describe('serviço de autenticação', () => {
         'https://vavitoarchives.com.br/auth/confirm',
       ),
     ).resolves.toEqual({ status: 'confirmation-required' });
+  });
+
+  it('reenvia a confirmação de cadastro para o mesmo endereço', async () => {
+    await resendSignUpConfirmation(
+      'joao@example.com',
+      'https://vavitoarchives.com.br/auth/callback',
+    );
+
+    expect(supabaseMocks.resend).toHaveBeenCalledWith({
+      email: 'joao@example.com',
+      options: { emailRedirectTo: 'https://vavitoarchives.com.br/auth/callback' },
+      type: 'signup',
+    });
   });
 
   it('substitui detalhes do provedor por uma falha segura no cadastro', async () => {

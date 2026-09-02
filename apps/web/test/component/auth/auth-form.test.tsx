@@ -5,6 +5,7 @@ import { AuthForm } from '@web/features/auth/components/auth-form';
 import { SafeAuthError } from '@web/features/auth/services/auth.service';
 
 const authMocks = vi.hoisted(() => ({
+  resendSignUpConfirmation: vi.fn(),
   signIn: vi.fn(),
   signUp: vi.fn(),
 }));
@@ -16,6 +17,7 @@ const routerMocks = vi.hoisted(() => ({
 
 vi.mock('@web/features/auth/services/auth.service', () => ({
   SafeAuthError: class SafeAuthError extends Error {},
+  resendSignUpConfirmation: authMocks.resendSignUpConfirmation,
   signIn: authMocks.signIn,
   signUp: authMocks.signUp,
 }));
@@ -41,6 +43,8 @@ function fillSignUp() {
 
 describe('AuthForm', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    authMocks.resendSignUpConfirmation.mockResolvedValue(undefined);
     authMocks.signIn.mockResolvedValue(undefined);
     authMocks.signUp.mockResolvedValue({ status: 'confirmation-required' });
   });
@@ -125,6 +129,29 @@ describe('AuthForm', () => {
     expect(authMocks.signUp).not.toHaveBeenCalled();
   });
 
+  it('mostra e oculta as duas senhas do cadastro em conjunto', () => {
+    render(<AuthForm />);
+    fireEvent.click(screen.getByRole('button', { name: 'Selecionar criação de conta' }));
+    const password = screen.getByLabelText('Senha');
+    const confirmation = screen.getByLabelText('Confirme a senha');
+    const visibilityButtons = screen.getAllByRole('button', {
+      name: 'Mostrar as senhas do cadastro',
+    });
+
+    fireEvent.click(visibilityButtons[0]!);
+
+    expect(password).toHaveAttribute('type', 'text');
+    expect(confirmation).toHaveAttribute('type', 'text');
+    expect(screen.getAllByRole('button', { name: 'Ocultar as senhas do cadastro' })).toHaveLength(
+      2,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Ocultar as senhas do cadastro' })[1]!);
+
+    expect(password).toHaveAttribute('type', 'password');
+    expect(confirmation).toHaveAttribute('type', 'password');
+  });
+
   it('anima o indicador e o conteúdo ao alternar os modos', () => {
     render(<AuthForm />);
     const indicator = screen.getByTestId('auth-mode-indicator');
@@ -159,11 +186,12 @@ describe('AuthForm', () => {
           email: 'leitor@example.com',
           password: 'Senha@123',
         },
-        'http://localhost:3000/auth/callback?next=%2Fauth%3Fauth_status%3Dconfirmed',
+        'http://localhost:3000/auth/callback?next=%2Fauth%2Fconfirmed',
       );
     });
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'Confira seu e-mail para confirmar o cadastro.',
-    );
+    expect(await screen.findByRole('heading', { name: 'Cadastro realizado!' })).toBeInTheDocument();
+    expect(screen.getByText(/leitor@example.com/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reenviar em 60s' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Criar conta' })).not.toBeInTheDocument();
   });
 });
