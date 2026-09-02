@@ -10,7 +10,7 @@ O `NewsletterModule` oferece double opt-in público sem associar o assinante a u
 4. As páginas do frontend leem o fragmento, encaminham o token para os endpoints `POST` da API, removem o fragmento da URL e apresentam o resultado sem guardar o valor.
 5. Somente o estado `CONFIRMED` será elegível para campanhas.
 
-Enquanto as páginas do frontend não forem implementadas, o fluxo backend pode ser validado enviando diretamente os mesmos tokens para os endpoints `POST` documentados no Swagger.
+As rotas públicas `/newsletter/confirm` e `/newsletter/unsubscribe` processam o token no navegador, removem o fragmento da barra de endereço antes de apresentar o resultado e exibem mensagens amigáveis de sucesso ou falha.
 
 ## Tokens e privacidade
 
