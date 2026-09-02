@@ -56,7 +56,10 @@ export function PageError({
 
   return (
     <div className="mx-auto grid min-h-[55vh] w-full max-w-3xl place-items-center px-4 py-16 sm:px-6">
-      <section aria-labelledby="page-error-title" className="grid max-w-md gap-4 text-center">
+      <section
+        aria-labelledby="page-error-title"
+        className="page-state-enter grid max-w-md gap-4 text-center"
+      >
         <p className="text-accent font-mono text-xs tracking-eyebrow uppercase">Algo deu errado</p>
         <h1 className="text-neutral-100 text-2xl font-semibold" id="page-error-title">
           {title}
@@ -74,7 +77,7 @@ export function PageError({
           >
             <RotateCcw
               aria-hidden="true"
-              className={isRetrying ? 'retry-icon-spinning' : undefined}
+              className={isRetrying ? 'counterclockwise-spinner' : undefined}
             />
             <span aria-live="polite">
               {isRetrying ? 'Tentando novamente…' : 'Tentar novamente'}
