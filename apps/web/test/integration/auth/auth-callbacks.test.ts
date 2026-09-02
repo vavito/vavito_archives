@@ -41,17 +41,23 @@ describe('callbacks de autenticação', () => {
     expect(response.headers.get('location')).toBe('http://localhost:3000/');
   });
 
-  it('confirma o token por e-mail e apresenta sucesso no formulário', async () => {
+  it('confirma o token por e-mail e abre a etapa de cadastro concluído', async () => {
     const response = await confirmAuthEmail(
       new NextRequest(
-        'http://localhost:3000/auth/confirm?token_hash=hash&type=signup&next=/auth?auth_status=confirmed',
+        'http://localhost:3000/auth/confirm?token_hash=hash&type=signup&next=/auth/confirmed',
       ),
     );
 
     expect(supabaseMocks.verifyOtp).toHaveBeenCalledWith({ token_hash: 'hash', type: 'signup' });
-    expect(response.headers.get('location')).toBe(
-      'http://localhost:3000/auth?auth_status=confirmed',
+    expect(response.headers.get('location')).toBe('http://localhost:3000/auth/confirmed');
+  });
+
+  it('usa a etapa de cadastro concluído como destino padrão da confirmação', async () => {
+    const response = await confirmAuthEmail(
+      new NextRequest('http://localhost:3000/auth/confirm?token_hash=hash&type=signup'),
     );
+
+    expect(response.headers.get('location')).toBe('http://localhost:3000/auth/confirmed');
   });
 
   it('retorna uma mensagem segura quando a confirmação falha', async () => {
