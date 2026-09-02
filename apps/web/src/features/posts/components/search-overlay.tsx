@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 
+import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+
 import { usePostSearch } from '../hooks/use-post-search';
 import { POST_SEARCH_QUERY_MAX_LENGTH } from '../services/search-published-posts';
 import type { PostSummary } from '../types/posts.types';
@@ -89,7 +91,7 @@ export function SearchOverlay() {
       <DialogTrigger asChild>
         <button
           aria-label="Buscar artigos"
-          className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm transition-colors md:min-w-44 md:justify-between"
+          className="motion-control text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm md:min-w-44 md:justify-between"
           type="button"
         >
           <span className="flex items-center gap-2">
@@ -160,7 +162,11 @@ export function SearchOverlay() {
           ) : null}
 
           {normalizedQuery && isSearching ? (
-            <p className="text-neutral-500 px-5 py-8 text-center text-sm" role="status">
+            <p
+              className="feedback-enter text-neutral-500 flex items-center justify-center gap-2 px-5 py-8 text-center text-sm"
+              role="status"
+            >
+              <LoadingSpinner />
               Buscando artigos…
             </p>
           ) : null}
@@ -193,7 +199,7 @@ export function SearchOverlay() {
                   role="option"
                 >
                   <Link
-                    className={`group grid gap-2 px-5 py-4 transition-colors ${
+                    className={`group grid gap-2 px-5 py-4 transition-[color,background-color,transform] duration-300 hover:translate-x-1 ${
                       resolvedActiveIndex === index
                         ? 'bg-surface-raised'
                         : 'hover:bg-surface-raised'

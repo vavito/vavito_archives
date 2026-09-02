@@ -21,7 +21,7 @@ export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps
   return (
     <article
       className={cn(
-        'group border-b border-divider py-5 first:pt-0 last:border-b-0 last:pb-0',
+        'motion-card group border-b border-divider py-5 first:pt-0 last:border-b-0 last:pb-0',
         compact && 'py-4',
       )}
     >
@@ -58,7 +58,7 @@ export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps
             </h3>
             <ArrowUpRight
               aria-hidden="true"
-              className="text-neutral-600 group-hover:text-accent mt-1 size-4 shrink-0 transition-colors"
+              className="text-neutral-600 group-hover:text-accent mt-1 size-4 shrink-0 transition-[color,transform] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
             />
           </div>
           <p className="text-neutral-400 line-clamp-2 text-sm leading-relaxed">{post.excerpt}</p>

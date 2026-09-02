@@ -67,7 +67,7 @@ export function ArticlePageContent({ data }: Readonly<{ data: ArticlePageData }>
           {/* eslint-disable-next-line @next/next/no-img-element -- A URL pública é resolvida pela API a partir do Storage. */}
           <img
             alt={post.coverAlt ?? ''}
-            className="aspect-[16/9] h-auto w-full rounded-2xl border border-border object-cover"
+            className="motion-media aspect-[16/9] h-auto w-full rounded-2xl border border-border object-cover"
             decoding="async"
             fetchPriority="high"
             src={post.coverUrl}
