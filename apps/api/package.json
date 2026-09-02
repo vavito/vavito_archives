@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",
+    "dev": "nest start --watch",
     "lint": "eslint . --max-warnings=0",
     "media:cleanup": "tsx src/modules/media/commands/media-cleanup.command.ts",
     "openapi:export": "pnpm build && node dist/core/openapi/commands/export-openapi.command.js && pnpm exec prettier ../../packages/api-client/openapi/openapi.json --write",
