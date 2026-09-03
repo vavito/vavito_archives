@@ -452,6 +452,13 @@ A criação de comentários aplica inicialmente o limite de `5` publicações po
 
 O clique repetido no frontend usa `DELETE` quando a reação ou bookmark já está ativo.
 
+A página `/salvos` consulta a biblioteca do leitor autenticado, sem cache compartilhado, em páginas
+de 12 artigos. A listagem inclui apenas artigos publicados e é ordenada pelo salvamento mais
+recente, com desempate estável. Sem sessão, o acesso solicita login; uma biblioteca vazia apresenta
+um convite para explorar artigos, enquanto falhas de consulta exibem erro com nova tentativa.
+Salvar ou remover revalida tanto a biblioteca quanto o detalhe do artigo. Ao remover o último
+item de uma página posterior, a navegação retorna à última página disponível.
+
 ### Newsletter e campanhas
 
 | Método | Caminho | Acesso | Request | Sucesso |
