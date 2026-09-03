@@ -121,8 +121,8 @@ export class PostsService {
     return PostMapper.fromAggregateToAdminDetail(aggregate, this.coverUrl(aggregate.cover));
   }
 
-  async getPublicDetail(slug: string): Promise<PublicPostDetailResult> {
-    const record = await this.postsRepository.findBySlug(slug);
+  async getPublicDetail(slug: string, viewerId?: string): Promise<PublicPostDetailResult> {
+    const record = await this.postsRepository.findBySlug(slug, viewerId);
 
     if (!record) {
       throw new PostNotFoundException();
