@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, buttonVariants, cn } from '@vavito/ui';
-import { ChevronDown, LogOut, UserRound } from 'lucide-react';
+import { Bookmark, ChevronDown, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -130,6 +130,15 @@ export function AccountNavigationAction({ account }: Readonly<AccountNavigationA
           >
             <UserRound aria-hidden="true" className="size-4" />
             Minha Conta
+          </Link>
+          <Link
+            className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm text-neutral-300 transition-colors hover:bg-surface-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            href="/salvos"
+            onClick={() => setIsOpen(false)}
+            role="menuitem"
+          >
+            <Bookmark aria-hidden="true" className="size-4" />
+            Artigos salvos
           </Link>
           <div className="my-1 border-t border-divider" />
           <Button
