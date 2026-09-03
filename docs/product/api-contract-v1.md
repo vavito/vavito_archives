@@ -233,6 +233,9 @@ interface UpdatePostDto {
 }
 ```
 
+O detalhe do artigo permanece público. Quando recebe um Bearer token válido, preenche `viewer`
+com a reação e o bookmark do leitor; sem autenticação, retorna `viewer: null`.
+
 `PostAdminDetailDto` acrescenta `status`, `author`, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
 
 Tags são normalizadas e associadas a partir de `tagNames`. A V1 não exige CRUD administrativo separado para tags.
