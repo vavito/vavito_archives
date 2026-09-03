@@ -22,6 +22,9 @@ import {
 import { Throttle } from '@nestjs/throttler';
 
 import { Public } from '@api/core/auth/decorators/public.decorator';
+import { OptionalAuth } from '@api/core/auth/decorators/optional-auth.decorator';
+import { OptionalCurrentUser } from '@api/core/auth/decorators/optional-current-user.decorator';
+import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { ListPublicPostsQueryDto } from '@api/modules/posts/dto/query/list-public-posts-query.dto';
@@ -68,6 +71,7 @@ export class PostsController {
   }
 
   @Get(':slug')
+  @OptionalAuth()
   @ApiOperation({ summary: 'Consulta um post publicado pelo slug' })
   @ApiOkResponse({ type: PostDetailResponseDto })
   @ApiNotFoundResponse({
@@ -81,8 +85,9 @@ export class PostsController {
   async getBySlug(
     @Param('slug') slug: string,
     @Res({ passthrough: true }) response: RedirectResponse,
+    @OptionalCurrentUser() user: AuthenticatedUser | null,
   ): Promise<PostDetailResponseDto> {
-    const result = await this.postsService.getPublicDetail(slug);
+    const result = await this.postsService.getPublicDetail(slug, user?.id);
 
     if (result.shouldRedirect) {
       response
