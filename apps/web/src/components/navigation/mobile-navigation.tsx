@@ -12,7 +12,6 @@ import {
   cn,
 } from '@vavito/ui';
 import { Bookmark, Home, LogIn, Newspaper, UserRound } from 'lucide-react';
-import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type MouseEvent } from 'react';
@@ -47,7 +46,7 @@ export function MobileNavigation() {
       const { data, error } = await supabase.auth.getSession();
 
       if (!error && data.session) {
-        router.push('/salvos' as Route);
+        router.push('/salvos');
         return;
       }
 
@@ -82,7 +81,7 @@ export function MobileNavigation() {
                     'group flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] transition-colors duration-300 active:scale-95',
                     isActive ? 'text-accent' : 'text-neutral-500 hover:text-neutral-200',
                   )}
-                  href={href as Route}
+                  href={href}
                   onClick={(event) => {
                     if (isSavedItem) {
                       void handleSavedNavigation(event);
