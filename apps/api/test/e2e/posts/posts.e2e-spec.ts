@@ -7,6 +7,7 @@ import request from 'supertest';
 
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
 import { RolesGuard } from '@api/core/auth/guards/roles.guard';
+import { UnauthenticatedException } from '@api/core/auth/errors/unauthenticated.exception';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { SupabaseJwtService } from '@api/core/auth/services/supabase-jwt.service';
@@ -154,7 +155,7 @@ describe('Endpoints de Posts (e2e)', () => {
       tag: 'nestjs',
     });
     expect(searchPublic).toHaveBeenCalledWith({ q: 'nestjs e ação' });
-    expect(getPublicDetail).toHaveBeenCalledWith('post-editorial');
+    expect(getPublicDetail).toHaveBeenCalledWith('post-editorial', undefined);
     expect(registerView).toHaveBeenCalledWith(
       'post-editorial',
       expect.objectContaining({ userAgent: 'Vavito Browser' }),
@@ -162,6 +163,28 @@ describe('Endpoints de Posts (e2e)', () => {
     expect(listTags).toHaveBeenCalledTimes(1);
     expect(verify).not.toHaveBeenCalled();
     expect(findActiveRoleByProfileId).not.toHaveBeenCalled();
+  });
+
+  it('valida opcionalmente o JWT ao carregar o estado do leitor no artigo', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/posts/post-editorial')
+      .set('authorization', AUTHORIZATION)
+      .expect(200);
+
+    expect(verify).toHaveBeenCalledWith('jwt-valido');
+    expect(getPublicDetail).toHaveBeenCalledWith('post-editorial', USER.id);
+    expect(findActiveRoleByProfileId).not.toHaveBeenCalled();
+  });
+
+  it('rejeita um JWT inválido enviado ao detalhe público', async () => {
+    verify.mockRejectedValueOnce(new UnauthenticatedException());
+
+    await request(app.getHttpServer() as Server)
+      .get('/posts/post-editorial')
+      .set('authorization', 'Bearer jwt-invalido')
+      .expect(401);
+
+    expect(getPublicDetail).not.toHaveBeenCalled();
   });
 
   it('rejeita filtros e buscas públicas fora do contrato', async () => {

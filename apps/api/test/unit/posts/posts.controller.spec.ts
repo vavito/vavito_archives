@@ -131,7 +131,8 @@ describe('Controllers de Posts', () => {
       shouldRedirect: true,
     });
 
-    await expect(controller.getBySlug('slug-antigo', response)).resolves.toBe(detail);
+    await expect(controller.getBySlug('slug-antigo', response, null)).resolves.toBe(detail);
+    expect(mocks.getPublicDetail).toHaveBeenCalledWith('slug-antigo', undefined);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.PERMANENT_REDIRECT);
     expect(response.location).toHaveBeenCalledWith('/api/v1/posts/slug-atual');
   });

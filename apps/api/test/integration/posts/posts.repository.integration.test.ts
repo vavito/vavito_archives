@@ -4,7 +4,12 @@ import type { ConfigService } from '@nestjs/config';
 
 import type { ApplicationConfig } from '@api/core/config/app.config';
 import { PrismaService } from '@api/core/database/prisma.service';
-import { MediaAssetStatus, MediaUsageType, UserRole } from '@api/generated/prisma/client';
+import {
+  MediaAssetStatus,
+  MediaUsageType,
+  ReactionType,
+  UserRole,
+} from '@api/generated/prisma/client';
 import { Prisma } from '@api/generated/prisma/client';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
@@ -150,14 +155,21 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     });
     await repository.update(updated);
 
+    await prisma.reaction.create({
+      data: { postId: post.id, profileId: authorId, type: ReactionType.LIKE },
+    });
+    await prisma.bookmark.create({ data: { postId: post.id, profileId: authorId } });
+
     await expect(repository.findBySlug('slug-original')).resolves.toMatchObject({
       post: { id: post.id, title: 'Post atualizado' },
       requestedSlug: 'slug-original',
       requestedSlugIsCurrent: false,
+      viewer: null,
     });
-    await expect(repository.findBySlug('slug-atualizado')).resolves.toMatchObject({
+    await expect(repository.findBySlug('slug-atualizado', authorId)).resolves.toMatchObject({
       post: { id: post.id },
       requestedSlugIsCurrent: true,
+      viewer: { bookmarked: true, reaction: ReactionType.LIKE },
     });
     await expect(repository.findSlugOwner('slug-original')).resolves.toEqual({
       isCurrent: false,
