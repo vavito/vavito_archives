@@ -1,5 +1,6 @@
 import { Clock3, Eye } from 'lucide-react';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 import type { ArticlePageData } from '../types/posts.types';
 import { ArticleCard } from './article-card';
@@ -15,7 +16,12 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   year: 'numeric',
 });
 
-export function ArticlePageContent({ data }: Readonly<{ data: ArticlePageData }>) {
+interface ArticlePageContentProps {
+  data: ArticlePageData;
+  engagement?: ReactNode;
+}
+
+export function ArticlePageContent({ data, engagement }: Readonly<ArticlePageContentProps>) {
   const { post, relatedPosts } = data;
 
   return (
@@ -85,6 +91,8 @@ export function ArticlePageContent({ data }: Readonly<{ data: ArticlePageData }>
           <ArticleShareButton title={post.title} />
         </footer>
       </div>
+
+      {engagement}
 
       {relatedPosts.length > 0 ? (
         <section
