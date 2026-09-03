@@ -209,7 +209,7 @@ export class PostMapper {
       cover: coverView(record.cover, coverUrl),
       reactionCounts: record.reactionCounts,
       tags: responseTags(record.tags),
-      viewer: null,
+      viewer: record.viewer,
     });
   }
 
