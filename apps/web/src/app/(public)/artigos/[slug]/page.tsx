@@ -9,6 +9,7 @@ import {
   type CommentsPageData,
   type CommentViewer,
 } from '@web/features/comments';
+import { ArticleReactions } from '@web/features/engagement';
 import {
   ArticlePageContent,
   createArticleMetadata,
@@ -18,7 +19,10 @@ import {
 import { getProfile } from '@web/features/profile';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
-import { getAuthenticatedSession } from '@web/lib/auth/authenticated-session';
+import {
+  type AuthenticatedSession,
+  getAuthenticatedSession,
+} from '@web/lib/auth/authenticated-session';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 import { serializeStructuredData } from '@web/lib/seo/structured-data';
 
@@ -54,10 +58,18 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]'>) {
   const { slug } = await params;
+  const session = await getAuthenticatedSession();
   let data: Awaited<ReturnType<typeof getArticlePageData>>;
 
   try {
-    data = await getArticlePageDataForRoute(slug);
+    data = session
+      ? await withPageDataTimeout(() =>
+          getArticlePageData({
+            client: createWebAuthenticatedApiClient(() => session.accessToken),
+            slug,
+          }),
+        )
+      : await getArticlePageDataForRoute(slug);
   } catch {
     return (
       <PageError
@@ -77,7 +89,7 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
 
   const [comments, viewer] = await Promise.all([
     getInitialComments(data.post.slug),
-    getCommentViewer(),
+    getCommentViewer(session),
   ]);
 
   const structuredData = createArticleStructuredData(data.post);
@@ -89,6 +101,15 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
         type="application/ld+json"
       />
       <ArticlePageContent
+        articleActions={
+          <ArticleReactions
+            initialCounts={data.post.reactionCounts}
+            initialReaction={data.post.viewer?.reaction ?? null}
+            isAuthenticated={data.post.viewer !== null}
+            postId={data.post.id}
+            slug={data.post.slug}
+          />
+        }
         data={data}
         engagement={
           <CommentsSection
@@ -111,8 +132,9 @@ async function getInitialComments(slug: string): Promise<CommentsPageData | null
   }
 }
 
-async function getCommentViewer(): Promise<CommentViewer | null> {
-  const session = await getAuthenticatedSession();
+async function getCommentViewer(
+  session: AuthenticatedSession | null,
+): Promise<CommentViewer | null> {
   if (!session) return null;
 
   try {
