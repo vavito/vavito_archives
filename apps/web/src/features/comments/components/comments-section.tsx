@@ -8,6 +8,7 @@ import {
   ActionFeedback,
   type ActionFeedbackMessage,
 } from '@web/components/feedback/action-feedback';
+import { AuthRequiredDialog } from '@web/components/feedback/auth-required-dialog';
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
 import { addComment, removeCommentOptimistically, replaceComment } from '../services/comment-tree';
@@ -19,7 +20,6 @@ import {
   SafeCommentActionError,
 } from '../services/comments.service';
 import type { CommentItem, CommentsPageData, CommentViewer } from '../types/comments.types';
-import { AuthRequiredDialog } from './auth-required-dialog';
 import { CommentCard } from './comment-card';
 import { CommentForm } from './comment-form';
 
@@ -279,6 +279,7 @@ export function CommentsSection({
 
       <AuthRequiredDialog
         articlePath={`/artigos/${slug}`}
+        description="Para comentar ou responder, entre na sua conta ou crie uma gratuitamente. Depois você voltará para este artigo."
         onOpenChange={setAuthDialogOpen}
         open={authDialogOpen}
       />

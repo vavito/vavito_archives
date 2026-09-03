@@ -16,14 +16,18 @@ import Link from 'next/link';
 
 interface AuthRequiredDialogProps {
   articlePath: string;
+  description: string;
   onOpenChange: (open: boolean) => void;
   open: boolean;
+  title?: string;
 }
 
 export function AuthRequiredDialog({
   articlePath,
+  description,
   onOpenChange,
   open,
+  title = 'Entre para participar',
 }: Readonly<AuthRequiredDialogProps>) {
   const authPath = `/auth?next=${encodeURIComponent(articlePath)}`;
 
@@ -31,11 +35,8 @@ export function AuthRequiredDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Entre para participar</DialogTitle>
-          <DialogDescription>
-            Para comentar ou responder, entre na sua conta ou crie uma gratuitamente. Depois você
-            voltará para este artigo.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
