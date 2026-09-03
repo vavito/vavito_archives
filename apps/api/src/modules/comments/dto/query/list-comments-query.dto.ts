@@ -16,7 +16,7 @@ export class ListCommentsQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(FIRST_PAGE)
-  page = FIRST_PAGE;
+  page: number = FIRST_PAGE;
 
   @ApiPropertyOptional({
     default: COMMENTS_DEFAULT_LIMIT,
@@ -28,7 +28,7 @@ export class ListCommentsQueryDto {
   @IsInt()
   @Min(1)
   @Max(COMMENTS_MAX_LIMIT)
-  limit = COMMENTS_DEFAULT_LIMIT;
+  limit: number = COMMENTS_DEFAULT_LIMIT;
 }
 
 export class ListAdminCommentsQueryDto extends AdminPaginationQueryDto {

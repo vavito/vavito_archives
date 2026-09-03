@@ -10,7 +10,11 @@ export class CommentAuthorDto {
   @ApiProperty({ example: 'Leitor do Vavito' })
   displayName!: string;
 
-  @ApiProperty({ example: 'https://cdn.example.com/avatars/leitor.webp', nullable: true })
+  @ApiProperty({
+    example: 'https://cdn.example.com/avatars/leitor.webp',
+    nullable: true,
+    type: String,
+  })
   avatarUrl!: string | null;
 }
 
@@ -21,10 +25,10 @@ export class CommentResponseDto {
   @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   postId!: string;
 
-  @ApiProperty({ example: null, format: 'uuid', nullable: true })
+  @ApiProperty({ example: null, format: 'uuid', nullable: true, type: String })
   parentId!: string | null;
 
-  @ApiProperty({ example: 'Excelente explicação sobre o tema.', nullable: true })
+  @ApiProperty({ example: 'Excelente explicação sobre o tema.', nullable: true, type: String })
   content!: string | null;
 
   @ApiProperty({
@@ -42,7 +46,7 @@ export class CommentResponseDto {
   @ApiProperty({ example: '2026-08-24T14:30:00.000Z', format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ example: null, format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true, type: String })
   editedAt!: string | null;
 
   @ApiProperty({ type: () => [CommentResponseDto] })
@@ -56,10 +60,10 @@ export class CommentAdminResponseDto {
   @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   postId!: string;
 
-  @ApiProperty({ example: null, format: 'uuid', nullable: true })
+  @ApiProperty({ example: null, format: 'uuid', nullable: true, type: String })
   parentId!: string | null;
 
-  @ApiProperty({ example: 'Conteúdo em análise pela moderação.', nullable: true })
+  @ApiProperty({ example: 'Conteúdo em análise pela moderação.', nullable: true, type: String })
   content!: string | null;
 
   @ApiProperty({ enum: CommentStatus, enumName: 'CommentStatus', example: CommentStatus.HIDDEN })
@@ -68,16 +72,20 @@ export class CommentAdminResponseDto {
   @ApiProperty({ nullable: true, type: () => CommentAuthorDto })
   author!: CommentAuthorDto | null;
 
-  @ApiProperty({ example: 'Conteúdo fora das regras da comunidade.', nullable: true })
+  @ApiProperty({
+    example: 'Conteúdo fora das regras da comunidade.',
+    nullable: true,
+    type: String,
+  })
   moderationReason!: string | null;
 
   @ApiProperty({ example: '2026-08-24T14:30:00.000Z', format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ example: null, format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true, type: String })
   editedAt!: string | null;
 
-  @ApiProperty({ example: null, format: 'date-time', nullable: true })
+  @ApiProperty({ example: null, format: 'date-time', nullable: true, type: String })
   deletedAt!: string | null;
 }
 

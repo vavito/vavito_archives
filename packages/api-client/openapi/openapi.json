@@ -96,11 +96,7 @@
               "minimum": 1,
               "default": 1,
               "example": 1,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Object"
-                }
-              ]
+              "type": "number"
             },
             "example": 1
           },
@@ -113,11 +109,7 @@
               "maximum": 50,
               "default": 20,
               "example": 20,
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/Object"
-                }
-              ]
+              "type": "number"
             },
             "example": 20
           }
@@ -7130,10 +7122,6 @@
         },
         "required": ["statusCode", "code", "message", "details", "timestamp", "path", "requestId"]
       },
-      "Object": {
-        "type": "object",
-        "properties": {}
-      },
       "CommentAuthorDto": {
         "type": "object",
         "properties": {
@@ -7147,7 +7135,7 @@
             "example": "Leitor do Vavito"
           },
           "avatarUrl": {
-            "type": "object",
+            "type": "string",
             "example": "https://cdn.example.com/avatars/leitor.webp",
             "nullable": true
           }
@@ -7168,13 +7156,13 @@
             "format": "uuid"
           },
           "parentId": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "uuid",
             "nullable": true
           },
           "content": {
-            "type": "object",
+            "type": "string",
             "example": "Excelente explicação sobre o tema.",
             "nullable": true
           },
@@ -7202,7 +7190,7 @@
             "format": "date-time"
           },
           "editedAt": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "date-time",
             "nullable": true
@@ -7313,13 +7301,13 @@
             "format": "uuid"
           },
           "parentId": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "uuid",
             "nullable": true
           },
           "content": {
-            "type": "object",
+            "type": "string",
             "example": "Conteúdo em análise pela moderação.",
             "nullable": true
           },
@@ -7341,7 +7329,7 @@
             ]
           },
           "moderationReason": {
-            "type": "object",
+            "type": "string",
             "example": "Conteúdo fora das regras da comunidade.",
             "nullable": true
           },
@@ -7351,13 +7339,13 @@
             "format": "date-time"
           },
           "editedAt": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "date-time",
             "nullable": true
           },
           "deletedAt": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "date-time",
             "nullable": true

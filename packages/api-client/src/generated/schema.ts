@@ -600,7 +600,6 @@ export interface components {
       /** @example 019c2d62-6e90-7000-8000-000000000000 */
       requestId: string;
     };
-    Object: Record<string, never>;
     CommentAuthorDto: {
       /**
        * Format: uuid
@@ -610,7 +609,7 @@ export interface components {
       /** @example Leitor do Vavito */
       displayName: string;
       /** @example https://cdn.example.com/avatars/leitor.webp */
-      avatarUrl: Record<string, never> | null;
+      avatarUrl: string | null;
     };
     CommentResponseDto: {
       /**
@@ -627,9 +626,9 @@ export interface components {
        * Format: uuid
        * @example null
        */
-      parentId: Record<string, never> | null;
+      parentId: string | null;
       /** @example Excelente explicação sobre o tema. */
-      content: Record<string, never> | null;
+      content: string | null;
       /**
        * @example VISIBLE
        * @enum {string}
@@ -647,7 +646,7 @@ export interface components {
        * Format: date-time
        * @example null
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       replies: components['schemas']['CommentResponseDto'][];
     };
     PaginationMetaDto: {
@@ -694,14 +693,14 @@ export interface components {
        * Format: uuid
        * @example null
        */
-      parentId: Record<string, never> | null;
+      parentId: string | null;
       /** @example Conteúdo em análise pela moderação. */
-      content: Record<string, never> | null;
+      content: string | null;
       /** @example HIDDEN */
       status: components['schemas']['CommentStatus'];
       author: components['schemas']['CommentAuthorDto'] | null;
       /** @example Conteúdo fora das regras da comunidade. */
-      moderationReason: Record<string, never> | null;
+      moderationReason: string | null;
       /**
        * Format: date-time
        * @example 2026-08-24T14:30:00.000Z
@@ -711,12 +710,12 @@ export interface components {
        * Format: date-time
        * @example null
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       /**
        * Format: date-time
        * @example null
        */
-      deletedAt: Record<string, never> | null;
+      deletedAt: string | null;
     };
     PaginatedAdminCommentsResponseDto: {
       items: components['schemas']['CommentAdminResponseDto'][];
@@ -1401,9 +1400,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
       };
       header?: never;
       path: {
