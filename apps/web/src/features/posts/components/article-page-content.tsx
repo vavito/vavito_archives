@@ -17,11 +17,16 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 });
 
 interface ArticlePageContentProps {
+  articleActions?: ReactNode;
   data: ArticlePageData;
   engagement?: ReactNode;
 }
 
-export function ArticlePageContent({ data, engagement }: Readonly<ArticlePageContentProps>) {
+export function ArticlePageContent({
+  articleActions,
+  data,
+  engagement,
+}: Readonly<ArticlePageContentProps>) {
   const { post, relatedPosts } = data;
 
   return (
@@ -86,9 +91,15 @@ export function ArticlePageContent({ data, engagement }: Readonly<ArticlePageCon
           <TiptapContent content={post.content} />
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-divider pt-6">
-          <p className="text-neutral-500 text-sm">Gostou do artigo? Compartilhe com alguém.</p>
-          <ArticleShareButton title={post.title} />
+        <footer className="grid gap-4 border-t border-divider pt-6 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="grid gap-1">
+            <p className="text-neutral-300 text-sm font-medium">Este artigo foi útil?</p>
+            <p className="text-neutral-500 text-xs">Reaja ou compartilhe com alguém.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {articleActions}
+            <ArticleShareButton title={post.title} />
+          </div>
         </footer>
       </div>
 
