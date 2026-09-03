@@ -32,6 +32,10 @@ export interface PostSlugLookupRecord extends PostAggregateRecord {
   };
   requestedSlug: string;
   requestedSlugIsCurrent: boolean;
+  viewer: {
+    bookmarked: boolean;
+    reaction: 'DISLIKE' | 'LIKE' | null;
+  } | null;
 }
 
 export interface PublishedPostReferenceRecord {
@@ -132,7 +136,7 @@ export abstract class PostsRepository {
   abstract create(post: Post): Promise<void>;
   abstract delete(id: string): Promise<void>;
   abstract findById(id: string): Promise<PostAggregateRecord | null>;
-  abstract findBySlug(slug: string): Promise<PostSlugLookupRecord | null>;
+  abstract findBySlug(slug: string, viewerId?: string): Promise<PostSlugLookupRecord | null>;
   abstract findPublishedReferenceById(id: string): Promise<PublishedPostReferenceRecord | null>;
   abstract findPublishedReferenceBySlug(slug: string): Promise<PublishedPostReferenceRecord | null>;
   abstract findSlugOwner(slug: string): Promise<SlugOwnerRecord | null>;

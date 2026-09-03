@@ -279,7 +279,7 @@ export class PrismaPostsRepository implements PostsRepository {
     return record ? mapAggregate(record) : null;
   }
 
-  async findBySlug(slug: string): Promise<PostSlugLookupRecord | null> {
+  async findBySlug(slug: string, viewerId?: string): Promise<PostSlugLookupRecord | null> {
     const record = await this.prisma.postSlug.findFirst({
       select: {
         isCurrent: true,
@@ -296,11 +296,25 @@ export class PrismaPostsRepository implements PostsRepository {
       return null;
     }
 
-    const reactionCounts = await this.prisma.reaction.groupBy({
-      _count: { _all: true },
-      by: ['type'],
-      where: { postId: record.post.id },
-    });
+    const [reactionCounts, viewerReaction, viewerBookmark] = await Promise.all([
+      this.prisma.reaction.groupBy({
+        _count: { _all: true },
+        by: ['type'],
+        where: { postId: record.post.id },
+      }),
+      viewerId
+        ? this.prisma.reaction.findUnique({
+            select: { type: true },
+            where: { profileId_postId: { postId: record.post.id, profileId: viewerId } },
+          })
+        : null,
+      viewerId
+        ? this.prisma.bookmark.findUnique({
+            select: { id: true },
+            where: { profileId_postId: { postId: record.post.id, profileId: viewerId } },
+          })
+        : null,
+    ]);
     const countByType = new Map(reactionCounts.map((item) => [item.type, item._count._all]));
 
     return {
@@ -311,6 +325,12 @@ export class PrismaPostsRepository implements PostsRepository {
       },
       requestedSlug: record.slug,
       requestedSlugIsCurrent: record.isCurrent,
+      viewer: viewerId
+        ? {
+            bookmarked: Boolean(viewerBookmark),
+            reaction: viewerReaction?.type ?? null,
+          }
+        : null,
     };
   }
 
