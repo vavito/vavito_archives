@@ -9,7 +9,7 @@ import {
   type CommentsPageData,
   type CommentViewer,
 } from '@web/features/comments';
-import { ArticleReactions } from '@web/features/engagement';
+import { ArticleReactions, BookmarkButton } from '@web/features/engagement';
 import {
   ArticlePageContent,
   createArticleMetadata,
@@ -102,13 +102,22 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
       />
       <ArticlePageContent
         articleActions={
-          <ArticleReactions
-            initialCounts={data.post.reactionCounts}
-            initialReaction={data.post.viewer?.reaction ?? null}
-            isAuthenticated={data.post.viewer !== null}
-            postId={data.post.id}
-            slug={data.post.slug}
-          />
+          <>
+            <ArticleReactions
+              initialCounts={data.post.reactionCounts}
+              initialReaction={data.post.viewer?.reaction ?? null}
+              isAuthenticated={data.post.viewer !== null}
+              postId={data.post.id}
+              slug={data.post.slug}
+            />
+            <BookmarkButton
+              key={`${data.post.id}-${data.post.viewer?.bookmarked ?? false}`}
+              initialBookmarked={data.post.viewer?.bookmarked ?? false}
+              isAuthenticated={data.post.viewer !== null}
+              postId={data.post.id}
+              slug={data.post.slug}
+            />
+          </>
         }
         data={data}
         engagement={
