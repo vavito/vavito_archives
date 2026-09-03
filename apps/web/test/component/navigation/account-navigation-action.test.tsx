@@ -40,6 +40,10 @@ describe('ação de conta do cabeçalho', () => {
       '/perfil',
     );
     expect(screen.getByRole('menuitem', { name: 'Fazer Logout' })).toHaveClass('text-destructive');
+    expect(screen.getByRole('menuitem', { name: 'Artigos salvos' })).toHaveAttribute(
+      'href',
+      '/salvos',
+    );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
