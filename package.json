@@ -25,6 +25,7 @@
     "start:web": "pnpm --filter @vavito/web start",
     "test": "turbo run test",
     "test:e2e:public": "pnpm --filter @vavito/e2e test:public",
+    "test:e2e:auth": "pnpm --filter @vavito/e2e test:auth",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
     "test:web": "pnpm --filter @vavito/web test",
     "typecheck": "turbo run typecheck",
