@@ -3,11 +3,29 @@ import type { AuthError } from '@supabase/supabase-js';
 import { createBrowserSupabaseClient } from '@web/lib/auth/supabase/client';
 
 import type { SignInCredentials, SignUpCredentials, SignUpResult } from '../types/auth.types';
+import { signOutSession } from './session.service';
 
 export class SafeAuthError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'SafeAuthError';
+  }
+}
+
+export class PasswordSessionsSignOutError extends SafeAuthError {
+  constructor() {
+    super(
+      'Sua senha foi alterada, mas não conseguimos encerrar todas as sessões. Tente encerrar as sessões novamente.',
+    );
+    this.name = 'PasswordSessionsSignOutError';
+  }
+}
+
+export async function finishPasswordSessionSignOut(): Promise<void> {
+  try {
+    await signOutSession('global');
+  } catch {
+    throw new PasswordSessionsSignOutError();
   }
 }
 
@@ -92,7 +110,7 @@ export async function updatePassword(password: string): Promise<void> {
     throw new SafeAuthError(toSafePasswordUpdateMessage(error));
   }
 
-  await supabase.auth.signOut({ scope: 'local' });
+  await finishPasswordSessionSignOut();
 }
 
 function isRateLimitError(error: AuthError): boolean {
