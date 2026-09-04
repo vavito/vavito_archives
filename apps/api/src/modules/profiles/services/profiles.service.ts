@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { AuthAdminService } from '@api/core/auth/services/auth-admin.service';
+import { MailService } from '@api/core/mail/services/mail.service';
 import {
   AvatarStorageService,
   type AvatarUpload,
@@ -21,9 +22,10 @@ export class ProfilesService {
     private readonly profilesRepository: ProfilesRepository,
     private readonly avatarStorage: AvatarStorageService,
     private readonly authAdmin: AuthAdminService,
+    private readonly mailService: MailService,
   ) {}
 
-  async deleteAccount(profileId: string): Promise<void> {
+  async deleteAccount(profileId: string, recipient: string): Promise<void> {
     const profile = await this.profilesRepository.findById(profileId);
 
     if (!profile) {
@@ -51,6 +53,8 @@ export class ProfilesService {
     } catch (error) {
       throw new AccountDeletionException(error);
     }
+
+    await this.sendAccountDeletionNotificationBestEffort(profileId, recipient);
   }
 
   async getMe(profileId: string): Promise<ProfileResponseDto> {
@@ -124,6 +128,20 @@ export class ProfilesService {
       await this.avatarStorage.remove(path);
     } catch (error) {
       this.logger.warn(`Falha ao remover o avatar ${path}.`, error);
+    }
+  }
+
+  private async sendAccountDeletionNotificationBestEffort(
+    profileId: string,
+    recipient: string,
+  ): Promise<void> {
+    try {
+      await this.mailService.sendAccountDeletionNotification({ profileId, recipient });
+    } catch (error) {
+      this.logger.error(
+        `Falha ao enviar a confirmação de exclusão da conta ${profileId}.`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 

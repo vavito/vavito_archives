@@ -4,12 +4,25 @@ import { cache } from 'react';
 
 import { PageError } from '@web/components/feedback/page-error';
 import {
+  CommentsSection,
+  getCommentsPage,
+  type CommentsPageData,
+  type CommentViewer,
+} from '@web/features/comments';
+import { ArticleReactions, BookmarkButton } from '@web/features/engagement';
+import {
   ArticlePageContent,
   createArticleMetadata,
   createArticleStructuredData,
   getArticlePageData,
 } from '@web/features/posts';
+import { getProfile } from '@web/features/profile';
+import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
+import {
+  type AuthenticatedSession,
+  getAuthenticatedSession,
+} from '@web/lib/auth/authenticated-session';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 import { serializeStructuredData } from '@web/lib/seo/structured-data';
 
@@ -45,10 +58,18 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]'>) {
   const { slug } = await params;
+  const session = await getAuthenticatedSession();
   let data: Awaited<ReturnType<typeof getArticlePageData>>;
 
   try {
-    data = await getArticlePageDataForRoute(slug);
+    data = session
+      ? await withPageDataTimeout(() =>
+          getArticlePageData({
+            client: createWebAuthenticatedApiClient(() => session.accessToken),
+            slug,
+          }),
+        )
+      : await getArticlePageDataForRoute(slug);
   } catch {
     return (
       <PageError
@@ -66,6 +87,11 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
     permanentRedirect(`/artigos/${data.post.slug}`);
   }
 
+  const [comments, viewer] = await Promise.all([
+    getInitialComments(data.post.slug),
+    getCommentViewer(session),
+  ]);
+
   const structuredData = createArticleStructuredData(data.post);
 
   return (
@@ -74,7 +100,61 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
         dangerouslySetInnerHTML={{ __html: serializeStructuredData(structuredData) }}
         type="application/ld+json"
       />
-      <ArticlePageContent data={data} />
+      <ArticlePageContent
+        articleActions={
+          <>
+            <ArticleReactions
+              initialCounts={data.post.reactionCounts}
+              initialReaction={data.post.viewer?.reaction ?? null}
+              isAuthenticated={data.post.viewer !== null}
+              postId={data.post.id}
+              slug={data.post.slug}
+            />
+            <BookmarkButton
+              key={`${data.post.id}-${data.post.viewer?.bookmarked ?? false}`}
+              initialBookmarked={data.post.viewer?.bookmarked ?? false}
+              isAuthenticated={data.post.viewer !== null}
+              postId={data.post.id}
+              slug={data.post.slug}
+            />
+          </>
+        }
+        data={data}
+        engagement={
+          <CommentsSection
+            initialData={comments}
+            postId={data.post.id}
+            slug={data.post.slug}
+            viewer={viewer}
+          />
+        }
+      />
     </>
   );
+}
+
+async function getInitialComments(slug: string): Promise<CommentsPageData | null> {
+  try {
+    return await getCommentsPage(slug);
+  } catch {
+    return null;
+  }
+}
+
+async function getCommentViewer(
+  session: AuthenticatedSession | null,
+): Promise<CommentViewer | null> {
+  if (!session) return null;
+
+  try {
+    const profile = await getProfile(createWebAuthenticatedApiClient(() => session.accessToken));
+    return {
+      avatarUrl: profile.avatarUrl,
+      displayName: profile.displayName,
+      id: profile.id,
+      role: profile.role,
+    };
+  } catch {
+    return null;
+  }
 }

@@ -6,6 +6,7 @@ import type { ApplicationConfig } from '@api/core/config/app.config';
 import type { MailDeliveryError } from '@api/core/mail/errors/mail-delivery.error';
 import type { ResendEmailClient } from '@api/core/mail/providers/resend-email-client';
 import type {
+  AccountDeletionNotification,
   ContactMessageNotification,
   NewCommentNotification,
   NewsletterCampaignNotification,
@@ -19,6 +20,11 @@ const notification: NewCommentNotification = {
   commentId: 'df23c92d-71e4-400b-805e-975bbc3e1788',
   isReply: false,
   postTitle: 'Artigo publicado',
+};
+
+const accountDeletionNotification: AccountDeletionNotification = {
+  profileId: '2cc721a8-2db5-4e7f-b68a-d807546b5206',
+  recipient: 'leitor@example.com',
 };
 
 const contactNotification: ContactMessageNotification = {
@@ -127,6 +133,28 @@ describe('ResendService', () => {
       to: 'admin@example.com',
     });
     expect(options?.idempotencyKey).toBe(`contact-message/${contactNotification.contactMessageId}`);
+  });
+
+  it('envia a confirmação da exclusão para o antigo titular da conta', async () => {
+    send.mockResolvedValueOnce(successfulResponse('account-deletion-message-id'));
+    const service = new ResendService(client, config());
+
+    await expect(
+      service.sendAccountDeletionNotification(accountDeletionNotification),
+    ).resolves.toEqual({
+      messageId: 'account-deletion-message-id',
+      provider: 'resend',
+    });
+    const [payload, options] = send.mock.calls[0]!;
+
+    expect(payload).toMatchObject({
+      from: 'Vavito Archives <notifications@contact.vavitoarchives.com.br>',
+      subject: 'Sua conta no Vavito Archives foi excluída',
+      to: 'leitor@example.com',
+    });
+    expect(options?.idempotencyKey).toBe(
+      `account-deletion/${accountDeletionNotification.profileId}`,
+    );
   });
 
   it('repete falha transitória com a mesma chave de idempotência', async () => {

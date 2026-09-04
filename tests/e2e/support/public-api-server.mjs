@@ -93,7 +93,11 @@ function listPosts(url) {
   const orderedPosts = [...filteredPosts].sort((left, right) =>
     sort === 'popular'
       ? right.viewCount - left.viewCount
-      : right.publishedAt.localeCompare(left.publishedAt),
+      : sort === 'least-viewed'
+        ? left.viewCount - right.viewCount
+        : sort === 'oldest'
+          ? left.publishedAt.localeCompare(right.publishedAt)
+          : right.publishedAt.localeCompare(left.publishedAt),
   );
   const start = (page - 1) * limit;
 
@@ -164,7 +168,10 @@ const server = createServer((request, response) => {
       return;
     }
 
-    const post = posts.find((candidate) => candidate.slug === slug);
+    const post =
+      slug === 'leitura-longa'
+        ? { ...posts[0], slug, title: 'Leitura longa' }
+        : posts.find((candidate) => candidate.slug === slug);
 
     if (!post) {
       sendFailure(response, url.pathname, 404);
@@ -173,8 +180,23 @@ const server = createServer((request, response) => {
 
     sendJson(response, 200, {
       ...post,
-      content: articleContent,
+      content:
+        slug === 'leitura-longa'
+          ? {
+              type: 'doc',
+              content: Array.from({ length: 35 }, (_, index) => ({
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: `Etapa ${index + 1}. ${'Uma pausa para observar, registrar ideias e continuar aprendendo. '.repeat(8)}`,
+                  },
+                ],
+              })),
+            }
+          : articleContent,
       contentSchemaVersion: 1,
+      author: { avatarUrl: null, displayName: 'João Victor' },
       reactionCounts: { dislike: 0, like: 4 },
       seoDescription: null,
       seoTitle: null,

@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { ReactionType } from '@api/generated/prisma/client';
 import { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
+import { PostPublicAuthorDto } from './post-public-author.dto';
 
 export class PostReactionCountsDto {
   @ApiProperty({ example: 12, minimum: 0 })
@@ -25,6 +26,9 @@ export class PostViewerStateDto {
 }
 
 export class PostDetailResponseDto extends PostSummaryDto {
+  @ApiProperty({ type: () => PostPublicAuthorDto })
+  author!: PostPublicAuthorDto;
+
   @ApiProperty({
     additionalProperties: true,
     example: { content: [{ type: 'paragraph' }], type: 'doc' },

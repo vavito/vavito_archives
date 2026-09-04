@@ -86,6 +86,7 @@ describe('PostMapper', () => {
     const summary = PostMapper.toPublicSummary(post, responseContext);
     const detail = PostMapper.toPublicDetail(post, {
       ...responseContext,
+      author: { avatarUrl: 'https://storage.test/avatars/author.webp', displayName: 'Autora' },
       reactionCounts: { dislike: 1, like: 10 },
       viewer: { bookmarked: true, reaction: ReactionType.LIKE },
     });
@@ -100,6 +101,7 @@ describe('PostMapper', () => {
     expect(summary).not.toHaveProperty('authorId');
     expect(summary).not.toHaveProperty('editedAt');
     expect(detail).toMatchObject({
+      author: { avatarUrl: 'https://storage.test/avatars/author.webp', displayName: 'Autora' },
       content: CONTENT,
       contentSchemaVersion: 1,
       reactionCounts: { dislike: 1, like: 10 },

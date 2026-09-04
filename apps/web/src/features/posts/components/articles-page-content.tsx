@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ArticlesData } from '../types/posts.types';
 import { ArticleCard } from './article-card';
 import { ArticlesPagination } from './articles-pagination';
+import { ArticlesSortSelect } from './articles-sort-select';
 
 interface ArticlesPageContentProps {
   data: ArticlesData;
@@ -13,8 +14,20 @@ function EmptyArticles({ data }: Readonly<ArticlesPageContentProps>) {
   const isPageOutsideResult = data.filters.page > 1;
   const resetHref =
     isPageOutsideResult && data.filters.tag
-      ? ({ pathname: '/artigos', query: { tag: data.filters.tag } } as const)
-      : '/artigos';
+      ? ({
+          pathname: '/artigos',
+          query: {
+            tag: data.filters.tag,
+            ...(data.filters.sort && data.filters.sort !== 'recent'
+              ? { sort: data.filters.sort }
+              : {}),
+          },
+        } as const)
+      : ({
+          pathname: '/artigos',
+          query:
+            data.filters.sort && data.filters.sort !== 'recent' ? { sort: data.filters.sort } : {},
+        } as const);
 
   return (
     <section
@@ -61,7 +74,13 @@ export function ArticlesPageContent({ data }: Readonly<ArticlesPageContentProps>
           <Link
             aria-current={!data.filters.tag ? 'page' : undefined}
             className={cn(chipVariants({ active: !data.filters.tag }))}
-            href="/artigos"
+            href={{
+              pathname: '/artigos',
+              query:
+                data.filters.sort && data.filters.sort !== 'recent'
+                  ? { sort: data.filters.sort }
+                  : {},
+            }}
           >
             Todos
           </Link>
@@ -75,7 +94,15 @@ export function ArticlesPageContent({ data }: Readonly<ArticlesPageContentProps>
                   : `${tag.name}, ${tag.publishedPostCount} artigos`
               }
               className={cn(chipVariants({ active: data.filters.tag === tag.slug }))}
-              href={{ pathname: '/artigos', query: { tag: tag.slug } }}
+              href={{
+                pathname: '/artigos',
+                query: {
+                  tag: tag.slug,
+                  ...(data.filters.sort && data.filters.sort !== 'recent'
+                    ? { sort: data.filters.sort }
+                    : {}),
+                },
+              }}
             >
               {tag.name}
               {tag.publishedPostCount !== undefined ? (
@@ -87,6 +114,7 @@ export function ArticlesPageContent({ data }: Readonly<ArticlesPageContentProps>
       </section>
 
       <section aria-labelledby="articles-list-title" className="grid gap-7">
+        <ArticlesSortSelect sort={data.filters.sort ?? 'recent'} tag={data.filters.tag} />
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="grid gap-1">
             <h2 className="text-neutral-100 text-2xl font-semibold" id="articles-list-title">
@@ -114,6 +142,7 @@ export function ArticlesPageContent({ data }: Readonly<ArticlesPageContentProps>
       <ArticlesPagination
         currentPage={data.pagination.page}
         selectedTag={data.filters.tag}
+        sort={data.filters.sort}
         totalPages={data.pagination.totalPages}
       />
     </div>

@@ -23,7 +23,7 @@ export function SiteNavigation() {
             key={href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'text-sm transition-colors hover:text-neutral-100',
+              'motion-link text-sm hover:text-neutral-100',
               isActive ? 'text-accent' : 'text-neutral-400',
             )}
             href={href}

@@ -3,7 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import { normalizePostSearchQuery, searchPublishedPosts } from '../services/search-published-posts';
+import { normalizePostSearchQuery } from '../services/search-published-posts';
+import { searchPostsFromBrowser } from '../services/search-posts-from-browser';
 
 const POST_SEARCH_DEBOUNCE_MS = 300;
 
@@ -24,7 +25,7 @@ export function usePostSearch(query: string) {
   const debouncedQuery = useDebouncedValue(normalizedQuery, POST_SEARCH_DEBOUNCE_MS);
   const search = useQuery({
     enabled: debouncedQuery.length > 0,
-    queryFn: ({ signal }) => searchPublishedPosts({ query: debouncedQuery, signal }),
+    queryFn: ({ signal }) => searchPostsFromBrowser({ query: debouncedQuery, signal }),
     queryKey: ['posts', 'search', debouncedQuery],
   });
 

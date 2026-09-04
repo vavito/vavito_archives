@@ -3,6 +3,7 @@ import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 import { UserRole } from '@api/generated/prisma/client';
 import type { MediaService } from '@api/modules/media/services/media.service';
+import { ReactionType } from '@api/modules/engagement/domain/enums/reaction-type.enum';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
@@ -52,7 +53,7 @@ function post(status: PostStatus = PostStatus.DRAFT): Post {
 
 function aggregate(restoredPost: Post): PostAggregateRecord {
   return {
-    author: { displayName: 'Autora', id: AUTHOR_ID },
+    author: { avatarPath: null, displayName: 'Autora', id: AUTHOR_ID },
     cover: null,
     post: restoredPost,
     tags: [],
@@ -104,6 +105,11 @@ describe('PostsService', () => {
     authorizationRepository,
     fingerprintService,
     mediaService,
+    {
+      publicUrl: (path: string) => `https://storage.test/avatars/${path}`,
+      remove: jest.fn(),
+      upload: jest.fn(),
+    },
   );
 
   beforeEach(() => {
@@ -172,6 +178,7 @@ describe('PostsService', () => {
       reactionCounts: { dislike: 1, like: 4 },
       requestedSlug: 'post-antigo',
       requestedSlugIsCurrent: false,
+      viewer: null,
     });
 
     await expect(service.getPublicDetail('post-antigo')).resolves.toMatchObject({
@@ -186,6 +193,41 @@ describe('PostsService', () => {
       shouldRedirect: true,
     });
     expect(publicUrl).toHaveBeenCalledWith('2026/08/arquitetura.webp');
+    expect(findBySlug).toHaveBeenCalledWith('post-antigo', undefined);
+  });
+
+  it('inclui o estado de engajamento do leitor autenticado no detalhe público', async () => {
+    findBySlug.mockResolvedValueOnce({
+      ...aggregate(post(PostStatus.PUBLISHED)),
+      reactionCounts: { dislike: 1, like: 5 },
+      requestedSlug: 'post-original',
+      requestedSlugIsCurrent: true,
+      viewer: { bookmarked: true, reaction: ReactionType.LIKE },
+    });
+
+    await expect(service.getPublicDetail('post-original', OTHER_ID)).resolves.toMatchObject({
+      data: {
+        reactionCounts: { dislike: 1, like: 5 },
+        viewer: { bookmarked: true, reaction: ReactionType.LIKE },
+      },
+    });
+    expect(findBySlug).toHaveBeenCalledWith('post-original', OTHER_ID);
+  });
+
+  it('resolve a foto do autor sem expor id ou caminho de armazenamento no detalhe público', async () => {
+    findBySlug.mockResolvedValueOnce({
+      ...aggregate(post(PostStatus.PUBLISHED)),
+      author: { displayName: 'Autora', id: AUTHOR_ID, avatarPath: 'author/photo.webp' },
+      reactionCounts: { dislike: 0, like: 0 },
+      requestedSlug: 'post-original',
+      requestedSlugIsCurrent: true,
+      viewer: null,
+    });
+    const result = await service.getPublicDetail('post-original');
+    expect(result.data.author).toEqual({
+      displayName: 'Autora',
+      avatarUrl: 'https://storage.test/avatars/author/photo.webp',
+    });
   });
 
   it('registra fingerprint diário para uma visualização aceita', async () => {

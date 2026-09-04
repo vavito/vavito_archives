@@ -28,7 +28,7 @@ function ComponentSection({
   title: string;
 }>) {
   return (
-    <section className="bg-surface-card grid gap-6 rounded-2xl border border-border p-5 sm:p-6">
+    <section className="motion-card bg-surface-card grid gap-6 rounded-2xl border border-border p-5 sm:p-6">
       <div className="grid gap-1.5">
         <h2 className="text-neutral-100 text-lg font-semibold">{title}</h2>
         <p className="text-neutral-400 text-sm leading-relaxed">{description}</p>
@@ -42,7 +42,7 @@ export function DesignSystemDemo() {
   const [activeTopic, setActiveTopic] = useState('Todos');
 
   return (
-    <div className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+    <div className="page-route-enter page-content-sequence mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <header className="grid max-w-prose gap-4">
         <p className="text-accent text-xs font-medium tracking-eyebrow uppercase">
           Design system · Task 9.3

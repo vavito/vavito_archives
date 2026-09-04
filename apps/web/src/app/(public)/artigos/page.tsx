@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { PageError } from '@web/components/feedback/page-error';
-import { ArticlesPageContent, getArticlesData } from '@web/features/posts';
+import { ArticlesPageContent, getArticlesData, normalizeArticlesSort } from '@web/features/posts';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
@@ -11,6 +11,7 @@ const articlesDescription =
 interface ArticlesPageProps {
   searchParams: Promise<{
     page?: string | string[];
+    sort?: string | string[];
     tag?: string | string[];
   }>;
 }
@@ -35,6 +36,8 @@ export async function generateMetadata({
   const page = parsePage(firstParameter(parameters.page));
   const tag = firstParameter(parameters.tag)?.trim().toLowerCase();
   const canonicalParameters = new URLSearchParams();
+  const sort = normalizeArticlesSort(firstParameter(parameters.sort));
+  if (sort !== 'recent') canonicalParameters.set('sort', sort);
 
   if (tag) {
     canonicalParameters.set('tag', tag);
@@ -62,6 +65,7 @@ export default async function ArticlesPage({ searchParams }: Readonly<ArticlesPa
       getArticlesData({
         filters: {
           page: parsePage(firstParameter(parameters.page)),
+          sort: normalizeArticlesSort(firstParameter(parameters.sort)),
           tag: firstParameter(parameters.tag) ?? null,
         },
       }),

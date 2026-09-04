@@ -293,6 +293,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/media': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Envia uma mídia para uso editorial */
+    post: operations['adminMedia_upload'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/contact': {
     parameters: {
       query?: never;
@@ -391,23 +408,6 @@ export interface paths {
     get: operations['health_checkReadiness'];
     put?: never;
     post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/admin/media': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Envia uma mídia para uso editorial */
-    post: operations['adminMedia_upload'];
     delete?: never;
     options?: never;
     head?: never;
@@ -600,7 +600,6 @@ export interface components {
       /** @example 019c2d62-6e90-7000-8000-000000000000 */
       requestId: string;
     };
-    Object: Record<string, never>;
     CommentAuthorDto: {
       /**
        * Format: uuid
@@ -610,7 +609,7 @@ export interface components {
       /** @example Leitor do Vavito */
       displayName: string;
       /** @example https://cdn.example.com/avatars/leitor.webp */
-      avatarUrl: Record<string, never> | null;
+      avatarUrl: string | null;
     };
     CommentResponseDto: {
       /**
@@ -627,9 +626,9 @@ export interface components {
        * Format: uuid
        * @example null
        */
-      parentId: Record<string, never> | null;
+      parentId: string | null;
       /** @example Excelente explicação sobre o tema. */
-      content: Record<string, never> | null;
+      content: string | null;
       /**
        * @example VISIBLE
        * @enum {string}
@@ -647,7 +646,7 @@ export interface components {
        * Format: date-time
        * @example null
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       replies: components['schemas']['CommentResponseDto'][];
     };
     PaginationMetaDto: {
@@ -694,14 +693,14 @@ export interface components {
        * Format: uuid
        * @example null
        */
-      parentId: Record<string, never> | null;
+      parentId: string | null;
       /** @example Conteúdo em análise pela moderação. */
-      content: Record<string, never> | null;
+      content: string | null;
       /** @example HIDDEN */
       status: components['schemas']['CommentStatus'];
       author: components['schemas']['CommentAuthorDto'] | null;
       /** @example Conteúdo fora das regras da comunidade. */
-      moderationReason: Record<string, never> | null;
+      moderationReason: string | null;
       /**
        * Format: date-time
        * @example 2026-08-24T14:30:00.000Z
@@ -711,12 +710,12 @@ export interface components {
        * Format: date-time
        * @example null
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       /**
        * Format: date-time
        * @example null
        */
-      deletedAt: Record<string, never> | null;
+      deletedAt: string | null;
     };
     PaginatedAdminCommentsResponseDto: {
       items: components['schemas']['CommentAdminResponseDto'][];
@@ -731,7 +730,7 @@ export interface components {
       reason?: string;
     };
     /** @enum {string} */
-    PublicPostsSort: 'popular' | 'recent';
+    PublicPostsSort: 'least-viewed' | 'oldest' | 'popular' | 'recent';
     TagResponseDto: {
       /**
        * Format: uuid
@@ -776,6 +775,12 @@ export interface components {
       items: components['schemas']['PostSummaryDto'][];
       meta: components['schemas']['PaginationMetaDto'];
     };
+    PostPublicAuthorDto: {
+      /** @example João Victor */
+      displayName: string;
+      /** @example https://example.com/avatars/author.webp */
+      avatarUrl: string | null;
+    };
     PostReactionCountsDto: {
       /** @example 12 */
       like: number;
@@ -816,6 +821,7 @@ export interface components {
       readingTimeMinutes: number;
       /** @example 128 */
       viewCount: number;
+      author: components['schemas']['PostPublicAuthorDto'];
       /**
        * @example {
        *       "content": [
@@ -1038,6 +1044,39 @@ export interface components {
        */
       confirm: boolean;
     };
+    /** @enum {string} */
+    MediaAssetStatus: 'FAILED' | 'ORPHANED' | 'READY' | 'UPLOADING';
+    MediaResponseDto: {
+      /**
+       * Format: uuid
+       * @example 019c2d62-6e90-7000-8000-000000000020
+       */
+      id: string;
+      /** @example https://project.supabase.co/storage/v1/object/public/media/2026/08/id.webp */
+      url: string;
+      /** @example 2026/08/0198f75f-89df-4ae7-a1ec-2e7834b3021a.webp */
+      path: string;
+      /**
+       * @example image/webp
+       * @enum {string}
+       */
+      mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+      /** @example 153642 */
+      sizeBytes: number;
+      /** @example 1200 */
+      width?: Record<string, never> | null;
+      /** @example 630 */
+      height?: Record<string, never> | null;
+      /** @example Diagrama da arquitetura da aplicação */
+      altText: string;
+      /** @example READY */
+      status: components['schemas']['MediaAssetStatus'];
+      /**
+       * Format: date-time
+       * @example 2026-08-22T15:00:00.000Z
+       */
+      createdAt: string;
+    };
     CreateContactMessageDto: {
       /** @example João Victor */
       name: string;
@@ -1118,39 +1157,6 @@ export interface components {
        */
       timestamp: string;
       checks: components['schemas']['ReadinessChecksDto'];
-    };
-    /** @enum {string} */
-    MediaAssetStatus: 'FAILED' | 'ORPHANED' | 'READY' | 'UPLOADING';
-    MediaResponseDto: {
-      /**
-       * Format: uuid
-       * @example 019c2d62-6e90-7000-8000-000000000020
-       */
-      id: string;
-      /** @example https://project.supabase.co/storage/v1/object/public/media/2026/08/id.webp */
-      url: string;
-      /** @example 2026/08/0198f75f-89df-4ae7-a1ec-2e7834b3021a.webp */
-      path: string;
-      /**
-       * @example image/webp
-       * @enum {string}
-       */
-      mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-      /** @example 153642 */
-      sizeBytes: number;
-      /** @example 1200 */
-      width?: Record<string, never> | null;
-      /** @example 630 */
-      height?: Record<string, never> | null;
-      /** @example Diagrama da arquitetura da aplicação */
-      altText: string;
-      /** @example READY */
-      status: components['schemas']['MediaAssetStatus'];
-      /**
-       * Format: date-time
-       * @example 2026-08-22T15:00:00.000Z
-       */
-      createdAt: string;
     };
     /** @enum {string} */
     SubscriberConsentSource: 'ARTICLE' | 'FOOTER' | 'HOME';
@@ -1315,7 +1321,7 @@ export interface components {
       /** @example João Victor */
       displayName: string;
       /** @example https://project.supabase.co/storage/v1/object/public/avatars/id/avatar.webp */
-      avatarUrl?: Record<string, never> | null;
+      avatarUrl?: string | null;
       /** @example USER */
       role: components['schemas']['UserRole'];
       /**
@@ -1401,9 +1407,9 @@ export interface operations {
     parameters: {
       query?: {
         /** @example 1 */
-        page?: components['schemas']['Object'];
+        page?: number;
         /** @example 20 */
-        limit?: components['schemas']['Object'];
+        limit?: number;
       };
       header?: never;
       path: {
@@ -1989,7 +1995,7 @@ export interface operations {
         limit?: number;
         /** @example typescript */
         tag?: string;
-        /** @example popular */
+        /** @example least-viewed */
         sort?: components['schemas']['PublicPostsSort'];
       };
       header?: never;
@@ -3447,6 +3453,113 @@ export interface operations {
       };
     };
   };
+  adminMedia_upload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          /** @example Diagrama da arquitetura da aplicação */
+          altText: string;
+          /** Format: binary */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaResponseDto'];
+        };
+      };
+      /** @description Arquivo ou texto alternativo inválido. */
+      400: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Autenticação necessária. */
+      401: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Acesso exclusivo de administrador. */
+      403: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Arquivo maior que 10 MB. */
+      413: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Conteúdo, MIME ou extensão não suportado. */
+      415: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/admin/media",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
   contact_create: {
     parameters: {
       query?: never;
@@ -4063,113 +4176,6 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ReadinessResponseDto'];
-        };
-      };
-    };
-  };
-  adminMedia_upload: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          /** @example Diagrama da arquitetura da aplicação */
-          altText: string;
-          /** Format: binary */
-          file: string;
-        };
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['MediaResponseDto'];
-        };
-      };
-      /** @description Arquivo ou texto alternativo inválido. */
-      400: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponseDto'];
-        };
-      };
-      /** @description Autenticação necessária. */
-      401: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponseDto'];
-        };
-      };
-      /** @description Acesso exclusivo de administrador. */
-      403: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponseDto'];
-        };
-      };
-      /** @description Arquivo maior que 10 MB. */
-      413: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponseDto'];
-        };
-      };
-      /** @description Conteúdo, MIME ou extensão não suportado. */
-      415: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponseDto'];
-        };
-      };
-      /** @description Falha interna inesperada. */
-      500: {
-        headers: {
-          /** @description Identificador usado para correlacionar a requisição nos logs. */
-          'X-Request-Id'?: string;
-          [name: string]: unknown;
-        };
-        content: {
-          /**
-           * @example {
-           *       "code": "INTERNAL_ERROR",
-           *       "details": null,
-           *       "message": "Erro interno do servidor.",
-           *       "path": "/api/v1/admin/media",
-           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
-           *       "statusCode": 500,
-           *       "timestamp": "2026-08-27T20:15:00.000Z"
-           *     }
-           */
-          'application/json': components['schemas']['ErrorResponseDto'];
         };
       };
     };

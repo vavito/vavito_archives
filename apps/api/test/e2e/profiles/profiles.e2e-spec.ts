@@ -156,6 +156,6 @@ describe('ProfilesController (e2e)', () => {
       .set('authorization', 'Bearer jwt-valido')
       .send({ confirmation: 'EXCLUIR MINHA CONTA' })
       .expect(204);
-    expect(deleteAccount).toHaveBeenCalledWith(USER.id);
+    expect(deleteAccount).toHaveBeenCalledWith(USER.id, USER.email);
   });
 });

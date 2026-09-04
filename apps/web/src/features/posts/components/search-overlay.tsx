@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 
+import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+
 import { usePostSearch } from '../hooks/use-post-search';
 import { POST_SEARCH_QUERY_MAX_LENGTH } from '../services/search-published-posts';
 import type { PostSummary } from '../types/posts.types';
@@ -89,7 +91,7 @@ export function SearchOverlay() {
       <DialogTrigger asChild>
         <button
           aria-label="Buscar artigos"
-          className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm transition-colors md:min-w-44 md:justify-between"
+          className="motion-control text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm md:min-w-44 md:justify-between"
           type="button"
         >
           <span className="flex items-center gap-2">
@@ -100,7 +102,7 @@ export function SearchOverlay() {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="bg-overlay top-[min(42%,22rem)] max-w-md gap-0 overflow-hidden p-0">
+      <DialogContent className="bg-overlay max-w-md gap-0 overflow-hidden p-0">
         <DialogTitle className="sr-only">Buscar artigos</DialogTitle>
         <DialogDescription className="sr-only">
           Pesquise artigos publicados por título, resumo ou tópico.
@@ -152,7 +154,10 @@ export function SearchOverlay() {
           ) : null}
         </div>
 
-        <div aria-live="polite" className="max-h-[min(28rem,60vh)] overflow-y-auto">
+        <div
+          aria-live="polite"
+          className="max-h-[min(28rem,60vh)] overflow-x-hidden overflow-y-auto"
+        >
           {!normalizedQuery ? (
             <p className="text-neutral-500 px-5 py-8 text-center text-sm">
               Digite para encontrar artigos publicados.
@@ -160,7 +165,11 @@ export function SearchOverlay() {
           ) : null}
 
           {normalizedQuery && isSearching ? (
-            <p className="text-neutral-500 px-5 py-8 text-center text-sm" role="status">
+            <p
+              className="feedback-enter text-neutral-500 flex items-center justify-center gap-2 px-5 py-8 text-center text-sm"
+              role="status"
+            >
+              <LoadingSpinner />
               Buscando artigos…
             </p>
           ) : null}
@@ -180,7 +189,8 @@ export function SearchOverlay() {
           {normalizedQuery && !isSearching && !error && results.length > 0 ? (
             <ul
               aria-label="Resultados da busca"
-              className="divide-y divide-divider"
+              className="divide-y divide-divider overflow-x-hidden"
+              key={normalizedQuery}
               id={resultsId}
               role="listbox"
             >
@@ -193,11 +203,12 @@ export function SearchOverlay() {
                   role="option"
                 >
                   <Link
-                    className={`group grid gap-2 px-5 py-4 transition-colors ${
+                    className={`search-result-enter group grid min-w-0 gap-2 px-5 py-4 [overflow-wrap:anywhere] transition-colors duration-300 ${
                       resolvedActiveIndex === index
                         ? 'bg-surface-raised'
                         : 'hover:bg-surface-raised'
                     }`}
+                    style={{ animationDelay: `${index * 45}ms` }}
                     href={`/artigos/${post.slug}` as Route}
                     onClick={closeSearch}
                     onMouseEnter={() => setActiveIndex(index)}

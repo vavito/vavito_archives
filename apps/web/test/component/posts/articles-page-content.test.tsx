@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 import { ArticlesPageContent } from '@web/features/posts/components/articles-page-content';
 import type { ArticlesData } from '@web/features/posts/types/posts.types';
@@ -39,6 +41,18 @@ const data: ArticlesData = {
 };
 
 describe('ArticlesPageContent', () => {
+  it('mantém a ordenação nas tags e nas páginas', () => {
+    render(
+      <ArticlesPageContent data={{ ...data, filters: { ...data.filters, sort: 'oldest' } }} />,
+    );
+    expect(screen.getByRole('combobox', { name: 'Ordenar por' })).toHaveValue('oldest');
+    expect(
+      screen.getByRole('link', { name: 'TypeScript, 25 artigos' }).getAttribute('href'),
+    ).toContain('sort=oldest');
+    expect(
+      screen.getByRole('link', { name: 'Ir para a próxima página' }).getAttribute('href'),
+    ).toContain('sort=oldest');
+  });
   it('apresenta artigos, filtro ativo e paginação que preserva a tag', () => {
     render(<ArticlesPageContent data={data} />);
 

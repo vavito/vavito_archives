@@ -40,7 +40,7 @@ describe('getArticlesData', () => {
     });
 
     expect(result).toEqual({
-      filters: { page: 2, tag: 'typescript' },
+      filters: { page: 2, sort: 'recent', tag: 'typescript' },
       pagination: posts.meta,
       posts: [post],
       tags: post.tags,
@@ -65,7 +65,7 @@ describe('getArticlesData', () => {
 
     const result = await getArticlesData({ client, filters: { page: 0, tag: '  ' } });
 
-    expect(result.filters).toEqual({ page: 1, tag: null });
+    expect(result.filters).toEqual({ page: 1, sort: 'recent', tag: null });
     expect(get).toHaveBeenCalledWith('/api/v1/posts', {
       params: { query: { limit: 12, page: 1, sort: 'recent' } },
     });

@@ -27,6 +27,20 @@ O `pg_trgm` permite que PostgreSQL acelere pesquisas `LIKE` e `ILIKE` com padrõ
 
 ## Verificação do plano
 
+### Banco usado pela aplicação
+
+As migrations precisam estar aplicadas no banco configurado na API, não somente no PostgreSQL dos testes locais. Uma falha `function similarity(text, unknown) does not exist` pode indicar ausência de `pg_trgm`; confira a extensão e `prisma:migrate:status` antes de alterar SQL ou desabilitar a ordenação por relevância. Após confirmar o destino de `DIRECT_URL`, aplique as migrations pendentes com `pnpm --filter @vavito/api prisma:migrate:deploy`.
+
+### Busca no frontend
+
+O navegador consulta `GET /api/posts/search?q=...` na mesma origem do site. O Route Handler encaminha somente a pesquisa pública para a API configurada, preservando o limite de oito resultados e sem repassar credenciais do leitor. Assim, o iPhone acessando o frontend pela rede local não tenta consultar a própria porta `localhost:3001`. O cancelamento e o prazo de oito segundos encerram buscas pendentes; falhas recebem texto amigável.
+
+### Ordenação da listagem
+
+`GET /api/v1/posts` aceita `sort=recent` (padrão), `oldest`, `popular` e `least-viewed`. Data e visualizações são ordenadas no banco **antes** da paginação, com desempate por `id ASC`. A página Artigos preserva a ordenação ao trocar de tópico ou página; trocar a ordenação volta à primeira página.
+
+### Medição
+
 Atualize as estatísticas antes de medir uma base representativa:
 
 ```sql

@@ -1,3 +1,8 @@
+export interface AccountDeletionNotification {
+  profileId: string;
+  recipient: string;
+}
+
 export interface NewCommentNotification {
   authorDisplayName: string;
   commentContent: string;
@@ -39,6 +44,9 @@ export interface MailDelivery {
 }
 
 export abstract class MailService {
+  abstract sendAccountDeletionNotification(
+    notification: AccountDeletionNotification,
+  ): Promise<MailDelivery>;
   abstract sendContactMessageNotification(
     notification: ContactMessageNotification,
   ): Promise<MailDelivery>;

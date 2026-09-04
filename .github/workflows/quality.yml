@@ -117,11 +117,17 @@ jobs:
       - name: Executar testes do frontend
         run: pnpm turbo run test --filter=@vavito/web...
 
+      - name: Validar infraestrutura dos testes de navegador
+        run: pnpm --filter @vavito/e2e lint && pnpm --filter @vavito/e2e test
+
       - name: Instalar navegador dos testes públicos
-        run: pnpm --filter @vavito/e2e exec playwright install --with-deps chromium
+        run: pnpm --filter @vavito/e2e exec playwright install --with-deps chromium webkit
 
       - name: Executar fluxos públicos no navegador
         run: pnpm test:e2e:public
+
+      - name: Executar fluxos autenticados com contas isoladas
+        run: pnpm test:e2e:auth
 
       - name: Validar lint, tipos e build Vercel
         run: pnpm turbo run lint typecheck build --filter=@vavito/web...

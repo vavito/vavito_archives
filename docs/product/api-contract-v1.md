@@ -204,6 +204,7 @@ interface PostSummaryDto {
 }
 
 interface PostDetailResponseDto extends PostSummaryDto {
+  author: { displayName: string; avatarUrl: string | null };
   content: Record<string, unknown>;
   contentSchemaVersion: number;
   seoTitle: string | null;
@@ -233,7 +234,10 @@ interface UpdatePostDto {
 }
 ```
 
-`PostAdminDetailDto` acrescenta `status`, `author`, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
+O detalhe do artigo permanece público. Quando recebe um Bearer token válido, preenche `viewer`
+com a reação e o bookmark do leitor; sem autenticação, retorna `viewer: null`.
+
+O autor público expõe somente nome e URL pública do avatar, sem email, ID ou caminho interno de armazenamento. `PostAdminDetailDto` inclui `status`, identificação administrativa do autor, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
 
 Tags são normalizadas e associadas a partir de `tagNames`. A V1 não exige CRUD administrativo separado para tags.
 
@@ -391,7 +395,7 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 
 | Método | Caminho | Acesso | Request | Sucesso |
 | --- | --- | --- | --- | --- |
-| `GET` | `/posts` | Público | `page`, `limit`, `tag`, `sort=recent\|popular` | `200 Paginated<PostSummaryDto>`. |
+| `GET` | `/posts` | Público | `page`, `limit`, `tag`, `sort=recent\|oldest\|popular\|least-viewed` | `200 Paginated<PostSummaryDto>`. |
 | `GET` | `/posts/search` | Público limitado | `q` | `200 PostSummaryDto[]` com até 8 itens. |
 | `GET` | `/posts/:slug` | Público | slug | `200 PostDetailResponseDto`. |
 | `POST` | `/posts/:slug/views` | Público limitado | sinal técnico não identificador | `202`; não bloqueia a leitura. |
@@ -448,6 +452,13 @@ A criação de comentários aplica inicialmente o limite de `5` publicações po
 | `DELETE` | `/posts/:id/bookmark` | Autenticado | — | `204`; remove e permanece idempotente. |
 
 O clique repetido no frontend usa `DELETE` quando a reação ou bookmark já está ativo.
+
+A página `/salvos` consulta a biblioteca do leitor autenticado, sem cache compartilhado, em páginas
+de 12 artigos. A listagem inclui apenas artigos publicados e é ordenada pelo salvamento mais
+recente, com desempate estável. Sem sessão, o acesso solicita login; uma biblioteca vazia apresenta
+um convite para explorar artigos, enquanto falhas de consulta exibem erro com nova tentativa.
+Salvar ou remover revalida tanto a biblioteca quanto o detalhe do artigo. Ao remover o último
+item de uma página posterior, a navegação retorna à última página disponível.
 
 ### Newsletter e campanhas
 

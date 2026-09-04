@@ -135,7 +135,7 @@ Para validar a configuração antes da implementação completa do fluxo de aute
 5. confirmar que o usuário passa a constar como verificado;
 6. entrar com email e senha e confirmar a criação da sessão.
 
-A configuração foi validada em desenvolvimento com os fluxos de confirmação de cadastro e recuperação de senha. Nos dois casos, o Resend entregou o email autenticado pelo domínio e o Supabase redirecionou o navegador para uma URL local autorizada. As páginas que concluem esses fluxos no frontend serão implementadas em tasks posteriores.
+A configuração foi validada em desenvolvimento com os fluxos de confirmação de cadastro e recuperação de senha. Nos dois casos, o Resend entregou o email autenticado pelo domínio e o Supabase redirecionou o navegador para uma URL local autorizada.
 
 ## Dados sensíveis
 
@@ -165,4 +165,35 @@ Os callbacks públicos são:
 - `GET /auth/callback`, que troca o código PKCE pela sessão;
 - `GET /auth/confirm`, que valida o `token_hash` de confirmação, convite, magic link ou recuperação.
 
+Depois que a confirmação do cadastro estabelece uma sessão válida, `/auth/confirmed` apresenta uma etapa dedicada informando que o email foi confirmado e que a conta está pronta. O leitor decide quando seguir para o próprio perfil pelo botão `Acessar minha conta`; a confirmação não o leva silenciosamente direto para essa página.
+
 O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gravam ou renovam cookies de autenticação usam cache privado para impedir que uma sessão seja reutilizada por outro visitante.
+
+## Cadastro e entrada no frontend
+
+A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão. Em seguida, o navegador abre `/auth/confirmed` para comunicar claramente que o email foi confirmado e permitir que o leitor acesse a conta.
+
+Depois de um cadastro que exige confirmação, o formulário é substituído por um estado dedicado que identifica o endereço informado e orienta a abertura do email. O reenvio do link é liberado após 60 segundos e mantém uma resposta segura, sem revelar se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
+
+## Recuperação e alteração de senha no frontend
+
+A entrada oferece acesso a `/auth/forgot-password`, onde o leitor informa o email para solicitar a recuperação. A resposta exibida é a mesma quando a conta existe ou não, evitando confirmar publicamente quais endereços estão cadastrados.
+
+O email direciona primeiro para um callback autorizado. O callback valida o código PKCE ou o token de recuperação, estabelece uma sessão temporária em cookies privados e permite seguir apenas para o caminho interno `/auth/reset-password`. Links inválidos ou expirados produzem feedback amigável e não expõem detalhes do provedor.
+
+Na redefinição, a nova senha precisa atender à política da aplicação e ser confirmada antes do envio. A alteração é aceita somente quando há uma sessão válida. Depois de atualizar a senha, o frontend solicita `signOut({ scope: 'global' })`: encerra a sessão atual e revoga a renovação das sessões em todos os dispositivos.
+
+Tokens de acesso já emitidos continuam válidos até expirar (3600 segundos na configuração atual). O logout global não representa revogação imediata de cada JWT. Não foram adicionadas consultas online de sessão a cada chamada da API. Referência: [logout no Supabase](https://supabase.com/docs/guides/auth/signout).
+
+Se a senha for alterada, mas a solicitação de logout falhar, a interface informa o sucesso parcial e oferece **Encerrar sessões**. Essa tentativa repete somente o logout global, sem reenviar a senha. O retorno para o login com sucesso ocorre apenas após o encerramento confirmado.
+
+O perfil oferece **Fazer Logout** somente no mobile, com spinner, bloqueio enquanto aguarda e feedback flutuante se falhar. No desktop, a saída permanece no menu da conta no cabeçalho. A saída comum do perfil ou do menu encerra apenas a sessão atual (`local`), sem desconectar outros dispositivos.
+
+O fluxo manual esperado em ambiente real é:
+
+1. solicitar a recuperação usando um email cadastrado;
+2. abrir o link entregue pelo Resend;
+3. definir e confirmar uma nova senha;
+4. confirmar o retorno para a entrada com mensagem de sucesso;
+5. entrar com a nova senha e confirmar que a anterior não é mais aceita.
+6. em outro dispositivo previamente autenticado, confirmar que a renovação da sessão foi revogada; um token de acesso ainda válido pode funcionar até sua expiração.

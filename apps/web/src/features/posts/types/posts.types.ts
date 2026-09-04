@@ -24,6 +24,7 @@ export interface TiptapNode {
 
 export interface ArticlesFilters {
   page: number;
+  sort?: components['schemas']['PublicPostsSort'];
   tag: string | null;
 }
 

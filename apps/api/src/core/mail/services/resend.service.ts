@@ -3,6 +3,7 @@ import { MailDeliveryError } from '@api/core/mail/errors/mail-delivery.error';
 import { MAIL_RETRY_BASE_DELAY_MS, RESEND_EMAIL_CLIENT } from '@api/core/mail/mail.constants';
 import type { ResendEmailClient } from '@api/core/mail/providers/resend-email-client';
 import {
+  type AccountDeletionNotification,
   type ContactMessageNotification,
   type MailDelivery,
   MailService,
@@ -10,6 +11,7 @@ import {
   type NewsletterCampaignNotification,
   type NewsletterConfirmationNotification,
 } from '@api/core/mail/services/mail.service';
+import { accountDeletionEmailTemplate } from '@api/core/mail/templates/account-deletion-email.template';
 import { contactMessageEmailTemplate } from '@api/core/mail/templates/contact-message-email.template';
 import { newCommentEmailTemplate } from '@api/core/mail/templates/new-comment-email.template';
 import { newsletterCampaignDeliveryTemplate } from '@api/core/mail/templates/newsletter-campaign-email.template';
@@ -34,6 +36,24 @@ export class ResendService implements MailService {
     this.mailConfig = configService.get('resend', { infer: true });
     this.frontendUrl = configService.get('app.frontendUrl', { infer: true });
     this.moderationUrl = new URL('/admin/comments', this.frontendUrl).toString();
+  }
+
+  async sendAccountDeletionNotification(
+    notification: AccountDeletionNotification,
+  ): Promise<MailDelivery> {
+    const template = accountDeletionEmailTemplate();
+
+    return this.sendWithRetry(
+      {
+        from: this.mailConfig.contactFrom,
+        html: template.html,
+        replyTo: this.mailConfig.replyTo,
+        subject: template.subject,
+        text: template.text,
+        to: notification.recipient,
+      },
+      `account-deletion/${notification.profileId}`,
+    );
   }
 
   async sendContactMessageNotification(

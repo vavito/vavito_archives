@@ -7,7 +7,7 @@ export function PageLoading({ label = 'Carregando conteúdo' }: Readonly<PageLoa
     <div
       aria-busy="true"
       aria-label={label}
-      className="mx-auto grid w-full max-w-3xl animate-pulse gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-20"
+      className="page-state-enter mx-auto grid w-full max-w-3xl animate-pulse gap-10 px-4 py-12 sm:px-6 lg:px-8 lg:py-20"
       role="status"
     >
       <div className="grid gap-4">

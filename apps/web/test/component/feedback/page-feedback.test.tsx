@@ -32,7 +32,7 @@ describe('feedback de página', () => {
     fireEvent.click(retryButton);
 
     expect(screen.getByRole('button', { name: 'Tentando novamente…' })).toBeDisabled();
-    expect(retryButton.querySelector('svg')).toHaveClass('retry-icon-spinning');
+    expect(retryButton.querySelector('svg')).toHaveClass('counterclockwise-spinner');
     expect(retry).not.toHaveBeenCalled();
 
     act(() => {

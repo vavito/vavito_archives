@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 import { subscribeToNewsletter } from '../services/subscribe-newsletter';
+import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
 type SubmissionState =
   { status: 'idle' } | { message: string; status: 'error' | 'success' } | { status: 'submitting' };
@@ -52,7 +53,7 @@ export function NewsletterSignup() {
   return (
     <section
       aria-labelledby="newsletter-title"
-      className="bg-surface-card grid gap-6 rounded-3xl border border-border p-6 sm:p-8"
+      className="motion-card bg-surface-card grid gap-6 rounded-3xl border border-border p-6 sm:p-8"
     >
       <div className="grid max-w-prose gap-3">
         <p className="text-accent font-mono text-xs tracking-eyebrow uppercase">Newsletter</p>
@@ -77,6 +78,7 @@ export function NewsletterSignup() {
             type="email"
           />
           <Button className="w-full sm:w-auto" disabled={isSubmitting} size="large" type="submit">
+            {isSubmitting ? <LoadingSpinner /> : null}
             {isSubmitting ? 'Enviando…' : 'Quero receber'}
             {!isSubmitting ? <ArrowRight aria-hidden="true" /> : null}
           </Button>
@@ -96,7 +98,7 @@ export function NewsletterSignup() {
         {state.status === 'success' ? (
           <p
             aria-live="polite"
-            className="text-accent flex items-center gap-2 text-sm"
+            className="feedback-enter text-accent flex items-center gap-2 text-sm"
             role="status"
           >
             <CheckCircle2 aria-hidden="true" className="size-4" />
@@ -104,7 +106,7 @@ export function NewsletterSignup() {
           </p>
         ) : null}
         {state.status === 'error' ? (
-          <p aria-live="assertive" className="text-destructive text-sm" role="alert">
+          <p aria-live="assertive" className="feedback-enter text-destructive text-sm" role="alert">
             {state.message}
           </p>
         ) : null}

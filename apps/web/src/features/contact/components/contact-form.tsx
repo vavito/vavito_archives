@@ -5,6 +5,8 @@ import { Button, Input, Textarea } from '@vavito/ui';
 import { CheckCircle2, Send } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
+import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+
 import { CONTACT_LIMITS, validateContactMessage } from '../schemas/contact-message.schema';
 import { sendContactMessage } from '../services/send-contact-message';
 import type { ContactField, ContactFieldErrors } from '../types/contact.types';
@@ -71,7 +73,7 @@ export function ContactForm() {
 
   return (
     <form
-      className="bg-surface-card grid gap-5 rounded-3xl border border-border p-5 sm:p-7"
+      className="motion-card bg-surface-card grid gap-5 rounded-3xl border border-border p-5 sm:p-7"
       noValidate
       onSubmit={(event) => void handleSubmit(event)}
     >
@@ -116,19 +118,24 @@ export function ContactForm() {
           A resposta será enviada para o e-mail informado.
         </p>
         <Button className="w-full sm:w-auto" disabled={isSubmitting} size="large" type="submit">
+          {isSubmitting ? <LoadingSpinner /> : null}
           {isSubmitting ? 'Enviando…' : 'Enviar mensagem'}
           {!isSubmitting ? <Send aria-hidden="true" /> : null}
         </Button>
       </div>
 
       {state.status === 'success' ? (
-        <p aria-live="polite" className="text-accent flex items-center gap-2 text-sm" role="status">
+        <p
+          aria-live="polite"
+          className="feedback-enter text-accent flex items-center gap-2 text-sm"
+          role="status"
+        >
           <CheckCircle2 aria-hidden="true" className="size-4" />
           {state.message}
         </p>
       ) : null}
       {state.status === 'error' ? (
-        <p aria-live="assertive" className="text-destructive text-sm" role="alert">
+        <p aria-live="assertive" className="feedback-enter text-destructive text-sm" role="alert">
           {state.message}
         </p>
       ) : null}

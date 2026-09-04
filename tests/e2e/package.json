@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "eslint . --max-warnings=0",
     "test": "node --test src/*.test.mjs",
-    "test:public": "playwright test --config playwright.config.mjs"
+    "test:public": "playwright test --config playwright.config.mjs",
+    "test:auth": "playwright test --config auth.playwright.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

@@ -13,7 +13,10 @@ export function NotFoundPage({
 }: Readonly<NotFoundPageProps>) {
   return (
     <div className="mx-auto grid min-h-[55vh] w-full max-w-reading place-items-center px-4 py-16 sm:px-6">
-      <section aria-labelledby="not-found-title" className="grid max-w-md gap-4 text-center">
+      <section
+        aria-labelledby="not-found-title"
+        className="page-state-enter grid max-w-md gap-4 text-center"
+      >
         <p className="text-accent font-mono text-xs tracking-eyebrow uppercase">Erro 404</p>
         <h1 className="text-neutral-100 text-2xl font-semibold" id="not-found-title">
           {title}

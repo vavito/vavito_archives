@@ -12,6 +12,7 @@ export class ProfileResponseDto {
   @ApiPropertyOptional({
     example: 'https://project.supabase.co/storage/v1/object/public/avatars/id/avatar.webp',
     nullable: true,
+    type: String,
   })
   avatarUrl!: string | null;
 

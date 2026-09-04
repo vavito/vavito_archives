@@ -53,5 +53,11 @@ describe('HomePageContent', () => {
     );
     expect(screen.getByText('Nenhum artigo publicado neste recorte.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ler Arquitetura NestJS' })).toBeInTheDocument();
+
+    const popularHeading = screen.getByRole('heading', { name: 'Mais acessados' });
+    const articlesCount = screen.getByText('Artigos publicados');
+    expect(
+      popularHeading.compareDocumentPosition(articlesCount) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

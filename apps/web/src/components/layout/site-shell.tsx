@@ -1,6 +1,6 @@
-import { cn } from '@vavito/ui';
 import type { ReactNode } from 'react';
 
+import { RouteMotion } from '../feedback/route-motion';
 import { MobileNavigation } from '../navigation/mobile-navigation';
 import { SiteFooter } from './site-footer';
 import { SiteHeader } from './site-header';
@@ -20,8 +20,8 @@ export function SiteShell({ children, contentClassName }: Readonly<SiteShellProp
         Pular para o conteúdo
       </a>
       <SiteHeader />
-      <main className={cn('flex flex-1 flex-col', contentClassName)} id="main-content">
-        {children}
+      <main className="flex flex-1 flex-col" id="main-content">
+        <RouteMotion className={contentClassName}>{children}</RouteMotion>
       </main>
       <SiteFooter />
       <MobileNavigation />

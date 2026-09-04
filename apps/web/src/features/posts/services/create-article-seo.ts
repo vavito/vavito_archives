@@ -37,7 +37,7 @@ export function createArticleMetadata(post: PostDetail): Metadata {
     description,
     keywords: post.tags.map((tag) => tag.name),
     openGraph: {
-      authors: [SITE_AUTHOR],
+      authors: [post.author.displayName],
       description,
       images: socialImages,
       locale: SITE_LOCALE,
@@ -66,7 +66,7 @@ export function createArticleStructuredData(post: PostDetail) {
     '@type': 'Article',
     author: {
       '@type': 'Person',
-      name: SITE_AUTHOR,
+      name: post.author.displayName,
       url: SITE_URL.toString(),
     },
     datePublished: post.publishedAt,

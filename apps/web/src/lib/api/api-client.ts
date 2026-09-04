@@ -15,10 +15,13 @@ export function createWebPublicApiClient(): ApiClient {
   });
 }
 
-export function createWebAuthenticatedApiClient(getAccessToken: AccessTokenProvider): ApiClient {
+export function createWebAuthenticatedApiClient(
+  getAccessToken: AccessTokenProvider,
+  requestTimeoutMs = WEB_API_REQUEST_TIMEOUT_MS,
+): ApiClient {
   return createAuthenticatedApiClient({
     baseUrl: getApiBaseUrl(),
     getAccessToken,
-    requestTimeoutMs: WEB_API_REQUEST_TIMEOUT_MS,
+    requestTimeoutMs,
   });
 }

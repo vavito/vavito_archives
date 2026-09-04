@@ -1,3 +1,5 @@
 import { nextjsConfig } from '@vavito/eslint-config';
 
-export default nextjsConfig;
+const config = [...nextjsConfig, { ignores: ['.next-e2e/**'] }];
+
+export default config;

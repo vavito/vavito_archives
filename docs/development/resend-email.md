@@ -61,6 +61,8 @@ Notificações de novo comentário usam a chave de idempotência `new-comment/<c
 
 Mensagens de contato usam `contact-message/<contactMessageId>`. A mensagem é persistida antes do envio; o log relaciona seu ID interno ao ID aceito pelo Resend sem registrar o email ou o conteúdo do visitante. O fluxo completo está documentado em `docs/development/contact-messages.md`.
 
+Confirmações de exclusão de conta usam `account-deletion/<profileId>`. O envio acontece depois da remoção da identidade e uma falha de entrega não desfaz nem altera o resultado da exclusão.
+
 Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
 
 O processamento assinado de delivered, bounce, complaint e falhas técnicas está documentado em `docs/development/resend-webhooks.md`.
