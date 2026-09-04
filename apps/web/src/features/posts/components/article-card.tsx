@@ -4,6 +4,7 @@ import type { Route } from 'next';
 import Link from 'next/link';
 
 import type { PostSummary } from '../types/posts.types';
+import { ArticleCoverImage } from './article-cover-image';
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -35,6 +36,15 @@ export function ArticleCard({
         className="grid min-w-0 gap-3 [overflow-wrap:anywhere]"
         href={`/artigos/${post.slug}` as Route}
       >
+        {post.coverUrl ? (
+          <ArticleCoverImage
+            alt={post.coverAlt}
+            className="mb-1 rounded-xl border border-border"
+            src={post.coverUrl}
+            title={post.title}
+          />
+        ) : null}
+
         <div
           className={cn(
             'text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]',
