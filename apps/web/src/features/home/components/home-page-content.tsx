@@ -130,9 +130,9 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
           title="Mais acessados"
         />
         {data.popularPosts.length > 0 ? (
-          <div className="bg-surface-card rounded-2xl border border-border px-5 py-1 sm:px-6">
+          <div className="bg-surface-card rounded-2xl border border-border p-3 sm:p-4">
             {data.popularPosts.map((post) => (
-              <ArticleCard compact key={post.id} post={post} />
+              <ArticleCard compact metadataPosition="bottom" key={post.id} post={post} />
             ))}
           </div>
         ) : (
