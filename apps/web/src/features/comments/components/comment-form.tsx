@@ -5,6 +5,7 @@ import { Send } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+import { useCommentTextarea } from '../hooks/use-comment-textarea';
 
 import {
   COMMENT_LIMITS,
@@ -35,6 +36,7 @@ export function CommentForm({
 }: Readonly<CommentFormProps>) {
   const [content, setContent] = useState(initialContent);
   const [error, setError] = useState<string | null>(null);
+  const textareaRef = useCommentTextarea(content);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,10 +53,15 @@ export function CommentForm({
   }
 
   return (
-    <form className="grid gap-3" noValidate onSubmit={(event) => void handleSubmit(event)}>
+    <form
+      className="grid min-w-0 gap-3 [&>div]:min-w-0"
+      noValidate
+      onSubmit={(event) => void handleSubmit(event)}
+    >
       <Textarea
+        ref={textareaRef}
         autoFocus={autoFocus}
-        className="min-h-28"
+        className="min-h-28 max-w-full resize-none overflow-y-auto [overflow-wrap:anywhere]"
         disabled={isPending}
         error={error}
         label={label}
