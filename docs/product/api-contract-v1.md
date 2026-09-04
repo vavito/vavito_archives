@@ -204,6 +204,7 @@ interface PostSummaryDto {
 }
 
 interface PostDetailResponseDto extends PostSummaryDto {
+  author: { displayName: string; avatarUrl: string | null };
   content: Record<string, unknown>;
   contentSchemaVersion: number;
   seoTitle: string | null;
@@ -236,7 +237,7 @@ interface UpdatePostDto {
 O detalhe do artigo permanece público. Quando recebe um Bearer token válido, preenche `viewer`
 com a reação e o bookmark do leitor; sem autenticação, retorna `viewer: null`.
 
-`PostAdminDetailDto` acrescenta `status`, `author`, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
+O autor público expõe somente nome e URL pública do avatar, sem email, ID ou caminho interno de armazenamento. `PostAdminDetailDto` inclui `status`, identificação administrativa do autor, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
 
 Tags são normalizadas e associadas a partir de `tagNames`. A V1 não exige CRUD administrativo separado para tags.
 
@@ -394,7 +395,7 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 
 | Método | Caminho | Acesso | Request | Sucesso |
 | --- | --- | --- | --- | --- |
-| `GET` | `/posts` | Público | `page`, `limit`, `tag`, `sort=recent\|popular` | `200 Paginated<PostSummaryDto>`. |
+| `GET` | `/posts` | Público | `page`, `limit`, `tag`, `sort=recent\|oldest\|popular\|least-viewed` | `200 Paginated<PostSummaryDto>`. |
 | `GET` | `/posts/search` | Público limitado | `q` | `200 PostSummaryDto[]` com até 8 itens. |
 | `GET` | `/posts/:slug` | Público | slug | `200 PostDetailResponseDto`. |
 | `POST` | `/posts/:slug/views` | Público limitado | sinal técnico não identificador | `202`; não bloqueia a leitura. |
