@@ -11,19 +11,19 @@ export async function getAuthenticatedSession(): Promise<AuthenticatedSession | 
   const supabase = await createServerSupabaseClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
-  if (claimsError || !claimsData?.claims.sub) {
+  if (claimsError || !claimsData?.claims.sub || typeof claimsData.claims.email !== 'string') {
     return null;
   }
 
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   const session = sessionData.session;
 
-  if (sessionError || !session?.access_token || !session.user.email) {
+  if (sessionError || !session?.access_token) {
     return null;
   }
 
   return {
     accessToken: session.access_token,
-    email: session.user.email,
+    email: claimsData.claims.email,
   };
 }
