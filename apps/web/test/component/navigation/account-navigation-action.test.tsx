@@ -59,4 +59,16 @@ describe('ação de conta do cabeçalho', () => {
       expect(navigationMocks.refresh).toHaveBeenCalled();
     });
   });
+
+  it('permite repetir a saída quando a conexão falha sem expor detalhes', async () => {
+    navigationMocks.signOut.mockRejectedValueOnce(new Error('fetch failed with private details'));
+    render(<AccountNavigationAction account={{ avatarUrl: null, displayName: 'João Victor' }} />);
+    fireEvent.click(screen.getByRole('button', { name: /João Victor/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Fazer Logout' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível sair agora. Tente novamente.',
+    );
+    expect(navigationMocks.replace).not.toHaveBeenCalled();
+    expect(screen.getByRole('menuitem', { name: 'Fazer Logout' })).toBeEnabled();
+  });
 });

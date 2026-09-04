@@ -9,6 +9,7 @@ const profileMocks = vi.hoisted(() => ({
   removeProfileAvatar: vi.fn(),
   updateProfileName: vi.fn(),
   uploadProfileAvatar: vi.fn(),
+  signOutSession: vi.fn(),
 }));
 
 const routerMocks = vi.hoisted(() => ({
@@ -19,6 +20,8 @@ const routerMocks = vi.hoisted(() => ({
 vi.mock('next/navigation', () => ({
   useRouter: () => routerMocks,
 }));
+
+vi.mock('@web/features/auth', () => ({ signOutSession: profileMocks.signOutSession }));
 
 vi.mock('@web/features/profile/services/profile.service', () => ({
   SafeProfileActionError: class SafeProfileActionError extends Error {},
@@ -43,6 +46,7 @@ describe('conteúdo da página de perfil', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     profileMocks.clearDeletedAccountSession.mockResolvedValue(undefined);
+    profileMocks.signOutSession.mockResolvedValue(undefined);
     profileMocks.deleteProfileAccount.mockResolvedValue(undefined);
     profileMocks.removeProfileAvatar.mockResolvedValue(undefined);
     profileMocks.updateProfileName.mockResolvedValue(initialProfile);
@@ -57,10 +61,39 @@ describe('conteúdo da página de perfil', () => {
 
     expect(screen.getByDisplayValue('João Victor')).toBeInTheDocument();
     expect(screen.getByText('leitor@example.com')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fazer Logout' })).toHaveClass('sm:hidden');
     expect(screen.getByRole('link', { name: 'Alterar senha' })).toHaveAttribute(
       'href',
       '/auth/forgot-password',
     );
+  });
+
+  it('oferece logout no perfil com loading e retorna à página inicial', async () => {
+    let finish!: () => void;
+    profileMocks.signOutSession.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    render(<ProfilePageContent email="leitor@example.com" initialProfile={initialProfile} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Fazer Logout' }));
+    expect(screen.getByRole('button', { name: 'Saindo…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Salvar nome' })).toBeDisabled();
+    finish();
+    await waitFor(() => expect(routerMocks.replace).toHaveBeenCalledWith('/'));
+    expect(routerMocks.refresh).toHaveBeenCalled();
+  });
+
+  it('mantém a página e permite repetir o logout quando há falha', async () => {
+    profileMocks.signOutSession.mockRejectedValueOnce(new Error('private technical details'));
+    render(<ProfilePageContent email="leitor@example.com" initialProfile={initialProfile} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Fazer Logout' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível sair agora. Tente novamente.',
+    );
+    expect(routerMocks.replace).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Fazer Logout' })).toBeEnabled();
   });
 
   it('valida e normaliza o nome antes de atualizar o perfil', async () => {
