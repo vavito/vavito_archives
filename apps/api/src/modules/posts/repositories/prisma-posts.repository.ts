@@ -403,7 +403,9 @@ export class PrismaPostsRepository implements PostsRepository {
     const orderBy: Prisma.PostOrderByWithRelationInput[] =
       filters.sort === 'popular'
         ? [{ viewsCount: 'desc' }, { id: 'asc' }]
-        : [{ publishedAt: 'desc' }, { id: 'asc' }];
+        : filters.sort === 'least-viewed'
+          ? [{ viewsCount: 'asc' }, { id: 'asc' }]
+          : [{ publishedAt: filters.sort === 'oldest' ? 'asc' : 'desc' }, { id: 'asc' }];
 
     const [total, records] = await this.prisma.$transaction([
       this.prisma.post.count({ where }),

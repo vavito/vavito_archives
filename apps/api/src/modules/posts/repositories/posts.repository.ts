@@ -86,7 +86,7 @@ export interface PostRevisionRecord {
 export interface PublicPostsFilters {
   limit: number;
   page: number;
-  sort: 'popular' | 'recent';
+  sort: 'popular' | 'recent' | 'oldest' | 'least-viewed';
   tag?: string;
 }
 
