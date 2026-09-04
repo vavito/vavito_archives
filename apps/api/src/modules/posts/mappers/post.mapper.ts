@@ -19,6 +19,7 @@ import type {
   PostViewerStateDto,
 } from '@api/modules/posts/dto/response/post-detail-response.dto';
 import type { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
+import type { PostPublicAuthorDto } from '@api/modules/posts/dto/response/post-public-author.dto';
 import type { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
 import type {
   AdminPostSummaryRecord,
@@ -45,6 +46,7 @@ export interface PostResponseContext {
 }
 
 export interface PostDetailResponseContext extends PostResponseContext {
+  author: PostPublicAuthorDto;
   reactionCounts: {
     dislike: number;
     like: number;
@@ -179,7 +181,7 @@ export class PostMapper {
 
   static fromAdminSummaryRecord(record: AdminPostSummaryRecord): PostAdminSummaryDto {
     return {
-      author: { ...record.author },
+      author: { displayName: record.author.displayName, id: record.author.id },
       editedAt: toNullableIso(record.editedAt),
       id: record.id,
       publishedAt: toNullableIso(record.publishedAt),
@@ -204,8 +206,10 @@ export class PostMapper {
   static fromSlugLookupToPublicDetail(
     record: PostSlugLookupRecord,
     coverUrl: string | null = null,
+    avatarUrl: string | null = null,
   ): PostDetailResponseDto {
     return this.toPublicDetail(record.post, {
+      author: { avatarUrl, displayName: record.author.displayName },
       cover: coverView(record.cover, coverUrl),
       reactionCounts: record.reactionCounts,
       tags: responseTags(record.tags),
@@ -243,6 +247,7 @@ export class PostMapper {
   static toPublicDetail(post: Post, context: PostDetailResponseContext): PostDetailResponseDto {
     return {
       ...this.toPublicSummary(post, context),
+      author: { ...context.author },
       content: cloneContent(post),
       contentSchemaVersion: post.contentSchemaVersion,
       reactionCounts: { ...context.reactionCounts },
@@ -254,7 +259,7 @@ export class PostMapper {
 
   static toAdminSummary(post: Post, context: PostAdminResponseContext): PostAdminSummaryDto {
     return {
-      author: { ...context.author },
+      author: { displayName: context.author.displayName, id: context.author.id },
       editedAt: toNullableIso(post.editedAt),
       id: post.id,
       publishedAt: toNullableIso(post.publishedAt),
