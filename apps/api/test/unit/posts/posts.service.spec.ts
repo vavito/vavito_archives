@@ -53,7 +53,7 @@ function post(status: PostStatus = PostStatus.DRAFT): Post {
 
 function aggregate(restoredPost: Post): PostAggregateRecord {
   return {
-    author: { displayName: 'Autora', id: AUTHOR_ID },
+    author: { avatarPath: null, displayName: 'Autora', id: AUTHOR_ID },
     cover: null,
     post: restoredPost,
     tags: [],
@@ -105,6 +105,11 @@ describe('PostsService', () => {
     authorizationRepository,
     fingerprintService,
     mediaService,
+    {
+      publicUrl: (path: string) => `https://storage.test/avatars/${path}`,
+      remove: jest.fn(),
+      upload: jest.fn(),
+    },
   );
 
   beforeEach(() => {
@@ -207,6 +212,22 @@ describe('PostsService', () => {
       },
     });
     expect(findBySlug).toHaveBeenCalledWith('post-original', OTHER_ID);
+  });
+
+  it('resolve a foto do autor sem expor id ou caminho de armazenamento no detalhe público', async () => {
+    findBySlug.mockResolvedValueOnce({
+      ...aggregate(post(PostStatus.PUBLISHED)),
+      author: { displayName: 'Autora', id: AUTHOR_ID, avatarPath: 'author/photo.webp' },
+      reactionCounts: { dislike: 0, like: 0 },
+      requestedSlug: 'post-original',
+      requestedSlugIsCurrent: true,
+      viewer: null,
+    });
+    const result = await service.getPublicDetail('post-original');
+    expect(result.data.author).toEqual({
+      displayName: 'Autora',
+      avatarUrl: 'https://storage.test/avatars/author/photo.webp',
+    });
   });
 
   it('registra fingerprint diário para uma visualização aceita', async () => {

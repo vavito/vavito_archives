@@ -26,6 +26,17 @@ class PostContractsController {
 }
 
 describe('DTOs de posts', () => {
+  it.each(Object.values(PublicPostsSort))('aceita ordenação pública %s', async (sort) => {
+    await expect(
+      validate(plainToInstance(ListPublicPostsQueryDto, { sort })),
+    ).resolves.toHaveLength(0);
+  });
+
+  it('rejeita ordenação desconhecida', async () => {
+    await expect(
+      validate(plainToInstance(ListPublicPostsQueryDto, { sort: 'unknown' })),
+    ).resolves.not.toHaveLength(0);
+  });
   it('transforma e valida a paginação pública', async () => {
     const query = plainToInstance(ListPublicPostsQueryDto, {
       limit: '24',
