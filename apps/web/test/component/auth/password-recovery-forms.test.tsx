@@ -3,11 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ForgotPasswordForm } from '@web/features/auth/components/forgot-password-form';
 import { ResetPasswordForm } from '@web/features/auth/components/reset-password-form';
-import { SafeAuthError } from '@web/features/auth/services/auth.service';
+import {
+  PasswordSessionsSignOutError,
+  SafeAuthError,
+} from '@web/features/auth/services/auth.service';
+import type * as AuthService from '@web/features/auth/services/auth.service';
 
 const authMocks = vi.hoisted(() => ({
   requestPasswordReset: vi.fn(),
   updatePassword: vi.fn(),
+  finishPasswordSessionSignOut: vi.fn(),
 }));
 
 const routerMocks = vi.hoisted(() => ({
@@ -15,10 +20,11 @@ const routerMocks = vi.hoisted(() => ({
   replace: vi.fn(),
 }));
 
-vi.mock('@web/features/auth/services/auth.service', () => ({
-  SafeAuthError: class SafeAuthError extends Error {},
+vi.mock('@web/features/auth/services/auth.service', async (importOriginal) => ({
+  ...(await importOriginal<typeof AuthService>()),
   requestPasswordReset: authMocks.requestPasswordReset,
   updatePassword: authMocks.updatePassword,
+  finishPasswordSessionSignOut: authMocks.finishPasswordSessionSignOut,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -30,6 +36,7 @@ describe('formulários de recuperação de senha', () => {
     vi.clearAllMocks();
     authMocks.requestPasswordReset.mockResolvedValue(undefined);
     authMocks.updatePassword.mockResolvedValue(undefined);
+    authMocks.finishPasswordSessionSignOut.mockResolvedValue(undefined);
   });
 
   it('valida o e-mail antes de solicitar o link', () => {
@@ -105,5 +112,24 @@ describe('formulários de recuperação de senha', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Este acesso expirou.');
+  });
+
+  it('repete somente o logout global após sucesso parcial sem reaplicar a senha', async () => {
+    authMocks.updatePassword.mockRejectedValueOnce(new PasswordSessionsSignOutError());
+    render(<ResetPasswordForm />);
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { value: 'Nova@Senha123' } });
+    fireEvent.change(screen.getByLabelText('Confirme a nova senha'), {
+      target: { value: 'Nova@Senha123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar senha' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sua senha foi alterada');
+    expect(routerMocks.replace).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Nova senha')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Encerrar sessões' }));
+    await waitFor(() =>
+      expect(routerMocks.replace).toHaveBeenCalledWith('/auth?auth_status=password_updated'),
+    );
+    expect(authMocks.updatePassword).toHaveBeenCalledTimes(1);
+    expect(authMocks.finishPasswordSessionSignOut).toHaveBeenCalledTimes(1);
   });
 });

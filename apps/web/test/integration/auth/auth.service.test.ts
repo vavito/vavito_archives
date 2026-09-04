@@ -7,6 +7,8 @@ import {
   signIn,
   signUp,
   updatePassword,
+  finishPasswordSessionSignOut,
+  PasswordSessionsSignOutError,
 } from '@web/features/auth/services/auth.service';
 
 const supabaseMocks = vi.hoisted(() => ({
@@ -151,12 +153,30 @@ describe('serviço de autenticação', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('altera a senha e encerra a sessão local de recuperação', async () => {
+  it('altera a senha e encerra as sessões de todos os dispositivos', async () => {
     await updatePassword('Nova@Senha123');
 
     expect(supabaseMocks.updateUser).toHaveBeenCalledWith({ password: 'Nova@Senha123' });
-    expect(supabaseMocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+    expect(supabaseMocks.signOut).toHaveBeenCalledWith({ scope: 'global' });
+    expect(supabaseMocks.updateUser.mock.invocationCallOrder[0]).toBeLessThan(
+      supabaseMocks.signOut.mock.invocationCallOrder[0]!,
+    );
   });
+
+  it.each(['returned', 'thrown'])(
+    'distingue a senha alterada de falha no logout (%s)',
+    async (failure) => {
+      if (failure === 'returned')
+        supabaseMocks.signOut.mockResolvedValueOnce({ error: new Error('provider details') });
+      else supabaseMocks.signOut.mockRejectedValueOnce(new Error('fetch failed'));
+      await expect(updatePassword('Nova@Senha123')).rejects.toBeInstanceOf(
+        PasswordSessionsSignOutError,
+      );
+      await finishPasswordSessionSignOut();
+      expect(supabaseMocks.updateUser).toHaveBeenCalledTimes(1);
+      expect(supabaseMocks.signOut).toHaveBeenCalledTimes(2);
+    },
+  );
 
   it('converte uma sessão expirada em feedback seguro', async () => {
     supabaseMocks.updateUser.mockResolvedValueOnce({

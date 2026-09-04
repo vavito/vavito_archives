@@ -17,7 +17,7 @@ describe('sessão autenticada no servidor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authMocks.getClaims.mockResolvedValue({
-      data: { claims: { sub: 'profile-id' } },
+      data: { claims: { sub: 'profile-id', email: 'leitor@example.com' } },
       error: null,
     });
     authMocks.getSession.mockResolvedValue({
@@ -36,6 +36,25 @@ describe('sessão autenticada no servidor', () => {
       accessToken: 'access-token',
       email: 'leitor@example.com',
     });
+  });
+
+  it('usa o e-mail das claims verificadas, não o objeto de usuário armazenado', async () => {
+    authMocks.getSession.mockResolvedValueOnce({
+      data: { session: { access_token: 'access-token', user: { email: 'alterado@example.com' } } },
+      error: null,
+    });
+    await expect(getAuthenticatedSession()).resolves.toEqual({
+      accessToken: 'access-token',
+      email: 'leitor@example.com',
+    });
+  });
+
+  it('rejeita claims sem e-mail', async () => {
+    authMocks.getClaims.mockResolvedValueOnce({
+      data: { claims: { sub: 'profile-id' } },
+      error: null,
+    });
+    await expect(getAuthenticatedSession()).resolves.toBeNull();
   });
 
   it('rejeita uma sessão cujas claims não puderam ser validadas', async () => {
