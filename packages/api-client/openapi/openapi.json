@@ -7519,6 +7519,7 @@
           },
           "avatarUrl": {
             "type": "string",
+            "example": "https://example.com/avatars/author.webp",
             "nullable": true
           }
         },

@@ -778,6 +778,7 @@ export interface components {
     PostPublicAuthorDto: {
       /** @example João Victor */
       displayName: string;
+      /** @example https://example.com/avatars/author.webp */
       avatarUrl: string | null;
     };
     PostReactionCountsDto: {
