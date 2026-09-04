@@ -3,6 +3,7 @@ import type { ApiClient, components } from '@vavito/api-client';
 import { createWebPublicApiClient } from '@web/lib/api/api-client';
 
 import type { ArticlesData, ArticlesFilters } from '../types/posts.types';
+import { normalizeArticlesSort } from './articles-sort';
 
 const ARTICLES_PER_PAGE = 12;
 
@@ -18,6 +19,7 @@ export async function getArticlesData({
   filters,
 }: GetArticlesDataOptions): Promise<ArticlesData> {
   const normalizedTag = filters.tag?.trim().toLowerCase() || null;
+  const sort = normalizeArticlesSort(filters.sort);
   const normalizedPage = Number.isSafeInteger(filters.page) && filters.page > 0 ? filters.page : 1;
 
   const [postsResponse, tagsResponse] = await Promise.all([
@@ -26,7 +28,7 @@ export async function getArticlesData({
         query: {
           limit: ARTICLES_PER_PAGE,
           page: normalizedPage,
-          sort: 'recent',
+          sort,
           ...(normalizedTag ? { tag: normalizedTag } : {}),
         },
       },
@@ -47,6 +49,7 @@ export async function getArticlesData({
   return {
     filters: {
       page: normalizedPage,
+      sort,
       tag: normalizedTag,
     },
     pagination: posts.meta,
