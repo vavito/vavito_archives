@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SearchOverlay } from '@web/features/posts/components/search-overlay';
-import type * as SearchPublishedPostsModule from '@web/features/posts/services/search-published-posts';
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
@@ -16,14 +15,9 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mocks.push }),
 }));
 
-vi.mock('@web/features/posts/services/search-published-posts', async (importOriginal) => {
-  const original = await importOriginal<typeof SearchPublishedPostsModule>();
-
-  return {
-    ...original,
-    searchPublishedPosts: mocks.searchPublishedPosts,
-  };
-});
+vi.mock('@web/features/posts/services/search-posts-from-browser', () => ({
+  searchPostsFromBrowser: mocks.searchPublishedPosts,
+}));
 
 const post: components['schemas']['PostSummaryDto'] = {
   coverAlt: null,
