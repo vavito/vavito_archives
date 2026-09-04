@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 import { ProfileAvatar } from '@web/features/profile';
-import { createBrowserSupabaseClient } from '@web/lib/auth/supabase/client';
+import { signOutSession } from '@web/features/auth';
 
 export interface AccountSummary {
   avatarUrl: string | null;
@@ -70,10 +70,9 @@ export function AccountNavigationAction({ account }: Readonly<AccountNavigationA
     setIsSigningOut(true);
     setSignOutError(null);
 
-    const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase.auth.signOut({ scope: 'local' });
-
-    if (error) {
+    try {
+      await signOutSession();
+    } catch {
       setSignOutError('Não foi possível sair agora. Tente novamente.');
       setIsSigningOut(false);
       return;
