@@ -30,6 +30,8 @@ interface CommentsSectionProps {
   viewer: CommentViewer | null;
 }
 
+let pendingCommentSequence = 0;
+
 function optimisticComment(
   content: string,
   parentId: string | null,
@@ -46,7 +48,7 @@ function optimisticComment(
     createdAt: new Date().toISOString(),
     edited: false,
     editedAt: null,
-    id: `pending-${crypto.randomUUID()}`,
+    id: `pending-${++pendingCommentSequence}`,
     parentId,
     postId,
     replies: [],
@@ -201,7 +203,7 @@ export function CommentsSection({
   return (
     <section
       aria-labelledby="comments-title"
-      className="mx-auto grid w-full max-w-reading gap-7 px-4 py-12 sm:px-6 lg:px-0 lg:py-16"
+      className="mx-auto grid min-w-0 w-full max-w-reading gap-7 px-4 pt-6 pb-12 sm:px-6 lg:px-0"
     >
       {feedback ? <ActionFeedback feedback={feedback} onDismiss={dismissFeedback} /> : null}
       <header className="grid gap-2">
