@@ -6,11 +6,13 @@ import Link from 'next/link';
 interface ArticlesPaginationProps {
   currentPage: number;
   selectedTag: string | null;
+  sort?: string | undefined;
   totalPages: number;
 }
 
-function articlesUrl(page: number, selectedTag: string | null): Route {
+function articlesUrl(page: number, selectedTag: string | null, sort: string): Route {
   const query = new URLSearchParams();
+  if (sort !== 'recent') query.set('sort', sort);
 
   if (selectedTag) {
     query.set('tag', selectedTag);
@@ -27,6 +29,7 @@ function articlesUrl(page: number, selectedTag: string | null): Route {
 export function ArticlesPagination({
   currentPage,
   selectedTag,
+  sort = 'recent',
   totalPages,
 }: Readonly<ArticlesPaginationProps>) {
   if (totalPages <= 1) {
@@ -42,7 +45,7 @@ export function ArticlesPagination({
         <Link
           aria-label="Ir para a página anterior"
           className={cn(buttonVariants({ size: 'small', variant: 'secondary' }))}
-          href={articlesUrl(currentPage - 1, selectedTag)}
+          href={articlesUrl(currentPage - 1, selectedTag, sort)}
           rel="prev"
         >
           <ChevronLeft aria-hidden="true" />
@@ -60,7 +63,7 @@ export function ArticlesPagination({
         <Link
           aria-label="Ir para a próxima página"
           className={cn(buttonVariants({ size: 'small', variant: 'secondary' }))}
-          href={articlesUrl(currentPage + 1, selectedTag)}
+          href={articlesUrl(currentPage + 1, selectedTag, sort)}
           rel="next"
         >
           Próxima
