@@ -1,39 +1,34 @@
 'use client';
 
 import { Check, Share2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { copyToClipboard } from '@web/lib/browser/copy-to-clipboard';
 
-interface ArticleShareButtonProps {
-  title: string;
-}
-
-export function ArticleShareButton({ title }: Readonly<ArticleShareButtonProps>) {
+export function ArticleShareButton() {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    },
+    [],
+  );
 
   async function share() {
-    const shareData = { title, url: window.location.href };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-      }
-    }
-
+    if (resetTimer.current) clearTimeout(resetTimer.current);
     try {
-      await navigator.clipboard.writeText(shareData.url);
+      await copyToClipboard(window.location.href);
       setCopied(true);
       setFailed(false);
-      window.setTimeout(() => setCopied(false), 2000);
     } catch {
+      setCopied(false);
       setFailed(true);
-      window.setTimeout(() => setFailed(false), 2000);
     }
+    resetTimer.current = setTimeout(() => {
+      setCopied(false);
+      setFailed(false);
+    }, 2000);
   }
 
   return (

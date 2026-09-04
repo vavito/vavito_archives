@@ -114,7 +114,7 @@ export function ArticlePageContent({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {articleActions}
-            <ArticleShareButton title={post.title} />
+            <ArticleShareButton />
           </div>
         </footer>
       </div>
