@@ -11,8 +11,8 @@ const data: ArticlesData = {
   pagination: { limit: 12, page: 2, total: 25, totalPages: 3 },
   posts: [
     {
-      coverAlt: null,
-      coverUrl: null,
+      coverAlt: 'Diagrama de módulos',
+      coverUrl: 'https://storage.test/media/capa.webp',
       excerpt: 'Uma visão prática da arquitetura.',
       id: '019c2d62-6e90-7000-8000-000000000010',
       publishedAt: '2026-08-20T12:00:00.000Z',
@@ -64,6 +64,10 @@ describe('ArticlesPageContent', () => {
     expect(screen.getByRole('link', { name: 'Ler Arquitetura NestJS' })).toHaveAttribute(
       'href',
       '/artigos/arquitetura-nestjs',
+    );
+    expect(screen.getByRole('img', { name: 'Diagrama de módulos' })).toHaveAttribute(
+      'src',
+      data.posts[0]?.coverUrl,
     );
     expect(screen.getByRole('link', { name: 'Ir para a página anterior' })).toHaveAttribute(
       'href',
