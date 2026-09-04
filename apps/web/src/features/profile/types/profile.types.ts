@@ -6,4 +6,4 @@ export interface Profile extends Omit<ApiProfile, 'avatarUrl'> {
   avatarUrl: string | null;
 }
 
-export type ProfileOperation = 'avatar' | 'delete' | 'name' | null;
+export type ProfileOperation = 'avatar' | 'delete' | 'logout' | 'name' | null;

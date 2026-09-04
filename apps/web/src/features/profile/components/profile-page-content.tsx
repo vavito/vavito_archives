@@ -14,7 +14,7 @@ import {
   buttonVariants,
   cn,
 } from '@vavito/ui';
-import { Camera, KeyRound, Trash2 } from 'lucide-react';
+import { Camera, KeyRound, LogOut, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
@@ -24,6 +24,7 @@ import {
   type ActionFeedbackMessage,
 } from '@web/components/feedback/action-feedback';
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+import { signOutSession } from '@web/features/auth';
 
 import {
   normalizeDisplayName,
@@ -69,6 +70,20 @@ export function ProfilePageContent({ email, initialProfile }: Readonly<ProfilePa
   function showFeedback(message: string, tone: ActionFeedbackMessage['tone']) {
     feedbackIdRef.current += 1;
     setFeedback({ id: feedbackIdRef.current, message, tone });
+  }
+
+  async function handleLogout() {
+    if (isBusy) return;
+    dismissFeedback();
+    setOperation('logout');
+    try {
+      await signOutSession();
+      router.replace('/');
+      router.refresh();
+    } catch {
+      showFeedback('Não foi possível sair agora. Tente novamente.', 'error');
+      setOperation(null);
+    }
   }
 
   async function handleNameSubmit(event: FormEvent<HTMLFormElement>) {
@@ -247,6 +262,15 @@ export function ProfilePageContent({ email, initialProfile }: Readonly<ProfilePa
           <KeyRound aria-hidden="true" />
           Alterar senha
         </Link>
+        <Button
+          className="justify-self-start text-destructive hover:text-destructive sm:hidden"
+          disabled={isBusy}
+          onClick={() => void handleLogout()}
+          variant="ghost"
+        >
+          {operation === 'logout' ? <LoadingSpinner /> : <LogOut aria-hidden="true" />}
+          {operation === 'logout' ? 'Saindo…' : 'Fazer Logout'}
+        </Button>
       </section>
 
       <section className="motion-card grid gap-5 rounded-2xl border border-destructive-border bg-destructive-hover/30 p-5 sm:p-6">
