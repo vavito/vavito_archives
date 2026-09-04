@@ -84,6 +84,7 @@ describe('seção de comentários', () => {
     render(<CommentsSection initialData={data} postId="post-id" slug="artigo" viewer={viewer} />);
 
     expect(screen.getByText('Comentário original')).toBeInTheDocument();
+    expect(screen.getByLabelText('Iniciais de Maria')).toHaveTextContent('M');
     expect(screen.getByText('editado')).toBeInTheDocument();
     expect(screen.getByText('Resposta direta')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Responder' })).toHaveLength(1);
@@ -107,6 +108,7 @@ describe('seção de comentários', () => {
   });
 
   it('publica otimisticamente e confirma o resultado retornado pelo servidor', async () => {
+    vi.stubGlobal('crypto', {});
     let resolvePublish!: (value: CommentItem) => void;
     serviceMocks.publishComment.mockReturnValueOnce(
       new Promise<CommentItem>((resolve) => {
@@ -132,6 +134,7 @@ describe('seção de comentários', () => {
 
     await waitFor(() => expect(serviceMocks.publishComment).toHaveBeenCalled());
     expect(await screen.findByRole('status')).toHaveTextContent('Comentário publicado.');
+    vi.unstubAllGlobals();
   });
 
   it('restaura o conteúdo anterior quando uma edição falha', async () => {
