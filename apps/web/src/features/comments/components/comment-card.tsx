@@ -16,6 +16,7 @@ import { ProfileAvatar } from '@web/features/profile';
 
 import type { CommentItem, CommentViewer } from '../types/comments.types';
 import { CommentForm } from './comment-form';
+import { ExpandableCommentContent } from './expandable-comment-content';
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'medium',
@@ -101,9 +102,7 @@ export function CommentCard({
             <p className="text-neutral-500 mt-2 text-sm italic">Comentário removido.</p>
           ) : (
             <>
-              <p className="text-neutral-300 mt-2 whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere]">
-                {comment.content}
-              </p>
+              <ExpandableCommentContent content={comment.content ?? ''} />
               {comment.edited ? (
                 <span className="text-neutral-600 mt-1 block text-[11px]">editado</span>
               ) : null}
