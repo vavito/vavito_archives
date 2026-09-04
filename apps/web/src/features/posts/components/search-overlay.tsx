@@ -102,7 +102,7 @@ export function SearchOverlay() {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="bg-overlay top-[min(42%,22rem)] max-w-md gap-0 overflow-hidden p-0">
+      <DialogContent className="bg-overlay max-w-md gap-0 overflow-hidden p-0">
         <DialogTitle className="sr-only">Buscar artigos</DialogTitle>
         <DialogDescription className="sr-only">
           Pesquise artigos publicados por título, resumo ou tópico.
@@ -154,7 +154,10 @@ export function SearchOverlay() {
           ) : null}
         </div>
 
-        <div aria-live="polite" className="max-h-[min(28rem,60vh)] overflow-y-auto">
+        <div
+          aria-live="polite"
+          className="max-h-[min(28rem,60vh)] overflow-x-hidden overflow-y-auto"
+        >
           {!normalizedQuery ? (
             <p className="text-neutral-500 px-5 py-8 text-center text-sm">
               Digite para encontrar artigos publicados.
@@ -186,7 +189,8 @@ export function SearchOverlay() {
           {normalizedQuery && !isSearching && !error && results.length > 0 ? (
             <ul
               aria-label="Resultados da busca"
-              className="divide-y divide-divider"
+              className="divide-y divide-divider overflow-x-hidden"
+              key={normalizedQuery}
               id={resultsId}
               role="listbox"
             >
@@ -199,11 +203,12 @@ export function SearchOverlay() {
                   role="option"
                 >
                   <Link
-                    className={`group grid gap-2 px-5 py-4 transition-[color,background-color,transform] duration-300 hover:translate-x-1 ${
+                    className={`search-result-enter group grid min-w-0 gap-2 px-5 py-4 [overflow-wrap:anywhere] transition-colors duration-300 ${
                       resolvedActiveIndex === index
                         ? 'bg-surface-raised'
                         : 'hover:bg-surface-raised'
                     }`}
+                    style={{ animationDelay: `${index * 45}ms` }}
                     href={`/artigos/${post.slug}` as Route}
                     onClick={closeSearch}
                     onMouseEnter={() => setActiveIndex(index)}
