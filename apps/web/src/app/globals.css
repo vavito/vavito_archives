@@ -571,6 +571,25 @@
     padding: 2rem 1.25rem;
   }
 
+  .article-editor-toolbar-region {
+    background: color-mix(in srgb, var(--color-surface-card) 94%, transparent);
+    border-bottom: 1px solid var(--color-divider);
+    padding: 0.5rem 0.75rem;
+    position: sticky;
+    top: 5rem;
+    z-index: 30;
+    backdrop-filter: blur(12px);
+  }
+
+  .article-editor-context-menu {
+    background: var(--color-floating);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 18px 48px rgb(0 0 0 / 0.35);
+    padding: 0.375rem;
+    z-index: 60;
+  }
+
   .article-editor-content p.is-editor-empty:first-child::before {
     color: var(--color-neutral-600);
     content: 'Comece a escrever seu artigo…';
