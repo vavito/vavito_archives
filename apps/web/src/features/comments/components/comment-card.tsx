@@ -10,8 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@vavito/ui';
-import { MessageCircle, Pencil, Trash2, UserRound } from 'lucide-react';
+import { MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { ProfileAvatar } from '@web/features/profile';
 
 import type { CommentItem, CommentViewer } from '../types/comments.types';
 import { CommentForm } from './comment-form';
@@ -33,22 +34,13 @@ interface CommentCardProps {
 }
 
 function CommentAvatar({ comment }: Readonly<{ comment: CommentItem }>) {
-  if (comment.author?.avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- URL pública resolvida pela API.
-      <img
-        alt=""
-        className="size-9 shrink-0 rounded-full border border-border object-cover"
-        decoding="async"
-        src={comment.author.avatarUrl}
-      />
-    );
-  }
-
   return (
-    <span className="bg-surface-raised text-neutral-500 flex size-9 shrink-0 items-center justify-center rounded-full border border-border">
-      <UserRound aria-hidden="true" className="size-4" />
-    </span>
+    <ProfileAvatar
+      avatarUrl={comment.author?.avatarUrl ?? null}
+      displayName={comment.author?.displayName ?? 'Leitor'}
+      size="small"
+      className="size-9"
+    />
   );
 }
 
@@ -87,7 +79,11 @@ export function CommentCard({
 
   return (
     <article
-      className={isReply ? 'border-divider border-l pl-4 sm:pl-6' : 'border-divider border-b pb-6'}
+      className={
+        isReply
+          ? 'min-w-0 border-divider border-l pl-4 sm:pl-6'
+          : 'min-w-0 border-divider border-b pb-6'
+      }
     >
       <div className="flex gap-3">
         <CommentAvatar comment={comment} />
@@ -105,7 +101,7 @@ export function CommentCard({
             <p className="text-neutral-500 mt-2 text-sm italic">Comentário removido.</p>
           ) : (
             <>
-              <p className="text-neutral-300 mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+              <p className="text-neutral-300 mt-2 whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere]">
                 {comment.content}
               </p>
               {comment.edited ? (
