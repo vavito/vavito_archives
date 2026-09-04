@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
+import { AvatarStorageService } from '@api/core/storage/services/avatar-storage.service';
 
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
@@ -101,6 +102,7 @@ export class PostsService {
     private readonly profileAuthorizationRepository: ProfileAuthorizationRepository,
     private readonly postViewFingerprintService: PostViewFingerprintService,
     private readonly mediaService: MediaService,
+    private readonly avatarStorage: AvatarStorageService,
   ) {}
 
   async archive(actorId: string, postId: string): Promise<Post> {
@@ -136,7 +138,11 @@ export class PostsService {
 
     return {
       canonicalSlug,
-      data: PostMapper.fromSlugLookupToPublicDetail(record, this.coverUrl(record.cover)),
+      data: PostMapper.fromSlugLookupToPublicDetail(
+        record,
+        this.coverUrl(record.cover),
+        record.author.avatarPath ? this.avatarStorage.publicUrl(record.author.avatarPath) : null,
+      ),
       shouldRedirect: !record.requestedSlugIsCurrent,
     };
   }

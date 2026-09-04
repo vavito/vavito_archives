@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@api/core/auth/auth.module';
+import { StorageModule } from '@api/core/storage/storage.module';
 import { MediaModule } from '@api/modules/media/media.module';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
@@ -13,7 +14,7 @@ import { PostsService } from '@api/modules/posts/services/posts.service';
 @Module({
   controllers: [PostsController, TagsController, AdminPostsController],
   exports: [PostsRepository, PostsService],
-  imports: [AuthModule, MediaModule],
+  imports: [AuthModule, MediaModule, StorageModule],
   providers: [
     PostsService,
     PostViewFingerprintService,
