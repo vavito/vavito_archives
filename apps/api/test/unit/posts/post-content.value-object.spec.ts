@@ -10,6 +10,63 @@ const DOCUMENT = {
 };
 
 describe('PostContent', () => {
+  it('aceita o JSON produzido pelo schema editorial da versão atual', () => {
+    const editorDocument = {
+      content: [
+        {
+          attrs: { level: 2 },
+          content: [{ text: 'Título de seção', type: 'text' }],
+          type: 'heading',
+        },
+        {
+          content: [
+            {
+              marks: [
+                { type: 'bold' },
+                { attrs: { href: 'https://vavitoarchives.com.br' }, type: 'link' },
+              ],
+              text: 'Texto formatado',
+              type: 'text',
+            },
+          ],
+          type: 'paragraph',
+        },
+        {
+          attrs: { alt: 'Descrição da imagem', src: 'https://storage.test/media/image.webp' },
+          type: 'image',
+        },
+        {
+          content: [{ content: [{ text: 'Citação', type: 'text' }], type: 'paragraph' }],
+          type: 'blockquote',
+        },
+        {
+          content: [{ text: 'const ready = true;', type: 'text' }],
+          type: 'codeBlock',
+        },
+        {
+          content: [
+            {
+              content: [
+                {
+                  content: [{ text: 'Primeiro item', type: 'text' }],
+                  type: 'paragraph',
+                },
+              ],
+              type: 'listItem',
+            },
+          ],
+          type: 'bulletList',
+        },
+      ],
+      type: 'doc',
+    };
+
+    const content = PostContent.create(editorDocument, CURRENT_POST_CONTENT_SCHEMA_VERSION);
+
+    expect(content.document).toEqual(editorDocument);
+    expect(content.isEmpty).toBe(false);
+  });
+
   it('cria conteúdo Tiptap com a versão suportada', () => {
     const content = PostContent.create(DOCUMENT, CURRENT_POST_CONTENT_SCHEMA_VERSION);
 
