@@ -5,6 +5,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PublicPostsPaginationQueryDto } from '@api/shared/pagination/dto/pagination-query.dto';
 
 export enum PublicPostsSort {
+  LEAST_VIEWED = 'least-viewed',
+  OLDEST = 'oldest',
   POPULAR = 'popular',
   RECENT = 'recent',
 }
