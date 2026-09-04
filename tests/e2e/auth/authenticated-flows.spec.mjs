@@ -65,7 +65,9 @@ test('comentário, edição e reação persistem após recarregar o artigo', asy
   await login(page, reader, articlePath);
   const content = `Comentário de teste ${reader.id}`;
   await page.getByLabel('Deixe seu comentário').fill(content);
+  await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
   await page.getByRole('button', { name: 'Comentar', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Comentário publicado.' })).toBeVisible();
   await expect(page.getByRole('paragraph').filter({ hasText: content })).toBeVisible();
   await page.getByRole('button', { name: 'Editar', exact: true }).click();
   await page.getByLabel('Editar comentário').fill(`${content} revisado`);
