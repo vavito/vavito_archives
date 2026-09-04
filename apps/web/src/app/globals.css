@@ -551,6 +551,10 @@
     font-size: 1.125rem;
   }
 
+  .article-prose > :first-child {
+    margin-top: 0;
+  }
+
   .article-prose :where(ul, ol) {
     display: grid;
     gap: 0.5rem;

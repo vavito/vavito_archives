@@ -1,6 +1,7 @@
 import { Clock3, Eye } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ProfileAvatar } from '@web/features/profile';
 
 import type { ArticlePageData } from '../types/posts.types';
 import { ArticleCard } from './article-card';
@@ -30,11 +31,11 @@ export function ArticlePageContent({
   const { post, relatedPosts } = data;
 
   return (
-    <article>
+    <article className="min-w-0">
       <ReadingProgress />
       <PostViewTracker slug={post.slug} />
 
-      <header className="mx-auto grid w-full max-w-3xl gap-6 px-4 pt-12 pb-10 sm:px-6 lg:px-8 lg:pt-20">
+      <header className="mx-auto grid w-full max-w-3xl gap-5 px-4 pt-12 pb-6 sm:px-6 lg:px-8 lg:pt-20">
         <nav aria-label="Tópicos do artigo" className="flex flex-wrap gap-2">
           {post.tags.map((tag) => (
             <Link
@@ -54,6 +55,18 @@ export function ArticlePageContent({
           <p className="text-neutral-400 max-w-prose text-base leading-relaxed sm:text-lg">
             {post.excerpt}
           </p>
+        </div>
+
+        <div
+          aria-label="Autor do artigo"
+          className="text-neutral-200 flex items-center gap-3 text-sm"
+        >
+          <ProfileAvatar
+            avatarUrl={post.author.avatarUrl}
+            displayName={post.author.displayName}
+            size="small"
+          />
+          <span>{post.author.displayName}</span>
         </div>
 
         <div className="text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs">
@@ -86,8 +99,8 @@ export function ArticlePageContent({
         </figure>
       ) : null}
 
-      <div className="mx-auto grid w-full max-w-reading gap-10 px-4 py-12 sm:px-6 lg:px-0 lg:py-16">
-        <div className="article-prose">
+      <div className="mx-auto grid min-w-0 w-full max-w-reading gap-8 px-4 pt-6 pb-4 sm:px-6 lg:px-0">
+        <div className="article-prose min-w-0 [overflow-wrap:anywhere]">
           <TiptapContent content={post.content} />
         </div>
 
