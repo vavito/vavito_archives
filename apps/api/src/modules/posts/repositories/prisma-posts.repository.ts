@@ -69,6 +69,7 @@ const POST_AGGREGATE_SELECT = {
   ...POST_DOMAIN_SELECT,
   author: {
     select: {
+      avatarPath: true,
       displayName: true,
       id: true,
     },

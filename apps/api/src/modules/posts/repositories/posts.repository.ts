@@ -19,7 +19,7 @@ export interface PostCoverRecord {
 }
 
 export interface PostAggregateRecord {
-  author: PostAuthorRecord;
+  author: PostAuthorRecord & { avatarPath: string | null };
   cover: PostCoverRecord | null;
   post: Post;
   tags: PostTagRecord[];
