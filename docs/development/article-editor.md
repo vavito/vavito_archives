@@ -17,6 +17,17 @@ No Next.js, o Tiptap fica restrito ao Client Component do editor e usa `immediat
 para evitar divergências de hidratação. Páginas e layouts administrativos continuam Server
 Components sempre que não precisarem de interação.
 
+## Formatação e atalhos
+
+A barra principal mantém as ações editoriais visíveis. Ao selecionar texto, uma barra contextual
+oferece negrito, itálico, link e código em linha; em um parágrafo vazio, a barra de blocos oferece
+H2, H3, citação e bloco de código. Todos os botões expõem nome, estado ativo e atalho ao navegador.
+
+O editor preserva os atalhos do `StarterKit`, incluindo `Ctrl/⌘ + B` para negrito,
+`Ctrl/⌘ + I` para itálico e `Ctrl/⌘ + Alt + 2` ou `3` para títulos. `Ctrl/⌘ + K` abre o campo de
+link. Endereços sem protocolo recebem `https://`; protocolos não reconhecidos não são executados
+como esquemas e também são tratados como endereços HTTPS.
+
 ## Imagens e capa
 
 Imagens inseridas no corpo pertencem ao JSON do conteúdo. A capa não é um node do documento: ela é
