@@ -100,7 +100,10 @@ export function ArticlePageContent({
       ) : null}
 
       <div className="mx-auto grid min-w-0 w-full max-w-reading gap-8 px-4 pt-6 pb-4 sm:px-6 lg:px-0">
-        <div className="article-prose min-w-0 [overflow-wrap:anywhere]">
+        <div
+          className="article-prose min-w-0 [overflow-wrap:anywhere]"
+          id="article-reading-content"
+        >
           <TiptapContent content={post.content} />
         </div>
 
