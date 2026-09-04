@@ -9,7 +9,12 @@ import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
 import { AUTH_LIMITS, PASSWORD_REQUIREMENTS } from '../schemas/auth-credentials.schema';
 import { validateNewPassword } from '../schemas/password-recovery.schema';
-import { SafeAuthError, updatePassword } from '../services/auth.service';
+import {
+  finishPasswordSessionSignOut,
+  PasswordSessionsSignOutError,
+  SafeAuthError,
+  updatePassword,
+} from '../services/auth.service';
 import type { PasswordRecoveryField, PasswordRecoveryFieldErrors } from '../types/auth.types';
 import { PasswordField } from './password-field';
 
@@ -20,6 +25,22 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const [errors, setErrors] = useState<PasswordRecoveryFieldErrors>({});
   const [state, setState] = useState<SubmissionState>({ status: 'idle' });
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
+
+  function finish() {
+    router.replace('/auth?auth_status=password_updated');
+    router.refresh();
+  }
+
+  async function retrySignOut() {
+    setState({ status: 'submitting' });
+    try {
+      await finishPasswordSessionSignOut();
+      finish();
+    } catch {
+      setState({ status: 'error', message: new PasswordSessionsSignOutError().message });
+    }
+  }
 
   function clearFieldError(field: PasswordRecoveryField) {
     setErrors((current) => {
@@ -54,9 +75,12 @@ export function ResetPasswordForm() {
 
     try {
       await updatePassword(result.password);
-      router.replace('/auth?auth_status=password_updated');
-      router.refresh();
+      finish();
     } catch (error) {
+      if (error instanceof PasswordSessionsSignOutError) {
+        form.reset();
+        setPasswordUpdated(true);
+      }
       setState({
         message:
           error instanceof SafeAuthError
@@ -82,52 +106,60 @@ export function ResetPasswordForm() {
           Crie uma nova senha
         </h1>
         <p className="text-neutral-400 text-sm leading-relaxed">
-          Escolha uma senha segura que você ainda não usa nesta conta.
+          Escolha uma senha segura que você ainda não usa nesta conta. Após a alteração, você
+          precisará entrar novamente em todos os dispositivos.
         </p>
       </header>
 
-      <form
-        aria-busy={isSubmitting}
-        className="auth-sequence grid gap-5"
-        noValidate
-        onSubmit={(event) => void handleSubmit(event)}
-      >
-        <PasswordField
-          autoComplete="new-password"
-          description={PASSWORD_REQUIREMENTS}
-          disabled={isSubmitting}
-          error={errors.password}
-          label="Nova senha"
-          maxLength={AUTH_LIMITS.password.max}
-          name="password"
-          onChange={() => clearFieldError('password')}
-          placeholder="Crie uma senha segura"
-          required
-        />
-
-        <PasswordField
-          autoComplete="new-password"
-          disabled={isSubmitting}
-          error={errors.passwordConfirmation}
-          label="Confirme a nova senha"
-          maxLength={AUTH_LIMITS.password.max}
-          name="passwordConfirmation"
-          onChange={() => clearFieldError('passwordConfirmation')}
-          placeholder="Digite a senha novamente"
-          required
-        />
-
-        <Button className="w-full" disabled={isSubmitting} size="large" type="submit">
+      {passwordUpdated ? (
+        <Button disabled={isSubmitting} onClick={() => void retrySignOut()}>
           {isSubmitting ? <LoadingSpinner /> : null}
-          <span
-            key={isSubmitting ? 'submitting' : 'idle'}
-            className="auth-icon-swap"
-            aria-live="polite"
-          >
-            {isSubmitting ? 'Alterando…' : 'Alterar senha'}
-          </span>
+          {isSubmitting ? 'Encerrando sessões…' : 'Encerrar sessões'}
         </Button>
-      </form>
+      ) : (
+        <form
+          aria-busy={isSubmitting}
+          className="auth-sequence grid gap-5"
+          noValidate
+          onSubmit={(event) => void handleSubmit(event)}
+        >
+          <PasswordField
+            autoComplete="new-password"
+            description={PASSWORD_REQUIREMENTS}
+            disabled={isSubmitting}
+            error={errors.password}
+            label="Nova senha"
+            maxLength={AUTH_LIMITS.password.max}
+            name="password"
+            onChange={() => clearFieldError('password')}
+            placeholder="Crie uma senha segura"
+            required
+          />
+
+          <PasswordField
+            autoComplete="new-password"
+            disabled={isSubmitting}
+            error={errors.passwordConfirmation}
+            label="Confirme a nova senha"
+            maxLength={AUTH_LIMITS.password.max}
+            name="passwordConfirmation"
+            onChange={() => clearFieldError('passwordConfirmation')}
+            placeholder="Digite a senha novamente"
+            required
+          />
+
+          <Button className="w-full" disabled={isSubmitting} size="large" type="submit">
+            {isSubmitting ? <LoadingSpinner /> : null}
+            <span
+              key={isSubmitting ? 'submitting' : 'idle'}
+              className="auth-icon-swap"
+              aria-live="polite"
+            >
+              {isSubmitting ? 'Alterando…' : 'Alterar senha'}
+            </span>
+          </Button>
+        </form>
+      )}
 
       {state.status === 'error' ? (
         <p
