@@ -10,6 +10,7 @@ vi.mock('@web/features/posts/services/track-post-view', () => ({
 
 const data: ArticlePageData = {
   post: {
+    author: { avatarUrl: null, displayName: 'João Victor' },
     content: {
       content: [
         {
@@ -70,6 +71,8 @@ describe('ArticlePageContent', () => {
       data.post.coverUrl,
     );
     expect(screen.getByText('Conteúdo renderizado no servidor.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Autor do artigo')).toHaveTextContent('João Victor');
+    expect(screen.getByLabelText('Iniciais de João Victor')).toHaveTextContent('JV');
     expect(screen.getByRole('progressbar', { name: 'Progresso de leitura' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Compartilhar' })).toBeInTheDocument();
     expect(

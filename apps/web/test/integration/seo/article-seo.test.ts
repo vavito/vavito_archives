@@ -8,6 +8,7 @@ import {
 import { serializeStructuredData } from '@web/lib/seo/structured-data';
 
 const post: components['schemas']['PostDetailResponseDto'] = {
+  author: { avatarUrl: null, displayName: 'João Victor' },
   content: { content: [], type: 'doc' },
   contentSchemaVersion: 1,
   coverAlt: 'Diagrama de módulos da aplicação',

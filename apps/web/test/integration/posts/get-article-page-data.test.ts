@@ -11,6 +11,7 @@ const tag: components['schemas']['TagResponseDto'] = {
 };
 
 const post: components['schemas']['PostDetailResponseDto'] = {
+  author: { avatarUrl: null, displayName: 'João Victor' },
   content: {
     content: [{ content: [{ text: 'Conteúdo do artigo', type: 'text' }], type: 'paragraph' }],
     type: 'doc',
