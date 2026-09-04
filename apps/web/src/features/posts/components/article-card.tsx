@@ -14,23 +14,33 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 
 interface ArticleCardProps {
   compact?: boolean;
+  metadataPosition?: 'top' | 'bottom';
   post: PostSummary;
 }
 
-export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps>) {
+export function ArticleCard({
+  compact = false,
+  metadataPosition = 'top',
+  post,
+}: Readonly<ArticleCardProps>) {
   return (
     <article
       className={cn(
-        'motion-card group border-b border-divider py-5 first:pt-0 last:border-b-0 last:pb-0',
-        compact && 'py-4',
+        'motion-card group min-w-0 rounded-xl border-b border-divider px-4 py-6 last:border-b-0',
+        compact && 'py-5',
       )}
     >
       <Link
         aria-label={`Ler ${post.title}`}
-        className="grid gap-3"
+        className="grid min-w-0 gap-3 [overflow-wrap:anywhere]"
         href={`/artigos/${post.slug}` as Route}
       >
-        <div className="text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]">
+        <div
+          className={cn(
+            'text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]',
+            metadataPosition === 'bottom' && 'order-last',
+          )}
+        >
           <time dateTime={post.publishedAt}>
             {dateFormatter.format(new Date(post.publishedAt))}
           </time>
