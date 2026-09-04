@@ -1150,7 +1150,7 @@
             "schema": {
               "$ref": "#/components/schemas/PublicPostsSort"
             },
-            "example": "popular"
+            "example": "least-viewed"
           }
         ],
         "responses": {
@@ -7404,7 +7404,7 @@
       },
       "PublicPostsSort": {
         "type": "string",
-        "enum": ["popular", "recent"]
+        "enum": ["least-viewed", "oldest", "popular", "recent"]
       },
       "TagResponseDto": {
         "type": "object",
@@ -7510,6 +7510,20 @@
         },
         "required": ["items", "meta"]
       },
+      "PostPublicAuthorDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "João Victor"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["displayName", "avatarUrl"]
+      },
       "PostReactionCountsDto": {
         "type": "object",
         "properties": {
@@ -7600,6 +7614,9 @@
             "example": 128,
             "minimum": 0
           },
+          "author": {
+            "$ref": "#/components/schemas/PostPublicAuthorDto"
+          },
           "content": {
             "type": "object",
             "additionalProperties": true,
@@ -7651,6 +7668,7 @@
           "publishedAt",
           "readingTimeMinutes",
           "viewCount",
+          "author",
           "content",
           "contentSchemaVersion",
           "seoTitle",

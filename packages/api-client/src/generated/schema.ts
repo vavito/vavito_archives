@@ -730,7 +730,7 @@ export interface components {
       reason?: string;
     };
     /** @enum {string} */
-    PublicPostsSort: 'popular' | 'recent';
+    PublicPostsSort: 'least-viewed' | 'oldest' | 'popular' | 'recent';
     TagResponseDto: {
       /**
        * Format: uuid
@@ -775,6 +775,11 @@ export interface components {
       items: components['schemas']['PostSummaryDto'][];
       meta: components['schemas']['PaginationMetaDto'];
     };
+    PostPublicAuthorDto: {
+      /** @example João Victor */
+      displayName: string;
+      avatarUrl: string | null;
+    };
     PostReactionCountsDto: {
       /** @example 12 */
       like: number;
@@ -815,6 +820,7 @@ export interface components {
       readingTimeMinutes: number;
       /** @example 128 */
       viewCount: number;
+      author: components['schemas']['PostPublicAuthorDto'];
       /**
        * @example {
        *       "content": [
@@ -1988,7 +1994,7 @@ export interface operations {
         limit?: number;
         /** @example typescript */
         tag?: string;
-        /** @example popular */
+        /** @example least-viewed */
         sort?: components['schemas']['PublicPostsSort'];
       };
       header?: never;
