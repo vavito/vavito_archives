@@ -6,6 +6,7 @@ const configuredDevOrigins =
     .filter(Boolean) ?? [];
 
 const nextConfig: NextConfig = {
+  distDir: process.env.VAVITO_E2E === 'true' ? '.next-e2e' : '.next',
   allowedDevOrigins: ['192.168.*.*', ...configuredDevOrigins],
   experimental: {
     serverActions: {

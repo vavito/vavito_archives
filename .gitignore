@@ -9,6 +9,7 @@ coverage/
 playwright-report/
 test-results/
 .next/
+.next-e2e/
 out/
 apps/web/next-env.d.ts
 
