@@ -181,7 +181,13 @@ A entrada oferece acesso a `/auth/forgot-password`, onde o leitor informa o emai
 
 O email direciona primeiro para um callback autorizado. O callback valida o código PKCE ou o token de recuperação, estabelece uma sessão temporária em cookies privados e permite seguir apenas para o caminho interno `/auth/reset-password`. Links inválidos ou expirados produzem feedback amigável e não expõem detalhes do provedor.
 
-Na redefinição, a nova senha precisa atender à política da aplicação e ser confirmada antes do envio. A alteração é aceita somente quando há uma sessão válida; depois do sucesso, a sessão local é encerrada e o leitor deve entrar novamente com a nova senha.
+Na redefinição, a nova senha precisa atender à política da aplicação e ser confirmada antes do envio. A alteração é aceita somente quando há uma sessão válida. Depois de atualizar a senha, o frontend solicita `signOut({ scope: 'global' })`: encerra a sessão atual e revoga a renovação das sessões em todos os dispositivos.
+
+Tokens de acesso já emitidos continuam válidos até expirar (3600 segundos na configuração atual). O logout global não representa revogação imediata de cada JWT. Não foram adicionadas consultas online de sessão a cada chamada da API. Referência: [logout no Supabase](https://supabase.com/docs/guides/auth/signout).
+
+Se a senha for alterada, mas a solicitação de logout falhar, a interface informa o sucesso parcial e oferece **Encerrar sessões**. Essa tentativa repete somente o logout global, sem reenviar a senha. O retorno para o login com sucesso ocorre apenas após o encerramento confirmado.
+
+O perfil oferece **Fazer Logout** somente no mobile, com spinner, bloqueio enquanto aguarda e feedback flutuante se falhar. No desktop, a saída permanece no menu da conta no cabeçalho. A saída comum do perfil ou do menu encerra apenas a sessão atual (`local`), sem desconectar outros dispositivos.
 
 O fluxo manual esperado em ambiente real é:
 
@@ -190,3 +196,4 @@ O fluxo manual esperado em ambiente real é:
 3. definir e confirmar uma nova senha;
 4. confirmar o retorno para a entrada com mensagem de sucesso;
 5. entrar com a nova senha e confirmar que a anterior não é mais aceita.
+6. em outro dispositivo previamente autenticado, confirmar que a renovação da sessão foi revogada; um token de acesso ainda válido pode funcionar até sua expiração.
