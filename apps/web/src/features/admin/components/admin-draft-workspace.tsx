@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@vavito/ui';
+import { Button, Input } from '@vavito/ui';
 import { RefreshCcw } from 'lucide-react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
@@ -9,7 +9,8 @@ import { ArticleEditor } from '../editor/article-editor';
 import { useAdminDraft } from './admin-draft-provider';
 
 export function AdminDraftWorkspace() {
-  const { draft, errorMessage, isReady, phase, retry, setContent, setTitle } = useAdminDraft();
+  const { draft, errorCode, errorMessage, isReady, phase, retry, setContent, setSlug, setTitle } =
+    useAdminDraft();
 
   if (!isReady) {
     if (phase === 'error') {
@@ -57,6 +58,18 @@ export function AdminDraftWorkspace() {
           placeholder="Título do artigo"
           rows={2}
           value={draft.title}
+        />
+        <Input
+          autoCapitalize="none"
+          autoComplete="off"
+          className="font-mono"
+          error={errorCode === 'SLUG_ALREADY_EXISTS' ? errorMessage : undefined}
+          label="Endereço do artigo"
+          maxLength={255}
+          onChange={(event) => setSlug(event.target.value)}
+          placeholder="meu-artigo"
+          spellCheck={false}
+          value={draft.slug}
         />
       </header>
 
