@@ -1,7 +1,8 @@
 'use client';
 
-import { Button } from '@vavito/ui';
-import { AlertCircle, ArrowLeft, Check, Eye, Save } from 'lucide-react';
+import { Button, buttonVariants, cn } from '@vavito/ui';
+import { AlertCircle, ArrowLeft, Check, Eye, Files, Save } from 'lucide-react';
+import type { Route } from 'next';
 import Link from 'next/link';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
@@ -17,8 +18,9 @@ const statusMessages = {
 } as const;
 
 export function AdminEditorHeader() {
-  const { draft, errorMessage, isReady, phase, retry, saveNow } = useAdminDraft();
+  const { draft, errorMessage, isReady, phase, postId, retry, saveNow } = useAdminDraft();
   const canSave = isReady && (phase === 'dirty' || phase === 'error');
+  const canPreview = Boolean(postId) && phase === 'saved';
   const isError = phase === 'error';
 
   return (
@@ -59,9 +61,25 @@ export function AdminEditorHeader() {
           </p>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <Button aria-label="Visualizar artigo" disabled size="icon" variant="ghost">
+          <Link
+            aria-label="Ver todos os artigos"
+            className={cn(buttonVariants({ size: 'icon', variant: 'ghost' }))}
+            href="/admin/posts"
+          >
+            <Files aria-hidden="true" />
+          </Link>
+          <Link
+            aria-disabled={!canPreview}
+            aria-label="Visualizar artigo"
+            className={cn(
+              buttonVariants({ size: 'icon', variant: 'ghost' }),
+              !canPreview && 'pointer-events-none opacity-45',
+            )}
+            href={(canPreview ? `/admin/posts/${postId}/preview` : '#') as Route}
+            tabIndex={canPreview ? undefined : -1}
+          >
             <Eye aria-hidden="true" />
-          </Button>
+          </Link>
           <Button
             aria-label={isError ? 'Tentar novamente' : 'Salvar rascunho'}
             disabled={!canSave}
