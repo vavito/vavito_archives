@@ -15,6 +15,7 @@ const savedDraft: AdminPostDraft = {
   content: { content: [{ type: 'paragraph' }], type: 'doc' },
   contentSchemaVersion: 1,
   id: '019c2d62-6e90-7000-8000-000000000010',
+  slug: 'titulo-salvo',
   status: 'DRAFT',
   title: 'Título salvo',
   updatedAt: '2026-09-05T13:00:00.000Z',
@@ -56,6 +57,10 @@ describe('cabeçalho do editor administrativo', () => {
       </AdminDraftProvider>,
     );
     await screen.findByText('Comece a escrever para criar o rascunho');
+    expect(screen.getByRole('link', { name: 'Visualizar artigo' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     vi.useFakeTimers();
 
     fireEvent.click(screen.getByRole('button', { name: 'Alterar título' }));
@@ -70,6 +75,10 @@ describe('cabeçalho do editor administrativo', () => {
       await Promise.resolve();
     });
     expect(screen.getByRole('status')).toHaveTextContent('Rascunho salvo');
+    expect(screen.getByRole('link', { name: 'Visualizar artigo' })).toHaveAttribute(
+      'href',
+      `/admin/posts/${savedDraft.id}/preview`,
+    );
   });
 
   it('oferece nova tentativa quando o salvamento falha', async () => {
