@@ -70,3 +70,19 @@ com segurança.
 O cabeçalho anuncia os estados de recuperação, alterações pendentes, salvamento, sucesso e falha.
 Falhas não descartam a versão local ainda aberta: a ação **Tentar novamente** envia o conteúdo mais
 recente. Rascunhos não geram `PostRevision` a cada autosave, conforme a regra do modelo de dados.
+
+## Administração e preview
+
+A rota protegida `/admin/posts` lista conteúdos de todos os estados com busca, paginação e filtro por
+`DRAFT`, `PUBLISHED` ou `ARCHIVED`. Abrir um item leva o identificador à rota `/admin`, que recupera
+o documento administrativo completo e passa a tratá-lo como o rascunho ativo daquele navegador.
+Solicitar um novo artigo limpa apenas essa referência local; nenhum conteúdo existente é apagado.
+
+O preview usa `GET /admin/posts/:id` e permanece dentro do grupo administrativo. Ele renderiza o
+mesmo JSON Tiptap da leitura pública, mas não depende do endpoint público nem torna um rascunho
+acessível fora da sessão de administrador. A tela deixa explícito que se trata de uma visualização
+privada e não registra visualização, comentário ou reação.
+
+O endereço editorial pode ser ajustado no editor e participa do autosave. Um conflito
+`SLUG_ALREADY_EXISTS` mantém o conteúdo pendente, destaca o campo correspondente e oferece a mesma
+tentativa manual usada pelas demais falhas de salvamento.
