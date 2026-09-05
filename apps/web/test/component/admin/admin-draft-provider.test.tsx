@@ -1,3 +1,4 @@
+import { ApiClientError } from '@vavito/api-client';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -28,6 +29,7 @@ const savedDraft: AdminPostDraft = {
   content: savedContent,
   contentSchemaVersion: 1,
   id: '019c2d62-6e90-7000-8000-000000000010',
+  slug: 'rascunho-recuperado',
   status: 'DRAFT',
   title: 'Rascunho recuperado',
   updatedAt: '2026-09-05T13:00:00.000Z',
@@ -111,6 +113,21 @@ describe('autosave do rascunho administrativo', () => {
 
     expect(await screen.findByDisplayValue(savedDraft.title)).toBeInTheDocument();
     expect(await screen.findByText('Conteúdo recuperado')).toBeInTheDocument();
+    expect(gateway.get).toHaveBeenCalledWith(savedDraft.id);
+  });
+
+  it('abre diretamente o rascunho solicitado pela listagem administrativa', async () => {
+    const storage = createMemoryStorage();
+    const gateway = createGateway();
+
+    render(
+      <AdminDraftProvider initialPostId={savedDraft.id} gateway={gateway} storage={storage}>
+        <AdminDraftWorkspace />
+      </AdminDraftProvider>,
+    );
+
+    expect(await screen.findByDisplayValue(savedDraft.title)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(savedDraft.slug)).toBeInTheDocument();
     expect(gateway.get).toHaveBeenCalledWith(savedDraft.id);
   });
 
@@ -210,5 +227,37 @@ describe('autosave do rascunho administrativo', () => {
       savedDraft.id,
       expect.objectContaining({ title: 'Versão ainda pendente' }),
     );
+  });
+
+  it('associa o conflito de slug ao campo de endereço sem descartar o rascunho', async () => {
+    const storage = createMemoryStorage();
+    writeActiveAdminDraftId(savedDraft.id, storage);
+    const gateway = createGateway({
+      update: vi.fn().mockRejectedValue(
+        new ApiClientError({
+          code: 'SLUG_ALREADY_EXISTS',
+          details: null,
+          message: 'Este slug já está em uso.',
+          path: '/api/v1/admin/posts/id',
+          requestId: null,
+          statusCode: 409,
+          timestamp: null,
+        }),
+      ),
+    });
+
+    render(
+      <AdminDraftProvider debounceMs={1} gateway={gateway} storage={storage}>
+        <AdminDraftWorkspace />
+      </AdminDraftProvider>,
+    );
+
+    const slug = await screen.findByLabelText('Endereço do artigo');
+    fireEvent.change(slug, { target: { value: 'endereco-repetido' } });
+
+    expect(
+      await screen.findByText('Este endereço já está em uso. Escolha outro para continuar.'),
+    ).toBeInTheDocument();
+    expect(slug).toHaveAttribute('aria-invalid', 'true');
   });
 });

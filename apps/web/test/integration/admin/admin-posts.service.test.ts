@@ -15,6 +15,7 @@ const apiPost = {
   },
   contentSchemaVersion: 1,
   id: '019c2d62-6e90-7000-8000-000000000010',
+  slug: 'meu-rascunho',
   status: 'DRAFT',
   title: 'Meu rascunho',
   updatedAt: '2026-09-05T13:00:00.000Z',
@@ -50,6 +51,7 @@ describe('serviço de posts administrativos', () => {
     const draft = {
       content: apiPost.content,
       contentSchemaVersion: 1,
+      slug: 'meu-rascunho',
       title: 'Meu rascunho',
     };
 
