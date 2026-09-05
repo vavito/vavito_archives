@@ -54,3 +54,19 @@ largura e altura disponíveis. A leitura pública usa os mesmos atributos. Selec
 editor oferece a ação de removê-la do documento. Essa remoção não apaga imediatamente o objeto do
 Storage: enquanto não houver uma associação persistida com um post, o ciclo de limpeza de mídia
 órfã permanece responsável por sua remoção segura.
+
+## Autosave de rascunho
+
+O editor mantém um único salvamento em andamento. Alterações de título e conteúdo aguardam 800 ms
+sem nova digitação antes de serem enviadas; se outra alteração acontecer durante a requisição, ela
+permanece pendente e é salva depois, sem concorrer com a versão anterior. Assim, a última versão
+editada no navegador é a última enviada ao servidor.
+
+Na primeira alteração, o frontend cria um `DRAFT` e guarda somente seu identificador no
+armazenamento local do navegador. Ao reabrir `/admin`, esse identificador consulta novamente a API,
+que continua sendo a fonte de verdade do conteúdo. Um identificador que já não existe é descartado
+com segurança.
+
+O cabeçalho anuncia os estados de recuperação, alterações pendentes, salvamento, sucesso e falha.
+Falhas não descartam a versão local ainda aberta: a ação **Tentar novamente** envia o conteúdo mais
+recente. Rascunhos não geram `PostRevision` a cada autosave, conforme a regra do modelo de dados.
