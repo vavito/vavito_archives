@@ -38,3 +38,19 @@ sociais sem interpretar o conteúdo do editor.
 O schema já reconhece nodes de imagem. O upload e a inserção do arquivo no editor serão conectados
 ao `MediaController` na Task 12.3, incluindo progresso, remoção em caso de falha e texto alternativo
 obrigatório.
+
+### Upload no corpo do artigo
+
+O botão de imagem abre um formulário no próprio editor. Antes do envio, o frontend exige um arquivo
+JPEG, PNG ou WebP de até 10 MB e uma descrição acessível não vazia. A API repete todas as validações
+como fonte de verdade.
+
+O navegador envia o `multipart/form-data` diretamente ao endpoint administrativo autenticado para
+acompanhar o progresso real da transferência. A interface mantém percentual, estado ocupado e
+mensagem segura de falha; cancelar o formulário interrompe a requisição em andamento.
+
+Depois da resposta `READY`, o editor insere no JSON um node `image` com URL pública, descrição,
+largura e altura disponíveis. A leitura pública usa os mesmos atributos. Selecionar a imagem no
+editor oferece a ação de removê-la do documento. Essa remoção não apaga imediatamente o objeto do
+Storage: enquanto não houver uma associação persistida com um post, o ciclo de limpeza de mídia
+órfã permanece responsável por sua remoção segura.
