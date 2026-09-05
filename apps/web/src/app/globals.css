@@ -598,6 +598,18 @@
     pointer-events: none;
   }
 
+  .article-editor-content img {
+    border-radius: var(--radius-xl);
+    display: block;
+    height: auto;
+    margin-inline: auto;
+    max-width: 100%;
+  }
+
+  .article-editor-content img.ProseMirror-selectednode {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 70%, transparent);
+  }
+
   @media (min-width: 640px) {
     .article-editor-content {
       padding-inline: 2rem;
