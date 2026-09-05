@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { EditorShell } from '@web/components/layout/editor-shell';
-import { AdminDraftProvider, AdminEditorHeader } from '@web/features/admin';
+import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
@@ -8,10 +7,7 @@ export const metadata: Metadata = {
   title: 'Administração',
 };
 
-export default function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <AdminDraftProvider>
-      <EditorShell header={<AdminEditorHeader />}>{children}</EditorShell>
-    </AdminDraftProvider>
-  );
+export default async function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
+  await requireAdminSession();
+  return children;
 }
