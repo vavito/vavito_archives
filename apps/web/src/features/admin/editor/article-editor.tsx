@@ -3,6 +3,9 @@
 import { EditorContent, type JSONContent, useEditor } from '@tiptap/react';
 import { useState } from 'react';
 
+import { uploadArticleImage } from '../services/admin-media.service';
+import type { UploadArticleImage, UploadedArticleImage } from '../types/admin-media.types';
+import { ArticleImageForm } from './article-image-form';
 import { ArticleEditorContextMenus, ArticleEditorToolbar } from './article-editor-toolbar';
 import {
   ARTICLE_CONTENT_SCHEMA_VERSION,
@@ -14,13 +17,16 @@ import { ArticleLinkForm } from './article-link-form';
 interface ArticleEditorProps {
   initialContent?: JSONContent;
   onChange?: (content: JSONContent, schemaVersion: number) => void;
+  uploadImage?: UploadArticleImage;
 }
 
 export function ArticleEditor({
   initialContent = EMPTY_ARTICLE_DOCUMENT,
   onChange,
+  uploadImage = uploadArticleImage,
 }: Readonly<ArticleEditorProps>) {
   const [content, setContent] = useState<JSONContent>(initialContent);
+  const [isImageFormOpen, setIsImageFormOpen] = useState(false);
   const [isLinkFormOpen, setIsLinkFormOpen] = useState(false);
   const editor = useEditor({
     content: initialContent,
@@ -32,6 +38,7 @@ export function ArticleEditor({
       handleKeyDown: (_view, event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
           event.preventDefault();
+          setIsImageFormOpen(false);
           setIsLinkFormOpen(true);
           return true;
         }
@@ -48,11 +55,46 @@ export function ArticleEditor({
     },
   });
 
+  function openImageForm() {
+    setIsLinkFormOpen(false);
+    setIsImageFormOpen(true);
+  }
+
+  function openLinkForm() {
+    setIsImageFormOpen(false);
+    setIsLinkFormOpen(true);
+  }
+
+  function insertUploadedImage(image: UploadedArticleImage) {
+    editor
+      ?.chain()
+      .focus()
+      .setImage({
+        alt: image.altText,
+        ...(image.height ? { height: image.height } : {}),
+        src: image.url,
+        ...(image.width ? { width: image.width } : {}),
+      })
+      .run();
+    setIsImageFormOpen(false);
+  }
+
   return (
     <section aria-label="Editor do artigo" className="article-editor-shell">
       {editor ? (
         <div className="article-editor-toolbar-region">
-          <ArticleEditorToolbar editor={editor} onEditLink={() => setIsLinkFormOpen(true)} />
+          <ArticleEditorToolbar
+            editor={editor}
+            onAddImage={openImageForm}
+            onEditLink={openLinkForm}
+          />
+          {isImageFormOpen ? (
+            <ArticleImageForm
+              onClose={() => setIsImageFormOpen(false)}
+              onUploaded={insertUploadedImage}
+              uploadImage={uploadImage}
+            />
+          ) : null}
           {isLinkFormOpen ? (
             <ArticleLinkForm editor={editor} onClose={() => setIsLinkFormOpen(false)} />
           ) : null}
@@ -61,7 +103,11 @@ export function ArticleEditor({
       <div className="relative">
         <EditorContent editor={editor} />
         {editor ? (
-          <ArticleEditorContextMenus editor={editor} onEditLink={() => setIsLinkFormOpen(true)} />
+          <ArticleEditorContextMenus
+            editor={editor}
+            onAddImage={openImageForm}
+            onEditLink={openLinkForm}
+          />
         ) : null}
       </div>
       <input name="content" readOnly type="hidden" value={JSON.stringify(content)} />

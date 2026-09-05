@@ -10,17 +10,20 @@ import {
   FileCode2,
   Heading2,
   Heading3,
+  ImagePlus,
   Italic,
   Link2,
   Quote,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react';
 
 type EditorTool =
-  'bold' | 'code' | 'codeBlock' | 'heading2' | 'heading3' | 'italic' | 'link' | 'quote';
+  'bold' | 'code' | 'codeBlock' | 'heading2' | 'heading3' | 'image' | 'italic' | 'link' | 'quote';
 
 interface ArticleEditorToolbarProps {
   editor: Editor;
+  onAddImage: () => void;
   onEditLink: () => void;
 }
 
@@ -31,7 +34,7 @@ interface ToolbarButtonsProps extends ArticleEditorToolbarProps {
 
 interface ToolbarAction {
   active: boolean;
-  ariaKeyShortcuts: string;
+  ariaKeyShortcuts?: string;
   icon: LucideIcon;
   label: string;
   run: () => void;
@@ -42,7 +45,13 @@ const bubbleMenuOptions = { offset: 8, placement: 'top' as const };
 const floatingMenuOptions = { offset: 8, placement: 'bottom-start' as const };
 const appendMenuToBody = () => document.body;
 
-function ToolbarButtons({ editor, label, onEditLink, tools }: Readonly<ToolbarButtonsProps>) {
+function ToolbarButtons({
+  editor,
+  label,
+  onAddImage,
+  onEditLink,
+  tools,
+}: Readonly<ToolbarButtonsProps>) {
   const activeFormats = useEditorState({
     editor,
     selector: ({ editor: currentEditor }) => ({
@@ -51,6 +60,7 @@ function ToolbarButtons({ editor, label, onEditLink, tools }: Readonly<ToolbarBu
       codeBlock: currentEditor.isActive('codeBlock'),
       heading2: currentEditor.isActive('heading', { level: 2 }),
       heading3: currentEditor.isActive('heading', { level: 3 }),
+      image: currentEditor.isActive('image'),
       italic: currentEditor.isActive('italic'),
       link: currentEditor.isActive('link'),
       quote: currentEditor.isActive('blockquote'),
@@ -98,6 +108,13 @@ function ToolbarButtons({ editor, label, onEditLink, tools }: Readonly<ToolbarBu
       run: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
       shortcut: 'Ctrl/⌘ + Alt + 3',
     },
+    image: {
+      active: activeFormats.image,
+      icon: ImagePlus,
+      label: 'Inserir imagem',
+      run: onAddImage,
+      shortcut: 'Abrir envio',
+    },
     italic: {
       active: activeFormats.italic,
       ariaKeyShortcuts: 'Control+I Meta+I',
@@ -143,7 +160,7 @@ function ToolbarButtons({ editor, label, onEditLink, tools }: Readonly<ToolbarBu
             onClick={action.run}
             onMouseDown={(event) => event.preventDefault()}
             size="icon"
-            title={`${action.label} (${action.shortcut})`}
+            title={action.ariaKeyShortcuts ? `${action.label} (${action.shortcut})` : action.label}
             variant="ghost"
           >
             <Icon aria-hidden="true" />
@@ -154,19 +171,35 @@ function ToolbarButtons({ editor, label, onEditLink, tools }: Readonly<ToolbarBu
   );
 }
 
-export function ArticleEditorToolbar({ editor, onEditLink }: Readonly<ArticleEditorToolbarProps>) {
+export function ArticleEditorToolbar({
+  editor,
+  onAddImage,
+  onEditLink,
+}: Readonly<ArticleEditorToolbarProps>) {
   return (
     <ToolbarButtons
       editor={editor}
       label="Ferramentas de formatação"
+      onAddImage={onAddImage}
       onEditLink={onEditLink}
-      tools={['heading2', 'heading3', 'bold', 'italic', 'link', 'code', 'codeBlock', 'quote']}
+      tools={[
+        'heading2',
+        'heading3',
+        'bold',
+        'italic',
+        'link',
+        'image',
+        'code',
+        'codeBlock',
+        'quote',
+      ]}
     />
   );
 }
 
 export function ArticleEditorContextMenus({
   editor,
+  onAddImage,
   onEditLink,
 }: Readonly<ArticleEditorToolbarProps>) {
   return (
@@ -183,6 +216,7 @@ export function ArticleEditorContextMenus({
         <ToolbarButtons
           editor={editor}
           label="Formatação da seleção"
+          onAddImage={onAddImage}
           onEditLink={onEditLink}
           tools={['bold', 'italic', 'link', 'code']}
         />
@@ -197,10 +231,30 @@ export function ArticleEditorContextMenus({
         <ToolbarButtons
           editor={editor}
           label="Inserir bloco"
+          onAddImage={onAddImage}
           onEditLink={onEditLink}
           tools={['heading2', 'heading3', 'quote', 'codeBlock']}
         />
       </FloatingMenu>
+
+      <BubbleMenu
+        appendTo={appendMenuToBody}
+        className="article-editor-context-menu"
+        editor={editor}
+        options={bubbleMenuOptions}
+        shouldShow={({ editor: currentEditor }) => currentEditor.isActive('image')}
+      >
+        <Button
+          aria-label="Remover imagem"
+          className="text-destructive hover:text-destructive"
+          onClick={() => editor.chain().focus().deleteSelection().run()}
+          size="small"
+          variant="ghost"
+        >
+          <Trash2 aria-hidden="true" />
+          Remover imagem
+        </Button>
+      </BubbleMenu>
     </>
   );
 }
