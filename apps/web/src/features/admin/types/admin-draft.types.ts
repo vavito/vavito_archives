@@ -5,6 +5,7 @@ export type AdminDraftPhase = 'dirty' | 'error' | 'idle' | 'loading' | 'saved' |
 export interface AdminDraftDocument {
   content: JSONContent;
   contentSchemaVersion: number;
+  slug: string;
   title: string;
 }
 
@@ -22,6 +23,7 @@ export interface AdminDraftGateway {
 
 export interface AdminDraftState {
   draft: AdminDraftDocument;
+  errorCode: string | null;
   errorMessage: string | null;
   isReady: boolean;
   phase: AdminDraftPhase;
@@ -29,5 +31,6 @@ export interface AdminDraftState {
   retry: () => void;
   saveNow: () => void;
   setContent: (content: JSONContent, contentSchemaVersion: number) => void;
+  setSlug: (slug: string) => void;
   setTitle: (title: string) => void;
 }

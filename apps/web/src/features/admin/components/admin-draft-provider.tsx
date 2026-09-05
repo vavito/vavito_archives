@@ -36,6 +36,8 @@ interface AdminDraftProviderProps {
   children: ReactNode;
   debounceMs?: number;
   gateway?: AdminDraftGateway;
+  initialPostId?: string | null;
+  startNew?: boolean;
   storage?: DraftStorage;
 }
 
@@ -47,21 +49,28 @@ function createEmptyDraft(): AdminDraftDocument {
   return {
     content: EMPTY_ARTICLE_DOCUMENT,
     contentSchemaVersion: ARTICLE_CONTENT_SCHEMA_VERSION,
+    slug: '',
     title: '',
   };
 }
 
 function safeDraftError(error: unknown, fallback: string): string {
-  return error instanceof ApiClientError ? error.message : fallback;
+  if (!(error instanceof ApiClientError)) return fallback;
+  return error.code === 'SLUG_ALREADY_EXISTS'
+    ? 'Este endereço já está em uso. Escolha outro para continuar.'
+    : error.message;
 }
 
 export function AdminDraftProvider({
   children,
   debounceMs = ADMIN_DRAFT_AUTOSAVE_DELAY_MS,
   gateway = adminDraftGateway,
+  initialPostId,
+  startNew = false,
   storage,
 }: Readonly<AdminDraftProviderProps>) {
   const [draft, setDraft] = useState<AdminDraftDocument>(createEmptyDraft);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [phase, setPhase] = useState<AdminDraftState['phase']>('loading');
@@ -88,6 +97,7 @@ export function AdminDraftProvider({
     failureKindRef.current = null;
     isHydratedRef.current = true;
     setDraft(emptyDraft);
+    setErrorCode(null);
     setErrorMessage(null);
     setPostId(null);
     setIsReady(true);
@@ -96,12 +106,17 @@ export function AdminDraftProvider({
 
   const recoverDraft = useCallback(async () => {
     const recoveryAttempt = ++recoveryAttemptRef.current;
-    const storedPostId = readActiveAdminDraftId(storage);
+    const storedPostId = startNew ? null : (initialPostId ?? readActiveAdminDraftId(storage));
     isHydratedRef.current = false;
     failureKindRef.current = null;
     setErrorMessage(null);
+    setErrorCode(null);
     setIsReady(false);
     setPhase('loading');
+
+    if (startNew) {
+      clearActiveAdminDraftId(storage);
+    }
 
     if (!storedPostId) {
       if (mountedRef.current && recoveryAttempt === recoveryAttemptRef.current) {
@@ -120,6 +135,7 @@ export function AdminDraftProvider({
       const nextDraft: AdminDraftDocument = {
         content: recoveredDraft.content,
         contentSchemaVersion: recoveredDraft.contentSchemaVersion,
+        slug: recoveredDraft.slug,
         title: recoveredDraft.title,
       };
       latestDraftRef.current = nextDraft;
@@ -128,7 +144,9 @@ export function AdminDraftProvider({
       savedRevisionRef.current = 0;
       failureKindRef.current = null;
       isHydratedRef.current = true;
+      writeActiveAdminDraftId(recoveredDraft.id, storage);
       setDraft(nextDraft);
+      setErrorCode(null);
       setPostId(recoveredDraft.id);
       setIsReady(true);
       setPhase('saved');
@@ -144,12 +162,13 @@ export function AdminDraftProvider({
       }
 
       failureKindRef.current = 'load';
+      setErrorCode(error instanceof ApiClientError ? error.code : null);
       setErrorMessage(
         safeDraftError(error, 'Não foi possível recuperar seu rascunho agora. Tente novamente.'),
       );
       setPhase('error');
     }
-  }, [gateway, hydrateEmptyDraft, storage]);
+  }, [gateway, hydrateEmptyDraft, initialPostId, startNew, storage]);
 
   const flushLatestDraft = useCallback(async () => {
     if (timerRef.current) {
@@ -177,6 +196,7 @@ export function AdminDraftProvider({
     saveQueuedRef.current = false;
     failureKindRef.current = null;
     setErrorMessage(null);
+    setErrorCode(null);
     setPhase('saving');
 
     try {
@@ -222,6 +242,7 @@ export function AdminDraftProvider({
       }
 
       failureKindRef.current = 'save';
+      setErrorCode(error instanceof ApiClientError ? error.code : null);
       setErrorMessage(
         safeDraftError(error, 'Não foi possível salvar seu rascunho agora. Tente novamente.'),
       );
@@ -251,6 +272,7 @@ export function AdminDraftProvider({
     revisionRef.current += 1;
     failureKindRef.current = null;
     setErrorMessage(null);
+    setErrorCode(null);
     setPhase('dirty');
 
     if (timerRef.current) {
@@ -283,6 +305,16 @@ export function AdminDraftProvider({
     [queueAutosave],
   );
 
+  const setSlug = useCallback(
+    (slug: string) => {
+      const nextDraft = { ...latestDraftRef.current, slug };
+      latestDraftRef.current = nextDraft;
+      setDraft(nextDraft);
+      queueAutosave();
+    },
+    [queueAutosave],
+  );
+
   const saveNow = useCallback(() => {
     void flushRef.current();
   }, []);
@@ -299,6 +331,7 @@ export function AdminDraftProvider({
   const value = useMemo<AdminDraftState>(
     () => ({
       draft,
+      errorCode,
       errorMessage,
       isReady,
       phase,
@@ -306,9 +339,22 @@ export function AdminDraftProvider({
       retry,
       saveNow,
       setContent,
+      setSlug,
       setTitle,
     }),
-    [draft, errorMessage, isReady, phase, postId, retry, saveNow, setContent, setTitle],
+    [
+      draft,
+      errorCode,
+      errorMessage,
+      isReady,
+      phase,
+      postId,
+      retry,
+      saveNow,
+      setContent,
+      setSlug,
+      setTitle,
+    ],
   );
 
   return <AdminDraftContext.Provider value={value}>{children}</AdminDraftContext.Provider>;
