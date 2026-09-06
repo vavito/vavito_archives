@@ -57,10 +57,10 @@ Storage: enquanto não houver uma associação persistida com um post, o ciclo d
 
 ## Autosave de rascunho
 
-O editor mantém um único salvamento em andamento. Alterações de título e conteúdo aguardam 800 ms
-sem nova digitação antes de serem enviadas; se outra alteração acontecer durante a requisição, ela
-permanece pendente e é salva depois, sem concorrer com a versão anterior. Assim, a última versão
-editada no navegador é a última enviada ao servidor.
+O editor mantém um único salvamento em andamento. Alterações de título, resumo, endereço e conteúdo
+aguardam 800 ms sem nova digitação antes de serem enviadas; se outra alteração acontecer durante a
+requisição, ela permanece pendente e é salva depois, sem concorrer com a versão anterior. Assim, a
+última versão editada no navegador é a última enviada ao servidor.
 
 Na primeira alteração, o frontend cria um `DRAFT` e guarda somente seu identificador no
 armazenamento local do navegador. Ao reabrir `/admin`, esse identificador consulta novamente a API,
@@ -86,3 +86,19 @@ privada e não registra visualização, comentário ou reação.
 O endereço editorial pode ser ajustado no editor e participa do autosave. Um conflito
 `SLUG_ALREADY_EXISTS` mantém o conteúdo pendente, destaca o campo correspondente e oferece a mesma
 tentativa manual usada pelas demais falhas de salvamento.
+
+## Transições editoriais
+
+A listagem, o preview e o cabeçalho do editor conectam as ações de publicar, despublicar, arquivar e
+restaurar como rascunho aos endpoints administrativos específicos. Cada transição exige confirmação
+e mantém os controles ocupados enquanto o servidor processa a solicitação. A interface só assume o
+novo estado depois da resposta da API e apresenta um feedback flutuante de sucesso ou falha.
+
+Publicar exige título, resumo, endereço e conteúdo preenchidos. Conflitos `409` são traduzidos em
+orientações amigáveis, incluindo os campos ainda incompletos ou a necessidade de atualizar um estado
+que mudou. Artigos arquivados permanecem visíveis para administração e preview, mas o editor bloqueia
+alterações até que sejam restaurados como rascunho.
+
+Depois de uma transição, o frontend revalida a Home, a listagem pública, a gestão administrativa, o
+preview e a URL pública conhecida do artigo. Assim, o estado renderizado volta a ser obtido da API no
+mesmo fluxo da ação.
