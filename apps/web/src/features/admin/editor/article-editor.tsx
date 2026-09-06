@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent, type JSONContent, useEditor } from '@tiptap/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { uploadArticleImage } from '../services/admin-media.service';
 import type { UploadArticleImage, UploadedArticleImage } from '../types/admin-media.types';
@@ -15,12 +15,14 @@ import {
 import { ArticleLinkForm } from './article-link-form';
 
 interface ArticleEditorProps {
+  editable?: boolean;
   initialContent?: JSONContent;
   onChange?: (content: JSONContent, schemaVersion: number) => void;
   uploadImage?: UploadArticleImage;
 }
 
 export function ArticleEditor({
+  editable = true,
   initialContent = EMPTY_ARTICLE_DOCUMENT,
   onChange,
   uploadImage = uploadArticleImage,
@@ -30,6 +32,7 @@ export function ArticleEditor({
   const [isLinkFormOpen, setIsLinkFormOpen] = useState(false);
   const editor = useEditor({
     content: initialContent,
+    editable,
     editorProps: {
       attributes: {
         'aria-label': 'Conteúdo do artigo',
@@ -54,6 +57,10 @@ export function ArticleEditor({
       onChange?.(nextContent, ARTICLE_CONTENT_SCHEMA_VERSION);
     },
   });
+
+  useEffect(() => {
+    if (editor && editor.isEditable !== editable) editor.setEditable(editable);
+  }, [editable, editor]);
 
   function openImageForm() {
     setIsLinkFormOpen(false);
@@ -81,7 +88,7 @@ export function ArticleEditor({
 
   return (
     <section aria-label="Editor do artigo" className="article-editor-shell">
-      {editor ? (
+      {editor && editable ? (
         <div className="article-editor-toolbar-region">
           <ArticleEditorToolbar
             editor={editor}
@@ -102,7 +109,7 @@ export function ArticleEditor({
       ) : null}
       <div className="relative">
         <EditorContent editor={editor} />
-        {editor ? (
+        {editor && editable ? (
           <ArticleEditorContextMenus
             editor={editor}
             onAddImage={openImageForm}

@@ -9,8 +9,19 @@ import { ArticleEditor } from '../editor/article-editor';
 import { useAdminDraft } from './admin-draft-provider';
 
 export function AdminDraftWorkspace() {
-  const { draft, errorCode, errorMessage, isReady, phase, retry, setContent, setSlug, setTitle } =
-    useAdminDraft();
+  const {
+    draft,
+    errorCode,
+    errorMessage,
+    isReady,
+    phase,
+    postStatus,
+    retry,
+    setContent,
+    setExcerpt,
+    setSlug,
+    setTitle,
+  } = useAdminDraft();
 
   if (!isReady) {
     if (phase === 'error') {
@@ -43,15 +54,26 @@ export function AdminDraftWorkspace() {
     );
   }
 
+  const isArchived = postStatus === 'ARCHIVED';
+
   return (
     <article className="relative flex flex-1 flex-col gap-8">
       <header className="grid gap-4">
         <p className="text-accent text-xs font-medium tracking-eyebrow uppercase">Editor</p>
+        {isArchived ? (
+          <p
+            className="rounded-xl border border-border bg-surface-card px-4 py-3 text-sm text-neutral-300"
+            role="status"
+          >
+            Este artigo está arquivado. Restaure-o como rascunho para voltar a editar.
+          </p>
+        ) : null}
         <label className="sr-only" htmlFor="article-title">
           Título do artigo
         </label>
         <textarea
           className="placeholder:text-neutral-600 min-h-24 w-full resize-none bg-transparent text-4xl leading-tight font-semibold text-neutral-100 outline-none sm:text-5xl"
+          disabled={isArchived}
           id="article-title"
           maxLength={200}
           onChange={(event) => setTitle(event.target.value)}
@@ -59,10 +81,24 @@ export function AdminDraftWorkspace() {
           rows={2}
           value={draft.title}
         />
+        <label className="sr-only" htmlFor="article-excerpt">
+          Resumo do artigo
+        </label>
+        <textarea
+          className="placeholder:text-neutral-600 min-h-20 w-full resize-none bg-transparent text-lg leading-relaxed text-neutral-300 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={isArchived}
+          id="article-excerpt"
+          maxLength={500}
+          onChange={(event) => setExcerpt(event.target.value)}
+          placeholder="Escreva um resumo para apresentar o artigo"
+          rows={2}
+          value={draft.excerpt}
+        />
         <Input
           autoCapitalize="none"
           autoComplete="off"
           className="font-mono"
+          disabled={isArchived}
           error={errorCode === 'SLUG_ALREADY_EXISTS' ? errorMessage : undefined}
           label="Endereço do artigo"
           maxLength={255}
@@ -73,7 +109,7 @@ export function AdminDraftWorkspace() {
         />
       </header>
 
-      <ArticleEditor initialContent={draft.content} onChange={setContent} />
+      <ArticleEditor editable={!isArchived} initialContent={draft.content} onChange={setContent} />
     </article>
   );
 }
