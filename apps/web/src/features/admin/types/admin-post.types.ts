@@ -1,6 +1,7 @@
 import type { components } from '@vavito/api-client';
 
 export type AdminPostStatus = components['schemas']['PostStatus'];
+export type AdminPostTransition = 'archive' | 'publish' | 'restore' | 'unpublish';
 
 export interface AdminPostAuthor {
   displayName: string;
@@ -45,3 +46,15 @@ export interface AdminPostsPage {
   items: AdminPostSummary[];
   meta: components['schemas']['PaginationMetaDto'];
 }
+
+export type AdminPostTransitionResult =
+  | {
+      data: AdminPostDetail;
+      message: string;
+      ok: true;
+    }
+  | {
+      code: string | null;
+      message: string;
+      ok: false;
+    };
