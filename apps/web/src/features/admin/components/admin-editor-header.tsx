@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
 import { useAdminDraft } from './admin-draft-provider';
+import { AdminPostActions } from './admin-post-actions';
 
 const statusMessages = {
   dirty: 'Alterações pendentes',
@@ -18,7 +19,8 @@ const statusMessages = {
 } as const;
 
 export function AdminEditorHeader() {
-  const { draft, errorMessage, isReady, phase, postId, retry, saveNow } = useAdminDraft();
+  const { draft, errorMessage, isReady, phase, postId, postStatus, retry, saveNow, setPostStatus } =
+    useAdminDraft();
   const canSave = isReady && (phase === 'dirty' || phase === 'error');
   const canPreview = Boolean(postId) && phase === 'saved';
   const isError = phase === 'error';
@@ -90,9 +92,20 @@ export function AdminEditorHeader() {
             {phase === 'saving' ? <LoadingSpinner /> : <Save aria-hidden="true" />}
             <span className="hidden sm:inline">{isError ? 'Tentar novamente' : 'Salvar'}</span>
           </Button>
-          <Button disabled size="small">
-            Publicar
-          </Button>
+          {postId && postStatus ? (
+            <AdminPostActions
+              compact
+              disabled={phase !== 'saved'}
+              initialStatus={postStatus}
+              onStatusChange={setPostStatus}
+              postId={postId}
+              title={draft.title}
+            />
+          ) : (
+            <Button disabled size="small">
+              Publicar
+            </Button>
+          )}
         </div>
       </div>
     </header>
