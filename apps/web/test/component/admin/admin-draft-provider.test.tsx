@@ -28,6 +28,7 @@ const savedContent: JSONContent = {
 const savedDraft: AdminPostDraft = {
   content: savedContent,
   contentSchemaVersion: 1,
+  excerpt: 'Resumo recuperado',
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'rascunho-recuperado',
   status: 'DRAFT',
@@ -72,12 +73,14 @@ function deferred<T>(): Deferred<T> {
 }
 
 function DraftHarness() {
-  const { draft, errorMessage, isReady, phase, postId, retry, saveNow, setTitle } = useAdminDraft();
+  const { draft, errorMessage, isReady, phase, postId, postStatus, retry, saveNow, setTitle } =
+    useAdminDraft();
 
   return (
     <div>
       <output data-testid="phase">{phase}</output>
       <output data-testid="post-id">{postId}</output>
+      <output data-testid="post-status">{postStatus}</output>
       <output data-testid="error">{errorMessage}</output>
       <output data-testid="ready">{String(isReady)}</output>
       <input
@@ -112,6 +115,7 @@ describe('autosave do rascunho administrativo', () => {
     );
 
     expect(await screen.findByDisplayValue(savedDraft.title)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(savedDraft.excerpt)).toBeInTheDocument();
     expect(await screen.findByText('Conteúdo recuperado')).toBeInTheDocument();
     expect(gateway.get).toHaveBeenCalledWith(savedDraft.id);
   });
@@ -129,6 +133,27 @@ describe('autosave do rascunho administrativo', () => {
     expect(await screen.findByDisplayValue(savedDraft.title)).toBeInTheDocument();
     expect(screen.getByDisplayValue(savedDraft.slug)).toBeInTheDocument();
     expect(gateway.get).toHaveBeenCalledWith(savedDraft.id);
+  });
+
+  it('bloqueia a edição de um artigo arquivado até sua restauração', async () => {
+    const gateway = createGateway({
+      get: vi.fn().mockResolvedValue({ ...savedDraft, status: 'ARCHIVED' }),
+    });
+
+    render(
+      <AdminDraftProvider initialPostId={savedDraft.id} gateway={gateway}>
+        <AdminDraftWorkspace />
+      </AdminDraftProvider>,
+    );
+
+    expect(await screen.findByText(/está arquivado/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Título do artigo')).toBeDisabled();
+    expect(screen.getByLabelText('Resumo do artigo')).toBeDisabled();
+    expect(screen.getByLabelText('Endereço do artigo')).toBeDisabled();
+    expect(await screen.findByLabelText('Conteúdo do artigo')).toHaveAttribute(
+      'contenteditable',
+      'false',
+    );
   });
 
   it('aguarda o debounce antes de criar e atualizar o primeiro rascunho', async () => {

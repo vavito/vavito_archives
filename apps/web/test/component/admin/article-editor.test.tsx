@@ -49,6 +49,16 @@ describe('editor de artigos', () => {
     expect(container.querySelector('[name="contentSchemaVersion"]')).toHaveValue('1');
   });
 
+  it('impede a edição do conteúdo quando o artigo está arquivado', async () => {
+    render(<ArticleEditor editable={false} />);
+
+    expect(await screen.findByLabelText('Conteúdo do artigo')).toHaveAttribute(
+      'contenteditable',
+      'false',
+    );
+    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+  });
+
   it('oferece as formatações previstas e informa seus atalhos', async () => {
     render(<ArticleEditor />);
 

@@ -14,6 +14,7 @@ const apiPost = {
     type: 'doc',
   },
   contentSchemaVersion: 1,
+  excerpt: 'Resumo do rascunho',
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'meu-rascunho',
   status: 'DRAFT',
@@ -51,6 +52,7 @@ describe('serviço de posts administrativos', () => {
     const draft = {
       content: apiPost.content,
       contentSchemaVersion: 1,
+      excerpt: apiPost.excerpt,
       slug: 'meu-rascunho',
       title: 'Meu rascunho',
     };
