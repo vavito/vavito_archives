@@ -11,9 +11,14 @@ import type {
   AdminPostDraft,
 } from '@web/features/admin/types/admin-draft.types';
 
+vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  transitionAdminPostAction: vi.fn(),
+}));
+
 const savedDraft: AdminPostDraft = {
   content: { content: [{ type: 'paragraph' }], type: 'doc' },
   contentSchemaVersion: 1,
+  excerpt: 'Resumo salvo',
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'titulo-salvo',
   status: 'DRAFT',

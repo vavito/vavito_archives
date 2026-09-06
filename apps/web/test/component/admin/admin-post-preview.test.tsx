@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AdminPostPreview } from '@web/features/admin/components/admin-post-preview';
 import type { AdminPostDetail } from '@web/features/admin/types/admin-post.types';
+
+vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  transitionAdminPostAction: vi.fn(),
+}));
 
 const post: AdminPostDetail = {
   archivedAt: null,

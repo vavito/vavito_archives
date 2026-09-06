@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AdminPostsPageContent } from '@web/features/admin/components/admin-posts-page-content';
 import type { AdminPostsPage } from '@web/features/admin/types/admin-post.types';
+
+vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  transitionAdminPostAction: vi.fn(),
+}));
 
 const data: AdminPostsPage = {
   filters: { page: 1, query: '', status: null },
