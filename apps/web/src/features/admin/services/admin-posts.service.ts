@@ -35,6 +35,7 @@ function normalizeAdminPost(post: ApiAdminPost | undefined): AdminPostDraft {
   return {
     content: post.content,
     contentSchemaVersion: post.contentSchemaVersion,
+    excerpt: typeof post.excerpt === 'string' ? post.excerpt : '',
     id: post.id,
     slug: typeof post.slug === 'string' ? post.slug : '',
     status: post.status,
@@ -89,6 +90,7 @@ export async function updateAdminDraft(
     body: {
       content: draft.content,
       contentSchemaVersion: draft.contentSchemaVersion,
+      excerpt: draft.excerpt,
       ...(draft.slug.trim() ? { slug: draft.slug.trim() } : {}),
       title: draft.title,
     },

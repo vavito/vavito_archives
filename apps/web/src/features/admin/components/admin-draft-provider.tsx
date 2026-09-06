@@ -28,6 +28,7 @@ import type {
   AdminDraftDocument,
   AdminDraftGateway,
   AdminDraftState,
+  AdminPostDraft,
 } from '../types/admin-draft.types';
 
 export const ADMIN_DRAFT_AUTOSAVE_DELAY_MS = 800;
@@ -49,6 +50,7 @@ function createEmptyDraft(): AdminDraftDocument {
   return {
     content: EMPTY_ARTICLE_DOCUMENT,
     contentSchemaVersion: ARTICLE_CONTENT_SCHEMA_VERSION,
+    excerpt: '',
     slug: '',
     title: '',
   };
@@ -75,6 +77,7 @@ export function AdminDraftProvider({
   const [isReady, setIsReady] = useState(false);
   const [phase, setPhase] = useState<AdminDraftState['phase']>('loading');
   const [postId, setPostId] = useState<string | null>(null);
+  const [postStatus, setPostStatus] = useState<AdminPostDraft['status'] | null>(null);
   const failureKindRef = useRef<FailureKind>(null);
   const flushRef = useRef<() => Promise<void>>(() => Promise.resolve());
   const inFlightRef = useRef(false);
@@ -100,6 +103,7 @@ export function AdminDraftProvider({
     setErrorCode(null);
     setErrorMessage(null);
     setPostId(null);
+    setPostStatus(null);
     setIsReady(true);
     setPhase('idle');
   }, []);
@@ -135,6 +139,7 @@ export function AdminDraftProvider({
       const nextDraft: AdminDraftDocument = {
         content: recoveredDraft.content,
         contentSchemaVersion: recoveredDraft.contentSchemaVersion,
+        excerpt: recoveredDraft.excerpt,
         slug: recoveredDraft.slug,
         title: recoveredDraft.title,
       };
@@ -148,6 +153,7 @@ export function AdminDraftProvider({
       setDraft(nextDraft);
       setErrorCode(null);
       setPostId(recoveredDraft.id);
+      setPostStatus(recoveredDraft.status);
       setIsReady(true);
       setPhase('saved');
     } catch (error) {
@@ -210,16 +216,19 @@ export function AdminDraftProvider({
 
         if (mountedRef.current) {
           setPostId(activePostId);
+          setPostStatus(createdDraft.status);
         }
       }
 
-      await gateway.update(activePostId, snapshot);
+      const savedDraft = await gateway.update(activePostId, snapshot);
       savedRevisionRef.current = Math.max(savedRevisionRef.current, targetRevision);
       inFlightRef.current = false;
 
       if (!mountedRef.current) {
         return;
       }
+
+      setPostStatus(savedDraft.status);
 
       if (saveQueuedRef.current) {
         saveQueuedRef.current = false;
@@ -315,6 +324,16 @@ export function AdminDraftProvider({
     [queueAutosave],
   );
 
+  const setExcerpt = useCallback(
+    (excerpt: string) => {
+      const nextDraft = { ...latestDraftRef.current, excerpt };
+      latestDraftRef.current = nextDraft;
+      setDraft(nextDraft);
+      queueAutosave();
+    },
+    [queueAutosave],
+  );
+
   const saveNow = useCallback(() => {
     void flushRef.current();
   }, []);
@@ -336,10 +355,13 @@ export function AdminDraftProvider({
       isReady,
       phase,
       postId,
+      postStatus,
       retry,
       saveNow,
       setContent,
+      setExcerpt,
       setSlug,
+      setPostStatus,
       setTitle,
     }),
     [
@@ -349,10 +371,13 @@ export function AdminDraftProvider({
       isReady,
       phase,
       postId,
+      postStatus,
       retry,
       saveNow,
       setContent,
+      setExcerpt,
       setSlug,
+      setPostStatus,
       setTitle,
     ],
   );
