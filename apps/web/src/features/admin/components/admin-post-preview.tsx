@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TiptapContent } from '@web/features/posts';
 
 import type { AdminPostDetail, AdminPostStatus } from '../types/admin-post.types';
+import { AdminPostActions } from './admin-post-actions';
 
 const statusLabels: Readonly<Record<AdminPostStatus, string>> = {
   ARCHIVED: 'Arquivado',
@@ -35,13 +36,16 @@ export function AdminPostPreview({ post }: Readonly<{ post: AdminPostDetail }>) 
           <ArrowLeft aria-hidden="true" className="size-4" />
           Todos os artigos
         </Link>
-        <Link
-          className={cn(buttonVariants({ size: 'small', variant: 'secondary' }))}
-          href={`/admin?post=${post.id}` as Route}
-        >
-          <FilePenLine aria-hidden="true" />
-          Editar
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Link
+            className={cn(buttonVariants({ size: 'small', variant: 'secondary' }))}
+            href={`/admin?post=${post.id}` as Route}
+          >
+            <FilePenLine aria-hidden="true" />
+            Editar
+          </Link>
+          <AdminPostActions initialStatus={post.status} postId={post.id} title={post.title} />
+        </div>
       </nav>
 
       <article className="pb-20">

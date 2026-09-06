@@ -4,6 +4,7 @@ import type { Route } from 'next';
 import Link from 'next/link';
 
 import type { AdminPostStatus, AdminPostsPage } from '../types/admin-post.types';
+import { AdminPostActions } from './admin-post-actions';
 import { AdminPostsPagination } from './admin-posts-pagination';
 
 const statusOptions: readonly { label: string; value: AdminPostStatus | null }[] = [
@@ -163,6 +164,11 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
                       <Eye aria-hidden="true" />
                       Preview
                     </Link>
+                    <AdminPostActions
+                      initialStatus={post.status}
+                      postId={post.id}
+                      title={post.title}
+                    />
                   </div>
                 </li>
               ))}
