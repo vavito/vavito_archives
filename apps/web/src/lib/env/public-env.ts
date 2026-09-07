@@ -13,6 +13,10 @@ export function getApiBaseUrl(): string {
   }
 
   if (process.env.NODE_ENV !== 'production') {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+
     return LOCAL_API_URL;
   }
 
