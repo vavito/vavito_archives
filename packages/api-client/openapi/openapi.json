@@ -8413,7 +8413,7 @@
             "format": "uuid"
           },
           "failureReason": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "nullable": true
           },
@@ -8428,7 +8428,7 @@
             "format": "uuid"
           },
           "idempotencyKey": {
-            "type": "object",
+            "type": "string",
             "example": "019c2d62-6e90-7000-8000-000000000051",
             "format": "uuid",
             "nullable": true
@@ -8441,18 +8441,18 @@
             "example": "Uma nova leitura já está disponível."
           },
           "resendId": {
-            "type": "object",
+            "type": "string",
             "example": "re_123456789",
             "nullable": true
           },
           "sendStartedAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-25T13:00:00.000Z",
             "format": "date-time",
             "nullable": true
           },
           "sentAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-25T13:01:00.000Z",
             "format": "date-time",
             "nullable": true

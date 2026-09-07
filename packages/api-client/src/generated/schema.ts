@@ -1229,7 +1229,7 @@ export interface components {
        */
       createdById: string;
       /** @example null */
-      failureReason: Record<string, never> | null;
+      failureReason: string | null;
       /**
        * @description HTML congelado usado como preview e base para o envio.
        * @example <article><h1>Arquivos e memória digital</h1></article>
@@ -1244,22 +1244,22 @@ export interface components {
        * Format: uuid
        * @example 019c2d62-6e90-7000-8000-000000000051
        */
-      idempotencyKey: Record<string, never> | null;
+      idempotencyKey: string | null;
       postSnapshot: components['schemas']['CampaignPostSnapshotDto'];
       /** @example Uma nova leitura já está disponível. */
       previewText: string;
       /** @example re_123456789 */
-      resendId: Record<string, never> | null;
+      resendId: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T13:00:00.000Z
        */
-      sendStartedAt: Record<string, never> | null;
+      sendStartedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T13:01:00.000Z
        */
-      sentAt: Record<string, never> | null;
+      sentAt: string | null;
       /** @example SENT */
       status: components['schemas']['CampaignStatus'];
       /** @example Novo artigo: Arquivos e memória digital */
