@@ -31,7 +31,7 @@ export class EmailCampaignAdminDto {
   @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000004', format: 'uuid' })
   createdById!: string;
 
-  @ApiProperty({ example: null, nullable: true })
+  @ApiProperty({ example: null, nullable: true, type: String })
   failureReason!: string | null;
 
   @ApiProperty({
@@ -47,6 +47,7 @@ export class EmailCampaignAdminDto {
     example: '019c2d62-6e90-7000-8000-000000000051',
     format: 'uuid',
     nullable: true,
+    type: String,
   })
   idempotencyKey!: string | null;
 
@@ -56,13 +57,14 @@ export class EmailCampaignAdminDto {
   @ApiProperty({ example: 'Uma nova leitura já está disponível.' })
   previewText!: string;
 
-  @ApiProperty({ example: 're_123456789', nullable: true })
+  @ApiProperty({ example: 're_123456789', nullable: true, type: String })
   resendId!: string | null;
 
   @ApiProperty({
     example: '2026-08-25T13:00:00.000Z',
     format: 'date-time',
     nullable: true,
+    type: String,
   })
   sendStartedAt!: string | null;
 
@@ -70,6 +72,7 @@ export class EmailCampaignAdminDto {
     example: '2026-08-25T13:01:00.000Z',
     format: 'date-time',
     nullable: true,
+    type: String,
   })
   sentAt!: string | null;
 
