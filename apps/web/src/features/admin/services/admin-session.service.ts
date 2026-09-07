@@ -17,7 +17,7 @@ export const requireAdminSession = cache(async () => {
   const profile = await getProfile(createWebAuthenticatedApiClient(() => session.accessToken));
 
   if (profile.role !== 'ADMIN') {
-    redirect('/');
+    redirect('/unauthorized');
   }
 
   return session;
