@@ -80,7 +80,7 @@ describe('upload multipart com progresso', () => {
 
     await expect(upload).resolves.toEqual({ id: 'media-id' });
     expect(xhr.method).toBe('POST');
-    expect(xhr.url).toBe('http://localhost:3001/api/v1/admin/media');
+    expect(xhr.url).toBe(`${window.location.origin}/api/v1/admin/media`);
     expect(xhr.headers.get('Authorization')).toBe('Bearer admin-token');
     expect(xhr.requestBody).toBe(formData);
     expect(onProgress).toHaveBeenCalledWith({
