@@ -6,7 +6,7 @@ interface ArticleCoverImageProps {
   priority?: boolean;
   src: string;
   title: string;
-  variant?: 'card' | 'hero';
+  variant?: 'card' | 'hero' | 'thumbnail';
 }
 
 export function ArticleCoverImage({
@@ -23,7 +23,8 @@ export function ArticleCoverImage({
       <img
         alt={alt ?? title}
         className={cn(
-          'motion-media aspect-[16/9] h-auto w-full object-cover',
+          'motion-media w-full object-cover',
+          variant === 'thumbnail' ? 'h-[120px] sm:h-20' : 'aspect-[16/9] h-auto',
           variant === 'hero' && 'rounded-2xl border border-border',
         )}
         decoding="async"
