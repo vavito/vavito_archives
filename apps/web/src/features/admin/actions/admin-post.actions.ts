@@ -5,7 +5,10 @@ import { revalidatePath } from 'next/cache';
 
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 
-import { transitionAdminPost } from '../services/admin-post-transitions.service';
+import {
+  discardAdminPostChanges,
+  transitionAdminPost,
+} from '../services/admin-post-transitions.service';
 import { requireAdminSession } from '../services/admin-session.service';
 import type { AdminPostTransition, AdminPostTransitionResult } from '../types/admin-post.types';
 
@@ -108,6 +111,28 @@ export async function transitionAdminPostAction(
     );
     revalidatePostPaths(id, post.slug);
     return { data: post, message: successMessages[transition], ok: true };
+  } catch (error) {
+    revalidatePostPaths(id, null);
+    return friendlyTransitionError(error);
+  }
+}
+
+export async function discardAdminPostChangesAction(
+  id: string,
+): Promise<AdminPostTransitionResult> {
+  if (!isUuid(id)) {
+    return { code: 'INVALID_POST_REQUEST', message: 'Artigo inválido.', ok: false };
+  }
+
+  const session = await requireAdminSession();
+
+  try {
+    const post = await discardAdminPostChanges(
+      id,
+      createWebAuthenticatedApiClient(() => session.accessToken),
+    );
+    revalidatePostPaths(id, post.slug);
+    return { data: post, message: 'Alterações descartadas.', ok: true };
   } catch (error) {
     revalidatePostPaths(id, null);
     return friendlyTransitionError(error);

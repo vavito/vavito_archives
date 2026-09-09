@@ -29,3 +29,14 @@ export async function transitionAdminPost(
     }
   }
 }
+
+export async function discardAdminPostChanges(
+  id: string,
+  client: ApiClient,
+): Promise<AdminPostDetail> {
+  const response = await client.POST('/api/v1/admin/posts/{id}/discard-changes', {
+    params: { path: { id } },
+  });
+
+  return normalizeAdminPostDetail(response.data);
+}

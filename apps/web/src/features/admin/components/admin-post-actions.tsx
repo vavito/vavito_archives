@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@vavito/ui';
-import { Archive, Globe2, RotateCcw, Undo2 } from 'lucide-react';
+import { Archive, Globe2, RotateCcw, Trash2, Undo2 } from 'lucide-react';
 import { useCallback, useRef, useState, useTransition } from 'react';
 
 import {
@@ -20,24 +20,31 @@ import {
 } from '@web/components/feedback/action-feedback';
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
-import { transitionAdminPostAction } from '../actions/admin-post.actions';
+import {
+  discardAdminPostChangesAction,
+  transitionAdminPostAction,
+} from '../actions/admin-post.actions';
 import type { AdminPostStatus, AdminPostTransition } from '../types/admin-post.types';
 
 interface AdminPostActionsProps {
   className?: string;
   compact?: boolean;
   disabled?: boolean;
+  editor?: boolean;
+  hasPendingChanges?: boolean;
   initialStatus: AdminPostStatus;
   onStatusChange?: (status: AdminPostStatus) => void;
+  onPublishedChanges?: () => void;
+  onDiscardedChanges?: () => void;
   postId: string;
   title: string;
 }
 
 interface TransitionPresentation {
+  action: AdminPostTransition | 'discard';
   confirmLabel: string;
   description: string;
   label: string;
-  transition: AdminPostTransition;
   variant: 'danger' | 'primary' | 'secondary';
 }
 
@@ -46,59 +53,86 @@ interface StatusOverride {
   value: AdminPostStatus;
 }
 
-function availableTransitions(status: AdminPostStatus): TransitionPresentation[] {
+function availableTransitions(
+  status: AdminPostStatus,
+  editor: boolean,
+  hasPendingChanges: boolean,
+): TransitionPresentation[] {
   switch (status) {
     case 'DRAFT':
       return [
         {
           confirmLabel: 'Publicar agora',
+          action: 'publish',
           description: 'O artigo ficará disponível para todos os leitores.',
           label: 'Publicar',
-          transition: 'publish',
           variant: 'primary',
         },
         {
           confirmLabel: 'Arquivar',
+          action: 'archive',
           description: 'O rascunho deixará o fluxo de edição até ser restaurado.',
           label: 'Arquivar',
-          transition: 'archive',
           variant: 'danger',
         },
       ];
     case 'PUBLISHED':
-      return [
-        {
-          confirmLabel: 'Despublicar',
-          description: 'O artigo deixará de aparecer no site e voltará aos rascunhos.',
-          label: 'Despublicar',
-          transition: 'unpublish',
-          variant: 'secondary',
-        },
-        {
-          confirmLabel: 'Arquivar',
-          description: 'O artigo deixará de aparecer no site e será retirado do fluxo de edição.',
-          label: 'Arquivar',
-          transition: 'archive',
-          variant: 'danger',
-        },
-      ];
+      return (
+        [
+          ...(editor && hasPendingChanges
+            ? [
+                {
+                  confirmLabel: 'Publicar alterações',
+                  action: 'publish' as const,
+                  description:
+                    'As mudanças salvas substituirão a versão disponível para os leitores.',
+                  label: 'Publicar alterações',
+                  variant: 'primary' as const,
+                },
+                {
+                  action: 'discard' as const,
+                  confirmLabel: 'Descartar alterações',
+                  description:
+                    'As mudanças ainda não publicadas serão removidas e o editor voltará à versão disponível para os leitores.',
+                  label: 'Descartar alterações',
+                  variant: 'secondary' as const,
+                },
+              ]
+            : []),
+          {
+            confirmLabel: 'Despublicar',
+            action: 'unpublish',
+            description: 'O artigo deixará de aparecer no site e voltará aos rascunhos.',
+            label: 'Despublicar',
+            variant: 'secondary',
+          },
+          {
+            confirmLabel: 'Arquivar',
+            action: 'archive',
+            description: 'O artigo deixará de aparecer no site e será retirado do fluxo de edição.',
+            label: 'Arquivar',
+            variant: 'danger',
+          },
+        ] satisfies TransitionPresentation[]
+      ).filter((item) => !(editor && item.action === 'unpublish'));
     case 'ARCHIVED':
       return [
         {
           confirmLabel: 'Restaurar rascunho',
+          action: 'restore',
           description: 'O artigo voltará aos rascunhos e poderá ser editado novamente.',
           label: 'Restaurar',
-          transition: 'restore',
           variant: 'secondary',
         },
       ];
   }
 }
 
-function TransitionIcon({ transition }: Readonly<{ transition: AdminPostTransition }>) {
-  if (transition === 'publish') return <Globe2 aria-hidden="true" />;
-  if (transition === 'unpublish') return <Undo2 aria-hidden="true" />;
-  if (transition === 'restore') return <RotateCcw aria-hidden="true" />;
+function TransitionIcon({ action }: Readonly<{ action: AdminPostTransition | 'discard' }>) {
+  if (action === 'publish') return <Globe2 aria-hidden="true" />;
+  if (action === 'unpublish') return <Undo2 aria-hidden="true" />;
+  if (action === 'restore') return <RotateCcw aria-hidden="true" />;
+  if (action === 'discard') return <Trash2 aria-hidden="true" />;
   return <Archive aria-hidden="true" />;
 }
 
@@ -106,8 +140,12 @@ export function AdminPostActions({
   className,
   compact = false,
   disabled = false,
+  editor = false,
+  hasPendingChanges = false,
   initialStatus,
   onStatusChange,
+  onPublishedChanges,
+  onDiscardedChanges,
   postId,
   title,
 }: Readonly<AdminPostActionsProps>) {
@@ -124,7 +162,10 @@ export function AdminPostActions({
     if (!selected || isPending) return;
 
     startTransition(async () => {
-      const result = await transitionAdminPostAction(postId, selected.transition);
+      const result =
+        selected.action === 'discard'
+          ? await discardAdminPostChangesAction(postId)
+          : await transitionAdminPostAction(postId, selected.action);
       feedbackId.current += 1;
 
       if (!result.ok) {
@@ -135,6 +176,8 @@ export function AdminPostActions({
 
       setStatusOverride({ base: initialStatus, value: result.data.status });
       onStatusChange?.(result.data.status);
+      if (selected.action === 'publish') onPublishedChanges?.();
+      if (selected.action === 'discard') onDiscardedChanges?.();
       setSelected(null);
       setFeedback({ id: feedbackId.current, message: result.message, tone: 'success' });
     });
@@ -143,19 +186,20 @@ export function AdminPostActions({
   return (
     <>
       <div className={cn('flex flex-wrap items-center gap-2', className)}>
-        {availableTransitions(status).map((item) => (
+        {availableTransitions(status, editor, hasPendingChanges).map((item) => (
           <Button
             aria-label={item.label}
             disabled={disabled || isPending}
-            key={item.transition}
+            key={item.action}
             onClick={() => setSelected(item)}
             size={compact ? 'icon' : 'small'}
+            title={compact ? item.label : undefined}
             variant={item.variant}
           >
-            {isPending && selected?.transition === item.transition ? (
+            {isPending && selected?.action === item.action ? (
               <LoadingSpinner />
             ) : (
-              <TransitionIcon transition={item.transition} />
+              <TransitionIcon action={item.action} />
             )}
             {compact ? <span className="sr-only">{item.label}</span> : item.label}
           </Button>

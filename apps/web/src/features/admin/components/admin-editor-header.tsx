@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, buttonVariants, cn } from '@vavito/ui';
-import { AlertCircle, ArrowLeft, Check, Eye, Files, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowUpRight, Check, Save } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 
@@ -19,8 +19,20 @@ const statusMessages = {
 } as const;
 
 export function AdminEditorHeader() {
-  const { draft, errorMessage, isReady, phase, postId, postStatus, retry, saveNow, setPostStatus } =
-    useAdminDraft();
+  const {
+    draft,
+    errorMessage,
+    hasPendingChanges,
+    isReady,
+    phase,
+    postId,
+    postStatus,
+    reload,
+    retry,
+    saveNow,
+    setHasPendingChanges,
+    setPostStatus,
+  } = useAdminDraft();
   const canSave = isReady && (phase === 'dirty' || phase === 'error');
   const canPreview = Boolean(postId) && phase === 'saved';
   const isError = phase === 'error';
@@ -29,9 +41,10 @@ export function AdminEditorHeader() {
     <header className="site-header-enter bg-background/90 sticky top-0 z-40 border-b border-divider backdrop-blur">
       <div className="mx-auto flex min-h-16 w-full items-center gap-3 px-4 sm:px-6">
         <Link
-          aria-label="Voltar ao site"
+          aria-label="Voltar ao painel"
           className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 grid size-10 shrink-0 place-items-center rounded-full transition-colors"
-          href="/"
+          href="/admin/posts"
+          title="Voltar ao painel"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
         </Link>
@@ -57,19 +70,14 @@ export function AdminEditorHeader() {
                   {errorMessage ?? 'Não foi possível salvar o rascunho.'}
                 </span>
               </>
+            ) : phase === 'saved' && hasPendingChanges ? (
+              'Alterações salvas, ainda não publicadas'
             ) : (
               statusMessages[phase]
             )}
           </p>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <Link
-            aria-label="Ver todos os artigos"
-            className={cn(buttonVariants({ size: 'icon', variant: 'ghost' }))}
-            href="/admin/posts"
-          >
-            <Files aria-hidden="true" />
-          </Link>
           <Link
             aria-disabled={!canPreview}
             aria-label="Visualizar artigo"
@@ -79,14 +87,16 @@ export function AdminEditorHeader() {
             )}
             href={(canPreview ? `/admin/posts/${postId}/preview` : '#') as Route}
             tabIndex={canPreview ? undefined : -1}
+            title="Visualizar artigo"
           >
-            <Eye aria-hidden="true" />
+            <ArrowUpRight aria-hidden="true" />
           </Link>
           <Button
             aria-label={isError ? 'Tentar novamente' : 'Salvar rascunho'}
             disabled={!canSave}
             onClick={isError ? retry : saveNow}
             size="small"
+            title={isError ? 'Tentar novamente' : 'Salvar rascunho'}
             variant="secondary"
           >
             {phase === 'saving' ? <LoadingSpinner /> : <Save aria-hidden="true" />}
@@ -95,9 +105,13 @@ export function AdminEditorHeader() {
           {postId && postStatus ? (
             <AdminPostActions
               compact
+              editor
+              hasPendingChanges={hasPendingChanges}
               disabled={phase !== 'saved'}
               initialStatus={postStatus}
               onStatusChange={setPostStatus}
+              onPublishedChanges={() => setHasPendingChanges(false)}
+              onDiscardedChanges={reload}
               postId={postId}
               title={draft.title}
             />
