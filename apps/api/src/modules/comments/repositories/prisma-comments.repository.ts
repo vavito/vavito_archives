@@ -6,6 +6,7 @@ import { CommentStatus as PrismaCommentStatus } from '@api/generated/prisma/clie
 import { CommentStatus } from '@api/modules/comments/domain/enums/comment-status.enum';
 import { CommentMapper } from '@api/modules/comments/mappers/comment.mapper';
 import {
+  type AdminCommentRecord,
   type AdminCommentsFilters,
   type CommentAuthorRecord,
   type CommentRecord,
@@ -40,6 +41,17 @@ const COMMENT_WITH_AUTHOR_SELECT = {
   author: { select: COMMENT_AUTHOR_SELECT },
 } as const satisfies Prisma.CommentSelect;
 
+const ADMIN_COMMENT_SELECT = {
+  ...COMMENT_WITH_AUTHOR_SELECT,
+  post: {
+    select: {
+      slugs: { select: { slug: true }, take: 1, where: { isCurrent: true } },
+      status: true,
+      title: true,
+    },
+  },
+} as const satisfies Prisma.CommentSelect;
+
 const PUBLIC_COMMENT_THREAD_SELECT = {
   ...COMMENT_WITH_AUTHOR_SELECT,
   replies: {
@@ -51,6 +63,10 @@ const PUBLIC_COMMENT_THREAD_SELECT = {
 
 type PrismaCommentWithAuthor = Prisma.CommentGetPayload<{
   select: typeof COMMENT_WITH_AUTHOR_SELECT;
+}>;
+
+type PrismaAdminComment = Prisma.CommentGetPayload<{
+  select: typeof ADMIN_COMMENT_SELECT;
 }>;
 
 type PrismaCommentThread = Prisma.CommentGetPayload<{
@@ -78,6 +94,17 @@ function mapRecord(record: PrismaCommentWithAuthor): CommentRecord {
   return {
     author: mapAuthor(author),
     comment: CommentMapper.toDomain(comment),
+  };
+}
+
+function mapAdminRecord(record: PrismaAdminComment): AdminCommentRecord {
+  const { post, ...comment } = record;
+
+  return {
+    ...mapRecord(comment),
+    postSlug: post.slugs[0]?.slug ?? null,
+    postStatus: post.status,
+    postTitle: post.title,
   };
 }
 
@@ -112,6 +139,15 @@ export class PrismaCommentsRepository implements CommentsRepository {
     await this.prisma.comment.create({ data: CommentMapper.toPersistence(comment) });
   }
 
+  async findAdminById(id: string): Promise<AdminCommentRecord | null> {
+    const record = await this.prisma.comment.findUnique({
+      select: ADMIN_COMMENT_SELECT,
+      where: { id },
+    });
+
+    return record ? mapAdminRecord(record) : null;
+  }
+
   async findById(id: string): Promise<CommentRecord | null> {
     const record = await this.prisma.comment.findUnique({
       select: COMMENT_WITH_AUTHOR_SELECT,
@@ -130,7 +166,9 @@ export class PrismaCommentsRepository implements CommentsRepository {
     return record ? mapRecord(record) : null;
   }
 
-  async listAdmin(filters: AdminCommentsFilters): Promise<PaginatedCommentRecords<CommentRecord>> {
+  async listAdmin(
+    filters: AdminCommentsFilters,
+  ): Promise<PaginatedCommentRecords<AdminCommentRecord>> {
     const where: Prisma.CommentWhereInput = {
       ...(filters.postId ? { postId: filters.postId } : {}),
       ...(filters.status ? { status: prismaStatusByDomain[filters.status] } : {}),
@@ -139,14 +177,14 @@ export class PrismaCommentsRepository implements CommentsRepository {
       this.prisma.comment.count({ where }),
       this.prisma.comment.findMany({
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        select: COMMENT_WITH_AUTHOR_SELECT,
+        select: ADMIN_COMMENT_SELECT,
         skip: paginationOffset(filters.page, filters.limit),
         take: filters.limit,
         where,
       }),
     ]);
 
-    return { items: records.map(mapRecord), total };
+    return { items: records.map(mapAdminRecord), total };
   }
 
   async listPublicThreads(
