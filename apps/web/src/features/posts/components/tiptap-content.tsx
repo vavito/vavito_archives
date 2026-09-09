@@ -53,7 +53,7 @@ function renderMark(content: ReactNode, mark: TiptapMark, key: number): ReactNod
     case 'link': {
       const href = safeUrl(attributeString(mark.attrs, 'href'), ['http:', 'https:', 'mailto:']);
       return href ? (
-        <a href={href} key={key} rel="noreferrer noopener">
+        <a href={href} key={key} rel="noreferrer noopener" target="_blank">
           {content}
         </a>
       ) : (

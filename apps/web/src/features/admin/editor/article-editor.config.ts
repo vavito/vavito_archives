@@ -17,6 +17,10 @@ export function createArticleEditorExtensions(): Extensions {
       link: {
         autolink: true,
         defaultProtocol: 'https',
+        HTMLAttributes: {
+          rel: 'noopener noreferrer',
+          target: '_blank',
+        },
         openOnClick: false,
       },
     }),
