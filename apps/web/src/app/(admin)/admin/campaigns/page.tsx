@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageError } from '@web/components/feedback/page-error';
 import { AdminCampaignsPanel } from '@web/features/admin/components/admin-campaigns-panel';
+import { AdminNavigation } from '@web/features/admin/components/admin-navigation';
 import { adminPageNumber } from '@web/features/admin/schemas/admin-community.schema';
 import { listAdminCampaigns } from '@web/features/admin/services/admin-campaigns.service';
 import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
@@ -25,11 +26,19 @@ export default async function AdminCampaignsPage({
     );
   } catch {
     return (
-      <PageError
-        title="Não foi possível carregar as campanhas."
-        description="Tente novamente em alguns instantes."
-      />
+      <>
+        <AdminNavigation />
+        <PageError
+          title="Não foi possível carregar as campanhas."
+          description="Tente novamente em alguns instantes."
+        />
+      </>
     );
   }
-  return <AdminCampaignsPanel data={data} {...(status ? { status } : {})} />;
+  return (
+    <>
+      <AdminNavigation />
+      <AdminCampaignsPanel data={data} {...(status ? { status } : {})} />
+    </>
+  );
 }

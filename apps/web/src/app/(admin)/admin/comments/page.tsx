@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageError } from '@web/components/feedback/page-error';
 import { AdminCommentsPanel } from '@web/features/admin/components/admin-comments-panel';
+import { AdminNavigation } from '@web/features/admin/components/admin-navigation';
 import { adminPageNumber } from '@web/features/admin/schemas/admin-community.schema';
 import { listAdminComments } from '@web/features/admin/services/admin-comments.service';
 import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
@@ -25,11 +26,19 @@ export default async function AdminCommentsPage({
     );
   } catch {
     return (
-      <PageError
-        title="Não foi possível carregar os comentários."
-        description="Tente novamente em alguns instantes."
-      />
+      <>
+        <AdminNavigation />
+        <PageError
+          title="Não foi possível carregar os comentários."
+          description="Tente novamente em alguns instantes."
+        />
+      </>
     );
   }
-  return <AdminCommentsPanel data={data} {...(status ? { status } : {})} />;
+  return (
+    <>
+      <AdminNavigation />
+      <AdminCommentsPanel data={data} {...(status ? { status } : {})} />
+    </>
+  );
 }

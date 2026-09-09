@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { PageError } from '@web/components/feedback/page-error';
+import { AdminNavigation } from '@web/features/admin/components/admin-navigation';
 import { AdminPostsPageContent, listAdminPosts, type AdminPostStatus } from '@web/features/admin';
 import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
@@ -46,12 +47,20 @@ export default async function AdminPostsPage({ searchParams }: Readonly<AdminPos
     );
   } catch {
     return (
-      <PageError
-        description="Não conseguimos buscar seus artigos agora. Tente novamente em alguns instantes."
-        title="Não foi possível carregar a administração."
-      />
+      <>
+        <AdminNavigation />
+        <PageError
+          description="Não conseguimos buscar seus artigos agora. Tente novamente em alguns instantes."
+          title="Não foi possível carregar a administração."
+        />
+      </>
     );
   }
 
-  return <AdminPostsPageContent data={data} />;
+  return (
+    <>
+      <AdminNavigation />
+      <AdminPostsPageContent data={data} />
+    </>
+  );
 }
