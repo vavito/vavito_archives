@@ -6,6 +6,7 @@ import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 import { isAdminResourceId, isCampaignText } from '../schemas/admin-community.schema';
 import {
   createAdminCampaign,
+  deleteAdminCampaign,
   editAdminCampaign,
   getAdminCampaign,
   sendAdminCampaign,
@@ -40,6 +41,22 @@ function campaignError(error: unknown, sending = false): AdminActionResult<Admin
         ? 'Ainda não conseguimos confirmar o resultado do envio. Atualize o estado antes de tentar novamente.'
         : 'Não foi possível salvar a campanha agora. Tente novamente.'),
   };
+}
+
+export async function deleteCampaignAction(id: string): Promise<AdminActionResult<{ id: string }>> {
+  const session = await requireAdminSession();
+  if (!isAdminResourceId(id)) return { ok: false, message: 'Campanha inválida.' };
+  try {
+    await deleteAdminCampaign(
+      id,
+      createWebAuthenticatedApiClient(() => session.accessToken),
+    );
+    refreshCampaign(id);
+    return { ok: true, data: { id }, message: 'Campanha excluída.' };
+  } catch (error) {
+    const result = campaignError(error);
+    return { ok: false, message: result.message };
+  }
 }
 
 function refreshCampaign(id?: string) {

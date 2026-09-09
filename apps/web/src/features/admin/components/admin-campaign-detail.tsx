@@ -11,6 +11,7 @@ import {
   Input,
 } from '@vavito/ui';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState, useTransition } from 'react';
 import {
   ActionFeedback,
@@ -19,6 +20,7 @@ import {
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 import {
   editCampaignAction,
+  deleteCampaignAction,
   refreshCampaignAction,
   sendCampaignAction,
 } from '../actions/admin-campaign.actions';
@@ -38,6 +40,8 @@ export function AdminCampaignDetail({
   const subject = fields?.base === current.updatedAt ? fields.subject : current.subject;
   const previewText = fields?.base === current.updatedAt ? fields.previewText : current.previewText;
   const [confirming, setConfirming] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const router = useRouter();
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [feedback, setFeedback] = useState<ActionFeedbackMessage | null>(null);
   const [pending, startTransition] = useTransition();
@@ -47,11 +51,21 @@ export function AdminCampaignDetail({
   const dirty = subject !== current.subject || previewText !== current.previewText;
   const editable = current.status === 'DRAFT' && !pending && !needsRefresh;
 
-  function execute(action: 'save' | 'send' | 'refresh') {
+  function execute(action: 'save' | 'send' | 'refresh' | 'delete') {
     if (busy.current) return;
     busy.current = true;
     startTransition(async () => {
       try {
+        if (action === 'delete') {
+          const deletion = await deleteCampaignAction(current.id);
+          if (deletion.ok) {
+            router.push('/admin/campaigns');
+            router.refresh();
+            return;
+          }
+          setFeedback({ id: Date.now(), message: deletion.message, tone: 'error' });
+          return;
+        }
         const result =
           action === 'send'
             ? await sendCampaignAction(current.id, key.current)
@@ -82,6 +96,7 @@ export function AdminCampaignDetail({
       } finally {
         busy.current = false;
         setConfirming(false);
+        setConfirmingDelete(false);
       }
     });
   }
@@ -138,6 +153,11 @@ export function AdminCampaignDetail({
           <Button disabled={pending} variant="ghost" onClick={() => execute('refresh')}>
             Atualizar estado
           </Button>
+          {current.status === 'DRAFT' || current.status === 'FAILED' ? (
+            <Button disabled={pending} variant="danger" onClick={() => setConfirmingDelete(true)}>
+              Excluir campanha
+            </Button>
+          ) : null}
           {pending ? (
             <p role="status" className="flex items-center gap-2 text-sm text-neutral-400">
               <LoadingSpinner /> Processando…
@@ -210,6 +230,31 @@ export function AdminCampaignDetail({
             <Button disabled={pending} onClick={() => execute('send')}>
               {pending ? <LoadingSpinner /> : null}
               {pending ? 'Enviando…' : 'Confirmar envio'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={confirmingDelete}
+        onOpenChange={(open) => !pending && setConfirmingDelete(open)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir esta campanha?</DialogTitle>
+            <DialogDescription>
+              Esta ação remove definitivamente este rascunho e não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              disabled={pending}
+              onClick={() => setConfirmingDelete(false)}
+              variant="secondary"
+            >
+              Cancelar
+            </Button>
+            <Button disabled={pending} onClick={() => execute('delete')} variant="danger">
+              {pending ? <LoadingSpinner /> : null}Excluir campanha
             </Button>
           </DialogFooter>
         </DialogContent>

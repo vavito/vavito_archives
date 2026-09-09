@@ -124,6 +124,13 @@ export class CampaignsService {
     return EmailCampaignResponseMapper.toAdmin(await this.requireCampaign(id));
   }
 
+  async delete(actorId: string, id: string): Promise<void> {
+    await this.ensureAdminActor(actorId);
+    const campaign = await this.requireCampaign(id);
+    this.executeDomainAction(() => campaign.ensureCanDelete());
+    await this.campaignsRepository.delete(id);
+  }
+
   async list(actorId: string, query: ListCampaignsQueryDto): Promise<PaginatedEmailCampaignsDto> {
     await this.ensureAdminActor(actorId);
     const result = await this.campaignsRepository.list(query);

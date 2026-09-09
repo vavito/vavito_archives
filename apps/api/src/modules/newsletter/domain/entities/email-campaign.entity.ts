@@ -165,6 +165,12 @@ export class EmailCampaign {
     return cloneDate(this.props.updatedAt);
   }
 
+  ensureCanDelete(): void {
+    if (![CampaignStatus.DRAFT, CampaignStatus.FAILED].includes(this.props.status)) {
+      throw new InvalidCampaignStatusTransitionError('delete', this.props.status);
+    }
+  }
+
   updateContent(props: {
     htmlSnapshot?: string;
     now: Date;

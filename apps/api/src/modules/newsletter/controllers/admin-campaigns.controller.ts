@@ -14,6 +14,7 @@ import { CampaignsService } from '@api/modules/newsletter/services/campaigns.ser
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   HttpCode,
@@ -69,6 +70,21 @@ export class AdminCampaignsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<EmailCampaignAdminDto> {
     return this.campaignsService.get(user.id, id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Exclui campanha em rascunho ou com envio falho' })
+  @ApiConflictResponse({
+    description: 'O estado da campanha não permite exclusão.',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({ description: 'Campanha não encontrada.', type: ErrorResponseDto })
+  async delete(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<void> {
+    await this.campaignsService.delete(user.id, id);
   }
 
   @Post()

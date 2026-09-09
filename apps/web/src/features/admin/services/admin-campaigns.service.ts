@@ -48,6 +48,12 @@ export async function editAdminCampaign(
   return response.data;
 }
 
+export async function deleteAdminCampaign(id: string, client: ApiClient): Promise<void> {
+  await client.DELETE('/api/v1/admin/newsletter/campaigns/{id}', {
+    params: { path: { id } },
+  });
+}
+
 export async function sendAdminCampaign(
   id: string,
   idempotencyKey: string,
