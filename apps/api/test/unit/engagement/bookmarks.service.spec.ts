@@ -13,6 +13,7 @@ import type {
   PaginatedRecords,
   PublicPostSummaryRecord,
 } from '@api/modules/posts/repositories/posts.repository';
+import type { MediaService } from '@api/modules/media/services/media.service';
 
 const PROFILE_ID = '3d46ab51-60b3-4604-a5f1-e2c403cb75f8';
 const POST_ID = '9de46532-a170-46c0-90dd-0b3cbf7794be';
@@ -30,7 +31,14 @@ function bookmark(): Bookmark {
 
 function postSummary(): PublicPostSummaryRecord {
   return {
-    cover: null,
+    cover: {
+      altText: 'Capa do artigo',
+      displayPositionX: 50,
+      displayPositionY: 50,
+      displayScale: 120,
+      id: 'cover-id',
+      storagePath: 'posts/capa.webp',
+    },
     excerpt: 'Resumo publicado.',
     id: POST_ID,
     publishedAt: PUBLISHED_AT,
@@ -51,7 +59,10 @@ describe('BookmarksService', () => {
   const authorizationRepository = {
     findActiveRoleByProfileId,
   } as unknown as ProfileAuthorizationRepository;
-  const service = new BookmarksService(repository, authorizationRepository);
+  const mediaService = {
+    publicUrl: jest.fn((path: string) => `https://cdn.test/${path}`),
+  } as unknown as MediaService;
+  const service = new BookmarksService(repository, authorizationRepository, mediaService);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -87,8 +98,11 @@ describe('BookmarksService', () => {
     await expect(service.list(PROFILE_ID, { limit: 12, page: 2 })).resolves.toEqual({
       items: [
         {
-          coverAlt: null,
-          coverUrl: null,
+          coverAlt: 'Capa do artigo',
+          coverPositionX: 50,
+          coverPositionY: 50,
+          coverScale: 120,
+          coverUrl: 'https://cdn.test/posts/capa.webp',
           excerpt: 'Resumo publicado.',
           id: POST_ID,
           publishedAt: PUBLISHED_AT.toISOString(),

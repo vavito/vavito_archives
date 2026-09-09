@@ -20,6 +20,7 @@ import { BookmarksRepository } from '@api/modules/engagement/repositories/bookma
 import { ReactionsRepository } from '@api/modules/engagement/repositories/reactions.repository';
 import { BookmarksService } from '@api/modules/engagement/services/bookmarks.service';
 import { ReactionsService } from '@api/modules/engagement/services/reactions.service';
+import { MediaService } from '@api/modules/media/services/media.service';
 import type { PublicPostSummaryRecord } from '@api/modules/posts/repositories/posts.repository';
 
 const OWNER: AuthenticatedUser = {
@@ -116,6 +117,7 @@ describe('Endpoints de Engagement por usuário (e2e)', () => {
         RolesGuard,
         ReactionsService,
         BookmarksService,
+        { provide: MediaService, useValue: { publicUrl: jest.fn() } },
         { provide: SupabaseJwtService, useValue: { verify } },
         {
           provide: ProfileAuthorizationRepository,
