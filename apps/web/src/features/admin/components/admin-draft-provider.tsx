@@ -26,6 +26,7 @@ import {
 import { adminDraftGateway } from '../services/admin-posts.service';
 import type {
   AdminDraftDocument,
+  AdminDraftCover,
   AdminDraftGateway,
   AdminDraftState,
   AdminPostDraft,
@@ -50,8 +51,15 @@ function createEmptyDraft(): AdminDraftDocument {
   return {
     content: EMPTY_ARTICLE_DOCUMENT,
     contentSchemaVersion: ARTICLE_CONTENT_SCHEMA_VERSION,
+    coverAlt: null,
+    coverMediaId: null,
+    coverPositionX: 50,
+    coverPositionY: 50,
+    coverScale: 100,
+    coverUrl: null,
     excerpt: '',
     slug: '',
+    tagNames: [],
     title: '',
   };
 }
@@ -76,6 +84,7 @@ export function AdminDraftProvider({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [phase, setPhase] = useState<AdminDraftState['phase']>('loading');
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
   const [postStatus, setPostStatus] = useState<AdminPostDraft['status'] | null>(null);
   const failureKindRef = useRef<FailureKind>(null);
@@ -104,6 +113,7 @@ export function AdminDraftProvider({
     setErrorMessage(null);
     setPostId(null);
     setPostStatus(null);
+    setHasPendingChanges(false);
     setIsReady(true);
     setPhase('idle');
   }, []);
@@ -139,8 +149,15 @@ export function AdminDraftProvider({
       const nextDraft: AdminDraftDocument = {
         content: recoveredDraft.content,
         contentSchemaVersion: recoveredDraft.contentSchemaVersion,
+        coverAlt: recoveredDraft.coverAlt,
+        coverMediaId: recoveredDraft.coverMediaId,
+        coverPositionX: recoveredDraft.coverPositionX ?? 50,
+        coverPositionY: recoveredDraft.coverPositionY ?? 50,
+        coverScale: recoveredDraft.coverScale ?? 100,
+        coverUrl: recoveredDraft.coverUrl,
         excerpt: recoveredDraft.excerpt,
         slug: recoveredDraft.slug,
+        tagNames: [...recoveredDraft.tagNames],
         title: recoveredDraft.title,
       };
       latestDraftRef.current = nextDraft;
@@ -154,6 +171,7 @@ export function AdminDraftProvider({
       setErrorCode(null);
       setPostId(recoveredDraft.id);
       setPostStatus(recoveredDraft.status);
+      setHasPendingChanges(recoveredDraft.hasPendingChanges);
       setIsReady(true);
       setPhase('saved');
     } catch (error) {
@@ -217,6 +235,7 @@ export function AdminDraftProvider({
         if (mountedRef.current) {
           setPostId(activePostId);
           setPostStatus(createdDraft.status);
+          setHasPendingChanges(createdDraft.hasPendingChanges);
         }
       }
 
@@ -229,6 +248,7 @@ export function AdminDraftProvider({
       }
 
       setPostStatus(savedDraft.status);
+      setHasPendingChanges(savedDraft.hasPendingChanges);
 
       if (saveQueuedRef.current) {
         saveQueuedRef.current = false;
@@ -314,6 +334,24 @@ export function AdminDraftProvider({
     [queueAutosave],
   );
 
+  const setCover = useCallback(
+    (cover: AdminDraftCover | null) => {
+      const nextDraft = {
+        ...latestDraftRef.current,
+        coverAlt: cover?.altText ?? null,
+        coverMediaId: cover?.mediaId ?? null,
+        coverPositionX: cover?.positionX ?? 50,
+        coverPositionY: cover?.positionY ?? 50,
+        coverScale: cover?.scale ?? 100,
+        coverUrl: cover?.url ?? null,
+      };
+      latestDraftRef.current = nextDraft;
+      setDraft(nextDraft);
+      queueAutosave();
+    },
+    [queueAutosave],
+  );
+
   const setSlug = useCallback(
     (slug: string) => {
       const nextDraft = { ...latestDraftRef.current, slug };
@@ -327,6 +365,16 @@ export function AdminDraftProvider({
   const setExcerpt = useCallback(
     (excerpt: string) => {
       const nextDraft = { ...latestDraftRef.current, excerpt };
+      latestDraftRef.current = nextDraft;
+      setDraft(nextDraft);
+      queueAutosave();
+    },
+    [queueAutosave],
+  );
+
+  const setTagNames = useCallback(
+    (tagNames: string[]) => {
+      const nextDraft = { ...latestDraftRef.current, tagNames };
       latestDraftRef.current = nextDraft;
       setDraft(nextDraft);
       queueAutosave();
@@ -352,31 +400,40 @@ export function AdminDraftProvider({
       draft,
       errorCode,
       errorMessage,
+      hasPendingChanges,
       isReady,
       phase,
       postId,
       postStatus,
+      reload: () => void recoverDraft(),
       retry,
       saveNow,
       setContent,
+      setCover,
       setExcerpt,
       setSlug,
+      setTagNames,
       setPostStatus,
+      setHasPendingChanges,
       setTitle,
     }),
     [
       draft,
       errorCode,
       errorMessage,
+      hasPendingChanges,
       isReady,
       phase,
       postId,
       postStatus,
       retry,
+      recoverDraft,
       saveNow,
       setContent,
+      setCover,
       setExcerpt,
       setSlug,
+      setTagNames,
       setPostStatus,
       setTitle,
     ],

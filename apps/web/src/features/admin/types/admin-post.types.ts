@@ -25,12 +25,17 @@ export interface AdminPostDetail extends AdminPostSummary {
   contentSchemaVersion: number;
   coverAlt: string | null;
   coverMediaId: string | null;
+  coverPositionX: number;
+  coverPositionY: number;
+  coverScale: number;
   coverUrl: string | null;
   createdAt: string;
   excerpt: string | null;
+  hasPendingChanges: boolean;
   readingTimeMinutes: number;
   seoDescription: string | null;
   seoTitle: string | null;
+  tagNames: string[];
   tags: components['schemas']['TagResponseDto'][];
   viewCount: number;
 }

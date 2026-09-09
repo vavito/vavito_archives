@@ -87,12 +87,17 @@ export function AdminPostPreview({ post }: Readonly<{ post: AdminPostDetail }>) 
         </header>
 
         {post.coverUrl ? (
-          <figure className="mx-auto w-full max-w-5xl px-4 pb-8 sm:px-6">
+          <figure className="mx-auto w-full max-w-5xl overflow-hidden px-4 pb-8 sm:px-6">
             {/* eslint-disable-next-line @next/next/no-img-element -- a URL editorial validada pode vir de Storage configurado em runtime. */}
             <img
               alt={post.coverAlt ?? ''}
               className="max-h-[34rem] w-full rounded-2xl object-cover"
               src={post.coverUrl}
+              style={{
+                objectPosition: `${post.coverPositionX ?? 50}% ${post.coverPositionY ?? 50}%`,
+                transform: `scale(${(post.coverScale ?? 100) / 100})`,
+                transformOrigin: `${post.coverPositionX ?? 50}% ${post.coverPositionY ?? 50}%`,
+              }}
             />
           </figure>
         ) : null}

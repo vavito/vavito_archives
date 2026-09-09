@@ -35,10 +35,20 @@ function normalizeAdminPost(post: ApiAdminPost | undefined): AdminPostDraft {
   return {
     content: post.content,
     contentSchemaVersion: post.contentSchemaVersion,
+    coverAlt: typeof post.coverAlt === 'string' ? post.coverAlt : null,
+    coverMediaId: typeof post.coverMediaId === 'string' ? post.coverMediaId : null,
+    coverPositionX: typeof post.coverPositionX === 'number' ? post.coverPositionX : 50,
+    coverPositionY: typeof post.coverPositionY === 'number' ? post.coverPositionY : 50,
+    coverScale: typeof post.coverScale === 'number' ? post.coverScale : 100,
+    coverUrl: typeof post.coverUrl === 'string' ? post.coverUrl : null,
     excerpt: typeof post.excerpt === 'string' ? post.excerpt : '',
+    hasPendingChanges: post.hasPendingChanges === true,
     id: post.id,
     slug: typeof post.slug === 'string' ? post.slug : '',
     status: post.status,
+    tagNames: Array.isArray(post.tagNames)
+      ? post.tagNames.filter((name): name is string => typeof name === 'string')
+      : post.tags.map(({ name }) => name),
     title: post.title,
     updatedAt: post.updatedAt,
   };
@@ -90,8 +100,14 @@ export async function updateAdminDraft(
     body: {
       content: draft.content,
       contentSchemaVersion: draft.contentSchemaVersion,
+      coverMediaId: draft.coverMediaId,
+      ...(draft.coverPositionX !== undefined ? { coverPositionX: draft.coverPositionX } : {}),
+      ...(draft.coverPositionY !== undefined ? { coverPositionY: draft.coverPositionY } : {}),
+      ...(draft.coverScale !== undefined ? { coverScale: draft.coverScale } : {}),
+      coverAlt: draft.coverAlt,
       excerpt: draft.excerpt,
       ...(draft.slug.trim() ? { slug: draft.slug.trim() } : {}),
+      tagNames: draft.tagNames,
       title: draft.title,
     },
     params: { path: { id } },

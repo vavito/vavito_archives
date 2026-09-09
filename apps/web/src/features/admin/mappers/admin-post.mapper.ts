@@ -79,12 +79,19 @@ export function normalizeAdminPostDetail(value: unknown): AdminPostDetail {
     contentSchemaVersion: value['contentSchemaVersion'] as number,
     coverAlt: nullableString(value['coverAlt']),
     coverMediaId: nullableString(value['coverMediaId']),
+    coverPositionX: typeof value['coverPositionX'] === 'number' ? value['coverPositionX'] : 50,
+    coverPositionY: typeof value['coverPositionY'] === 'number' ? value['coverPositionY'] : 50,
+    coverScale: typeof value['coverScale'] === 'number' ? value['coverScale'] : 100,
     coverUrl: nullableString(value['coverUrl']),
     createdAt: value['createdAt'] as string,
     excerpt: nullableString(value['excerpt']),
+    hasPendingChanges: value['hasPendingChanges'] === true,
     readingTimeMinutes: value['readingTimeMinutes'] as number,
     seoDescription: nullableString(value['seoDescription']),
     seoTitle: nullableString(value['seoTitle']),
+    tagNames: Array.isArray(value['tagNames'])
+      ? value['tagNames'].filter((name): name is string => typeof name === 'string')
+      : (value['tags'] as AdminPostDetail['tags']).map(({ name }) => name),
     tags: value['tags'] as AdminPostDetail['tags'],
     viewCount: value['viewCount'] as number,
   };

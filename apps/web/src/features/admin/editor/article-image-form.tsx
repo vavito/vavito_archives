@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Input } from '@vavito/ui';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
@@ -10,8 +10,11 @@ import { validateArticleImage } from '../schemas/article-image.schema';
 import type { UploadArticleImage, UploadedArticleImage } from '../types/admin-media.types';
 
 interface ArticleImageFormProps {
+  ariaLabel?: string;
   onClose: () => void;
   onUploaded: (image: UploadedArticleImage) => void;
+  submitLabel?: string;
+  title?: string;
   uploadImage: UploadArticleImage;
 }
 
@@ -22,11 +25,15 @@ function friendlyUploadError(error: unknown): string {
 }
 
 export function ArticleImageForm({
+  ariaLabel = 'Inserir imagem',
   onClose,
   onUploaded,
+  submitLabel = 'Inserir imagem',
+  title = 'Inserir imagem no artigo',
   uploadImage,
 }: Readonly<ArticleImageFormProps>) {
   const abortControllerRef = useRef<AbortController | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [altText, setAltText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -80,7 +87,7 @@ export function ArticleImageForm({
 
   return (
     <form
-      aria-label="Inserir imagem"
+      aria-label={ariaLabel}
       className="border-divider grid gap-4 border-t px-3 py-4 sm:px-4"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
@@ -94,7 +101,7 @@ export function ArticleImageForm({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-neutral-100">Inserir imagem no artigo</p>
+          <p className="text-sm font-medium text-neutral-100">{title}</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-500">
             JPG, PNG ou WebP, com até 10 MB.
           </p>
@@ -104,22 +111,50 @@ export function ArticleImageForm({
           className="-mt-2 -mr-2 size-8 min-h-0 p-0"
           onClick={closeForm}
           size="icon"
+          title="Fechar envio de imagem"
           variant="ghost"
         >
           <X aria-hidden="true" />
         </Button>
       </div>
 
-      <Input
-        accept="image/jpeg,image/png,image/webp"
-        disabled={isUploading}
-        label="Arquivo"
-        onChange={(event) => {
-          setFile(event.target.files?.[0] ?? null);
-          setError(null);
-        }}
-        type="file"
-      />
+      <div className="grid gap-2">
+        <span className="text-neutral-500 text-[11px] font-medium tracking-[0.16em] uppercase">
+          Arquivo
+        </span>
+        <input
+          ref={fileInputRef}
+          accept="image/jpeg,image/png,image/webp"
+          aria-label="Arquivo"
+          className="sr-only"
+          disabled={isUploading}
+          onChange={(event) => {
+            setFile(event.target.files?.[0] ?? null);
+            setError(null);
+          }}
+          tabIndex={-1}
+          type="file"
+        />
+        <div className="bg-surface-card flex min-h-14 min-w-0 items-center gap-3 rounded-xl border border-border p-2">
+          <Button
+            className="motion-control shrink-0"
+            disabled={isUploading}
+            onClick={() => fileInputRef.current?.click()}
+            size="small"
+            variant="secondary"
+          >
+            <Upload aria-hidden="true" />
+            Escolher imagem
+          </Button>
+          <span
+            aria-live="polite"
+            className="min-w-0 truncate text-sm text-neutral-400"
+            title={file?.name}
+          >
+            {file?.name ?? 'Nenhuma imagem selecionada'}
+          </span>
+        </div>
+      </div>
       <Input
         disabled={isUploading}
         label="Descrição da imagem"
@@ -166,7 +201,7 @@ export function ArticleImageForm({
         </Button>
         <Button disabled={isUploading} type="submit">
           {isUploading ? <LoadingSpinner className="size-4" /> : <ImagePlus aria-hidden="true" />}
-          {isUploading ? 'Enviando…' : 'Inserir imagem'}
+          {isUploading ? 'Enviando…' : submitLabel}
         </Button>
       </div>
     </form>
