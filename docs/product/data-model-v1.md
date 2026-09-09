@@ -435,7 +435,7 @@ O email não é associado ao `Profile`: newsletter funciona para visitantes e po
 | `createdById` | UUID | FK `Profile`; restrict. |
 | `subject`, `previewText` | texto | conteúdo editorial. |
 | `htmlSnapshot` | text | corpo congelado para envio. |
-| `postSnapshot` | JSONB | dados do artigo usados na campanha. |
+| `postSnapshot` | JSONB | snapshots de um a cinco artigos, incluindo capa quando disponível. |
 | `status` | `CampaignStatus` | ciclo aprovado. |
 | `audienceCount` | inteiro | quantidade congelada no início do envio. |
 | `idempotencyKey` | UUID nullable | único quando o envio inicia. |
@@ -550,7 +550,7 @@ Alguns checks condicionais e índices parciais serão adicionados na migration S
 | `Tag -> PostTag` | `Cascade` | associação sem vida própria. |
 | `MediaAsset -> PostMediaAsset` | `Restrict` | asset referenciado não pode ser removido. |
 | `Comment -> replies` | `Restrict` | usa soft delete e preserva conversa. |
-| `EmailCampaign -> EmailDelivery` | `Cascade` somente antes de envio | campanha enviada não é apagada pela aplicação. |
+| `EmailCampaign -> EmailDelivery` | `Cascade` em `DRAFT` ou `FAILED` | campanhas em andamento ou enviadas não são apagadas pela aplicação. |
 | `Subscriber -> EmailDelivery` | `Restrict` | histórico de consentimento e entrega. |
 | `EmailDelivery -> WebhookEvent` | `SetNull` | evento técnico pode sobreviver à limpeza da entrega. |
 

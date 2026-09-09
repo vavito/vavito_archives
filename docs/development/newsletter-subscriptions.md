@@ -10,6 +10,8 @@ O `NewsletterModule` oferece double opt-in público sem associar o assinante a u
 4. As páginas do frontend leem o fragmento, encaminham o token para os endpoints `POST` da API, removem o fragmento da URL e apresentam o resultado sem guardar o valor.
 5. Somente o estado `CONFIRMED` será elegível para campanhas.
 
+Uma conta recém-confirmada também entra automaticamente na newsletter como `CONFIRMED`, sem um segundo email de confirmação. Cancelamentos e supressões anteriores são respeitados e não são reativados por esse fluxo.
+
 As rotas públicas `/newsletter/confirm` e `/newsletter/unsubscribe` processam o token no navegador, removem o fragmento da barra de endereço antes de apresentar o resultado e exibem mensagens amigáveis de sucesso ou falha.
 
 ## Tokens e privacidade

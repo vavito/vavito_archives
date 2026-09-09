@@ -472,11 +472,13 @@ item de uma página posterior, a navegação retorna à última página disponí
 | `POST` | `/newsletter/subscriptions` | Público limitado | `SubscribeNewsletterDto` | `202` com mensagem genérica. |
 | `POST` | `/newsletter/subscriptions/confirm` | Público limitado | `ConfirmSubscriptionDto` | `200`; `400` inválido; `410` expirado. |
 | `POST` | `/newsletter/subscriptions/unsubscribe` | Público limitado | `UnsubscribeDto` | `204` idempotente. |
+| `POST` | `/newsletter/subscriptions/account` | Autenticado | — | `204`; inclui conta confirmada sem reativar cancelamentos anteriores. |
 | `GET` | `/admin/newsletter/subscribers` | ADMIN | `status`, `page`, `limit` | `200 Paginated<SubscriberAdminDto>`. |
 | `GET` | `/admin/newsletter/campaigns` | ADMIN | `status`, `page`, `limit` | `200 Paginated<EmailCampaignAdminDto>`. |
 | `GET` | `/admin/newsletter/campaigns/:id` | ADMIN | UUID | `200 EmailCampaignAdminDto`. |
 | `POST` | `/admin/newsletter/campaigns` | ADMIN | `CreateCampaignDto` | `201 EmailCampaignAdminDto` em `DRAFT`. |
 | `PATCH` | `/admin/newsletter/campaigns/:id` | ADMIN | `UpdateCampaignDto` | `200 EmailCampaignAdminDto`; somente `DRAFT`. |
+| `DELETE` | `/admin/newsletter/campaigns/:id` | ADMIN | UUID | `204`; somente `DRAFT` ou `FAILED`. |
 | `POST` | `/admin/newsletter/campaigns/:id/send` | ADMIN | header `Idempotency-Key` | `202 EmailCampaignAdminDto`. |
 
 Inscrição sempre responde de modo que não revele se o email já existia. Apenas `CONFIRMED` participa da audiência.
