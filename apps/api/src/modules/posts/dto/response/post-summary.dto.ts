@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
 
@@ -24,6 +24,15 @@ export class PostSummaryDto {
 
   @ApiProperty({ example: 'Diagrama de arquitetura', nullable: true, type: String })
   coverAlt!: string | null;
+
+  @ApiPropertyOptional({ example: 100, maximum: 160, minimum: 100, required: false })
+  coverScale?: number;
+
+  @ApiPropertyOptional({ example: 50, maximum: 100, minimum: 0, required: false })
+  coverPositionX?: number;
+
+  @ApiPropertyOptional({ example: 50, maximum: 100, minimum: 0, required: false })
+  coverPositionY?: number;
 
   @ApiProperty({ type: () => [TagResponseDto] })
   tags!: TagResponseDto[];

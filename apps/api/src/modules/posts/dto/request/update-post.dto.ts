@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -76,10 +77,44 @@ export class UpdatePostDto {
     example: '019c2d62-6e90-7000-8000-000000000020',
     format: 'uuid',
     nullable: true,
+    type: String,
   })
   @IsOptional()
   @IsUUID()
   coverMediaId?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'Pessoa escrevendo em um caderno',
+    maxLength: 180,
+    nullable: true,
+    type: String,
+  })
+  @Transform(({ value }: { value: unknown }) => trimText(value))
+  @IsOptional()
+  @IsString()
+  @MaxLength(180)
+  coverAlt?: string | null;
+
+  @ApiPropertyOptional({ example: 100, maximum: 160, minimum: 100, required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(160)
+  coverScale?: number;
+
+  @ApiPropertyOptional({ example: 50, maximum: 100, minimum: 0, required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  coverPositionX?: number;
+
+  @ApiPropertyOptional({ example: 50, maximum: 100, minimum: 0, required: false })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  coverPositionY?: number;
 
   @ApiPropertyOptional({ example: 'Arquitetura NestJS', maxLength: 70, nullable: true })
   @Transform(({ value }: { value: unknown }) => trimText(value))
