@@ -1,10 +1,14 @@
 import { ApiClientError, type ApiClient } from '@vavito/api-client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { transitionAdminPostAction } from '@web/features/admin/actions/admin-post.actions';
+import {
+  discardAdminPostChangesAction,
+  transitionAdminPostAction,
+} from '@web/features/admin/actions/admin-post.actions';
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
+  discard: vi.fn(),
   requireAdminSession: vi.fn(),
   revalidatePath: vi.fn(),
   transition: vi.fn(),
@@ -19,6 +23,7 @@ vi.mock('@web/features/admin/services/admin-session.service', () => ({
   requireAdminSession: mocks.requireAdminSession,
 }));
 vi.mock('@web/features/admin/services/admin-post-transitions.service', () => ({
+  discardAdminPostChanges: mocks.discard,
   transitionAdminPost: mocks.transition,
 }));
 
@@ -35,6 +40,7 @@ describe('ações de transição de artigos', () => {
     mocks.requireAdminSession.mockResolvedValue({ accessToken: 'token' });
     mocks.createClient.mockReturnValue(client);
     mocks.transition.mockResolvedValue(post);
+    mocks.discard.mockResolvedValue(post);
   });
 
   it('publica com a sessão administrativa e revalida as páginas afetadas', async () => {
@@ -81,5 +87,15 @@ describe('ações de transição de artigos', () => {
       ok: false,
     });
     expect(mocks.requireAdminSession).not.toHaveBeenCalled();
+  });
+
+  it('descarta alterações pendentes e revalida o preview administrativo', async () => {
+    await expect(discardAdminPostChangesAction(post.id)).resolves.toMatchObject({
+      data: post,
+      message: 'Alterações descartadas.',
+      ok: true,
+    });
+    expect(mocks.discard).toHaveBeenCalledWith(post.id, client);
+    expect(mocks.revalidatePath).toHaveBeenCalledWith(`/admin/posts/${post.id}/preview`);
   });
 });

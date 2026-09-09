@@ -14,10 +14,14 @@ const apiPost = {
     type: 'doc',
   },
   contentSchemaVersion: 1,
+  coverAlt: null,
+  coverMediaId: null,
+  coverUrl: null,
   excerpt: 'Resumo do rascunho',
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'meu-rascunho',
   status: 'DRAFT',
+  tagNames: [],
   title: 'Meu rascunho',
   updatedAt: '2026-09-05T13:00:00.000Z',
 };
@@ -52,14 +56,27 @@ describe('serviço de posts administrativos', () => {
     const draft = {
       content: apiPost.content,
       contentSchemaVersion: 1,
+      coverAlt: null,
+      coverMediaId: null,
+      coverUrl: null,
       excerpt: apiPost.excerpt,
       slug: 'meu-rascunho',
+      tagNames: [],
       title: 'Meu rascunho',
     };
 
     await expect(updateAdminDraft(apiPost.id, draft, client)).resolves.toMatchObject(apiPost);
     expect(client.PATCH).toHaveBeenCalledWith('/api/v1/admin/posts/{id}', {
-      body: draft,
+      body: {
+        content: draft.content,
+        contentSchemaVersion: draft.contentSchemaVersion,
+        coverAlt: null,
+        coverMediaId: null,
+        excerpt: draft.excerpt,
+        slug: draft.slug,
+        tagNames: draft.tagNames,
+        title: draft.title,
+      },
       params: { path: { id: apiPost.id } },
     });
   });

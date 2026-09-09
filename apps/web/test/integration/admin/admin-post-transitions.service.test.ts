@@ -1,7 +1,10 @@
 import type { ApiClient } from '@vavito/api-client';
 import { describe, expect, it, vi } from 'vitest';
 
-import { transitionAdminPost } from '@web/features/admin/services/admin-post-transitions.service';
+import {
+  discardAdminPostChanges,
+  transitionAdminPost,
+} from '@web/features/admin/services/admin-post-transitions.service';
 import type { AdminPostTransition } from '@web/features/admin/types/admin-post.types';
 
 const post = {
@@ -22,6 +25,7 @@ const post = {
   seoTitle: null,
   slug: 'meu-artigo',
   status: 'DRAFT',
+  tagNames: [],
   tags: [],
   title: 'Meu artigo',
   updatedAt: '2026-09-05T13:00:00.000Z',
@@ -41,6 +45,17 @@ describe('transições administrativas de artigos', () => {
 
     await expect(transitionAdminPost(post.id, transition, client)).resolves.toMatchObject(post);
     expect(client.POST).toHaveBeenCalledWith(path, {
+      params: { path: { id: post.id } },
+    });
+  });
+
+  it('descarta as alterações pendentes no endpoint dedicado', async () => {
+    const client = {
+      POST: vi.fn().mockResolvedValue({ data: post }),
+    } as unknown as ApiClient;
+
+    await expect(discardAdminPostChanges(post.id, client)).resolves.toMatchObject(post);
+    expect(client.POST).toHaveBeenCalledWith('/api/v1/admin/posts/{id}/discard-changes', {
       params: { path: { id: post.id } },
     });
   });

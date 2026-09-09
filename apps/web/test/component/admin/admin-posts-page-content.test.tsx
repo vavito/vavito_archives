@@ -5,6 +5,7 @@ import { AdminPostsPageContent } from '@web/features/admin/components/admin-post
 import type { AdminPostsPage } from '@web/features/admin/types/admin-post.types';
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  discardAdminPostChangesAction: vi.fn(),
   transitionAdminPostAction: vi.fn(),
 }));
 
@@ -27,8 +28,9 @@ const data: AdminPostsPage = {
 
 describe('tela administrativa de artigos', () => {
   it('exibe status e oferece abertura e preview do artigo', () => {
-    render(<AdminPostsPageContent data={data} />);
+    const { container } = render(<AdminPostsPageContent data={data} />);
 
+    expect(container.querySelector('main')).toHaveClass('content-start');
     expect(screen.getByRole('heading', { name: 'Meu rascunho' })).toBeInTheDocument();
     expect(screen.getByText('Rascunho')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Abrir' })).toHaveAttribute(
@@ -53,6 +55,8 @@ describe('tela administrativa de artigos', () => {
       '/admin/posts?q=arquitetura+limpa&status=PUBLISHED',
     );
     expect(screen.getByRole('searchbox')).toHaveValue('arquitetura limpa');
+    expect(screen.getByRole('button', { name: 'Buscar' })).toHaveClass('h-fit', 'shrink-0');
+    expect(screen.getByRole('link', { name: 'Publicados' })).toHaveClass('h-fit', 'shrink-0');
   });
 
   it('apresenta estado vazio com limpeza dos filtros', () => {

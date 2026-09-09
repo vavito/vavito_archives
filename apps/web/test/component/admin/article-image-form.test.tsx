@@ -10,12 +10,16 @@ describe('formulário de imagem editorial', () => {
     const uploadImage = vi.fn<UploadArticleImage>();
     render(<ArticleImageForm onClose={vi.fn()} onUploaded={vi.fn()} uploadImage={uploadImage} />);
 
+    expect(screen.getByRole('button', { name: 'Escolher imagem' })).toBeInTheDocument();
+    expect(screen.getByText('Nenhuma imagem selecionada')).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Escolha uma imagem para continuar.');
 
     fireEvent.change(screen.getByLabelText('Arquivo'), {
       target: { files: [new File(['imagem'], 'artigo.webp', { type: 'image/webp' })] },
     });
+    expect(screen.getByText('artigo.webp')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(

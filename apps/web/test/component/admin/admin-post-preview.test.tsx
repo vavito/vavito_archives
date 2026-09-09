@@ -5,6 +5,7 @@ import { AdminPostPreview } from '@web/features/admin/components/admin-post-prev
 import type { AdminPostDetail } from '@web/features/admin/types/admin-post.types';
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  discardAdminPostChangesAction: vi.fn(),
   transitionAdminPostAction: vi.fn(),
 }));
 
@@ -23,10 +24,14 @@ const post: AdminPostDetail = {
   contentSchemaVersion: 1,
   coverAlt: null,
   coverMediaId: null,
+  coverPositionX: 50,
+  coverPositionY: 50,
+  coverScale: 100,
   coverUrl: null,
   createdAt: '2026-09-05T12:00:00.000Z',
   editedAt: null,
   excerpt: 'Resumo privado.',
+  hasPendingChanges: false,
   id: '019c2d62-6e90-7000-8000-000000000010',
   publishedAt: null,
   readingTimeMinutes: 1,
@@ -34,6 +39,7 @@ const post: AdminPostDetail = {
   seoTitle: null,
   slug: 'meu-rascunho',
   status: 'DRAFT',
+  tagNames: ['Arquitetura'],
   tags: [{ id: 'tag-1', name: 'Arquitetura', slug: 'arquitetura' }],
   title: 'Meu rascunho',
   updatedAt: '2026-09-05T13:00:00.000Z',

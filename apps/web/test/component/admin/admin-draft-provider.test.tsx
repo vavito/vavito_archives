@@ -28,10 +28,15 @@ const savedContent: JSONContent = {
 const savedDraft: AdminPostDraft = {
   content: savedContent,
   contentSchemaVersion: 1,
+  coverAlt: null,
+  coverMediaId: null,
+  coverUrl: null,
   excerpt: 'Resumo recuperado',
+  hasPendingChanges: false,
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'rascunho-recuperado',
   status: 'DRAFT',
+  tagNames: [],
   title: 'Rascunho recuperado',
   updatedAt: '2026-09-05T13:00:00.000Z',
 };
@@ -284,5 +289,29 @@ describe('autosave do rascunho administrativo', () => {
       await screen.findByText('Este endereço já está em uso. Escolha outro para continuar.'),
     ).toBeInTheDocument();
     expect(slug).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('salva os tópicos inseridos no editor como nomes de tags', async () => {
+    const gateway = createGateway();
+    render(
+      <AdminDraftProvider debounceMs={1} initialPostId={savedDraft.id} gateway={gateway}>
+        <AdminDraftWorkspace />
+      </AdminDraftProvider>,
+    );
+
+    const topics = await screen.findByLabelText('Tópicos do artigo');
+    fireEvent.change(topics, {
+      target: { value: '#NestJS, TypeScript' },
+    });
+    fireEvent.blur(topics);
+
+    await waitFor(() =>
+      expect(gateway.update).toHaveBeenCalledWith(
+        savedDraft.id,
+        expect.objectContaining({ tagNames: ['NestJS', 'TypeScript'] }),
+      ),
+    );
+    expect(screen.getByText('#NestJS')).toBeInTheDocument();
+    expect(screen.getByText('#TypeScript')).toBeInTheDocument();
   });
 });

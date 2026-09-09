@@ -12,16 +12,22 @@ import type {
 } from '@web/features/admin/types/admin-draft.types';
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  discardAdminPostChangesAction: vi.fn(),
   transitionAdminPostAction: vi.fn(),
 }));
 
 const savedDraft: AdminPostDraft = {
   content: { content: [{ type: 'paragraph' }], type: 'doc' },
   contentSchemaVersion: 1,
+  coverAlt: null,
+  coverMediaId: null,
+  coverUrl: null,
   excerpt: 'Resumo salvo',
+  hasPendingChanges: false,
   id: '019c2d62-6e90-7000-8000-000000000010',
   slug: 'titulo-salvo',
   status: 'DRAFT',
+  tagNames: [],
   title: 'Título salvo',
   updatedAt: '2026-09-05T13:00:00.000Z',
 };
@@ -65,6 +71,11 @@ describe('cabeçalho do editor administrativo', () => {
     expect(screen.getByRole('link', { name: 'Visualizar artigo' })).toHaveAttribute(
       'aria-disabled',
       'true',
+    );
+    expect(screen.queryByRole('link', { name: 'Ver todos os artigos' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Voltar ao painel' })).toHaveAttribute(
+      'href',
+      '/admin/posts',
     );
     vi.useFakeTimers();
 

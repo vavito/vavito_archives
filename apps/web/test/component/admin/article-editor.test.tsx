@@ -65,6 +65,11 @@ describe('editor de artigos', () => {
     const toolbar = await screen.findByRole('toolbar', { name: 'Ferramentas de formatação' });
     const toolbarQueries = within(toolbar);
 
+    expect(screen.getByRole('textbox', { name: 'Conteúdo do artigo' })).toHaveAttribute(
+      'aria-multiline',
+      'true',
+    );
+
     expect(toolbarQueries.getByRole('button', { name: 'Título de seção' })).toHaveAttribute(
       'aria-keyshortcuts',
       'Control+Alt+2 Meta+Alt+2',
@@ -79,6 +84,10 @@ describe('editor de artigos', () => {
     expect(toolbarQueries.getByRole('button', { name: 'Código em linha' })).toBeInTheDocument();
     expect(toolbarQueries.getByRole('button', { name: 'Bloco de código' })).toBeInTheDocument();
     expect(toolbarQueries.getByRole('button', { name: 'Citação' })).toBeInTheDocument();
+    expect(toolbarQueries.getByRole('button', { name: 'Inserir imagem' })).toHaveAttribute(
+      'title',
+      'Inserir imagem',
+    );
   });
 
   it('aplica títulos pelo toolbar e reflete seu estado ativo', async () => {
@@ -130,6 +139,9 @@ describe('editor de artigos', () => {
     const { container } = render(<ArticleEditor uploadImage={uploadImage} />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Inserir imagem' }));
+    expect(screen.getByRole('dialog', { name: 'Inserir imagem' }).parentElement).toHaveClass(
+      'article-editor-toolbar-panel',
+    );
     const file = new File(['imagem'], 'diagrama.webp', { type: 'image/webp' });
     fireEvent.change(screen.getByLabelText('Arquivo'), { target: { files: [file] } });
     fireEvent.change(screen.getByLabelText('Descrição da imagem'), {

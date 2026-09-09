@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminPostActions } from '@web/features/admin/components/admin-post-actions';
 import type { AdminPostDetail } from '@web/features/admin/types/admin-post.types';
 
-const mocks = vi.hoisted(() => ({ transition: vi.fn() }));
+const mocks = vi.hoisted(() => ({ discard: vi.fn(), transition: vi.fn() }));
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  discardAdminPostChangesAction: mocks.discard,
   transitionAdminPostAction: mocks.transition,
 }));
 
@@ -41,5 +42,30 @@ describe('ações visuais de artigos', () => {
       'O rascunho deixará o fluxo de edição até ser restaurado.',
     );
     expect(mocks.transition).not.toHaveBeenCalled();
+  });
+
+  it('permite descartar somente as alterações ainda não publicadas', async () => {
+    const onDiscardedChanges = vi.fn();
+    mocks.discard.mockResolvedValue({
+      data: post,
+      message: 'Alterações descartadas.',
+      ok: true,
+    });
+    render(
+      <AdminPostActions
+        editor
+        hasPendingChanges
+        initialStatus="PUBLISHED"
+        onDiscardedChanges={onDiscardedChanges}
+        postId={post.id}
+        title={post.title}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar alterações' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Descartar alterações' }));
+
+    await waitFor(() => expect(mocks.discard).toHaveBeenCalledWith(post.id));
+    expect(onDiscardedChanges).toHaveBeenCalledTimes(1);
   });
 });
