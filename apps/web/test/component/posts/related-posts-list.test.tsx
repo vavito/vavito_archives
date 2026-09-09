@@ -8,11 +8,12 @@ vi.mock('@web/features/posts/components/article-card', () => ({
   ArticleCard: ({ post }: { post: PostSummary }) => <span>{post.title}</span>,
 }));
 
-const posts = ['Primeiro', 'Segundo', 'Terceiro'].map((title, index) =>
-  ({
-    id: `019c2d62-6e90-7000-8000-00000000001${index}`,
-    title,
-  }) as PostSummary,
+const posts = ['Primeiro', 'Segundo', 'Terceiro'].map(
+  (title, index) =>
+    ({
+      id: `019c2d62-6e90-7000-8000-00000000001${index}`,
+      title,
+    }) as PostSummary,
 );
 
 describe('RelatedPostsList', () => {
