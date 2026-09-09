@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { getSafeRedirectPath } from '@web/lib/auth/redirect-path';
 import { createPrivateAuthRedirect } from '@web/lib/auth/redirect-response';
 import { createServerSupabaseClient } from '@web/lib/auth/supabase/server';
+import { subscribeConfirmedAccount } from '@web/features/newsletter/services/subscribe-confirmed-account';
 
 const CONFIRMATION_ERROR_PATH = '/auth?auth_error=confirmation_failed';
 const EMAIL_OTP_TYPES = new Set<EmailOtpType>([
@@ -22,9 +23,12 @@ export async function GET(request: NextRequest) {
 
   if (tokenHash && isEmailOtpType(type)) {
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
 
     if (!error) {
+      if (type === 'signup' && data?.session?.access_token) {
+        await subscribeConfirmedAccount(data.session.access_token).catch(() => undefined);
+      }
       return createPrivateAuthRedirect(request, nextPath);
     }
   }
