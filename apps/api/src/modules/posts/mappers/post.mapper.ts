@@ -37,7 +37,10 @@ export type PrismaPostWithSlugs = PrismaPost & {
 export interface PostCoverView {
   alt: string;
   mediaId: string;
+  positionX: number;
+  positionY: number;
   url: string | null;
+  scale: number;
 }
 
 export interface PostResponseContext {
@@ -84,6 +87,9 @@ function coverView(cover: PostCoverRecord | null, url: string | null): PostCover
   return {
     alt: cover.altText,
     mediaId: cover.id,
+    positionX: cover.displayPositionX,
+    positionY: cover.displayPositionY,
+    scale: cover.displayScale,
     url,
   };
 }
@@ -167,6 +173,9 @@ export class PostMapper {
 
     return {
       coverAlt: cover?.alt ?? null,
+      coverPositionX: cover?.positionX ?? 50,
+      coverPositionY: cover?.positionY ?? 50,
+      coverScale: cover?.scale ?? 100,
       coverUrl: cover?.url ?? null,
       excerpt: record.excerpt,
       id: record.id,
@@ -232,6 +241,9 @@ export class PostMapper {
 
     return {
       coverAlt: context.cover?.alt ?? null,
+      coverPositionX: context.cover?.positionX ?? 50,
+      coverPositionY: context.cover?.positionY ?? 50,
+      coverScale: context.cover?.scale ?? 100,
       coverUrl: context.cover?.url ?? null,
       excerpt: fields.excerpt,
       id: post.id,
@@ -277,13 +289,19 @@ export class PostMapper {
       content: cloneContent(post),
       contentSchemaVersion: post.contentSchemaVersion,
       coverAlt: context.cover?.alt ?? null,
+      coverPositionX: context.cover?.positionX ?? 50,
+      coverPositionY: context.cover?.positionY ?? 50,
+      coverScale: context.cover?.scale ?? 100,
       coverMediaId: context.cover?.mediaId ?? null,
       coverUrl: context.cover?.url ?? null,
       createdAt: post.createdAt.toISOString(),
       excerpt: post.excerpt,
+      hasPendingChanges: false,
+      pendingEditedAt: null,
       readingTimeMinutes: post.readingTimeMinutes,
       seoDescription: post.seoDescription,
       seoTitle: post.seoTitle,
+      tagNames: context.tags.map(({ name }) => name),
       tags: cloneTags(context.tags),
       viewCount: post.viewsCount,
     };
