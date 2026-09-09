@@ -18,6 +18,7 @@ export async function AccountNavigation() {
   let account: AccountSummary = {
     avatarUrl: null,
     displayName: fallbackDisplayName(session.email),
+    isAdmin: false,
   };
 
   try {
@@ -25,6 +26,7 @@ export async function AccountNavigation() {
     account = {
       avatarUrl: profile.avatarUrl,
       displayName: profile.displayName,
+      isAdmin: profile.role === 'ADMIN',
     };
   } catch {
     // A sessão continua válida mesmo quando os dados complementares estão temporariamente indisponíveis.

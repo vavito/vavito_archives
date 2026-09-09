@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getSafeRedirectPath } from '@web/lib/auth/redirect-path';
 import { createPrivateAuthRedirect } from '@web/lib/auth/redirect-response';
 import { createServerSupabaseClient } from '@web/lib/auth/supabase/server';
+import { subscribeConfirmedAccount } from '@web/features/newsletter/services/subscribe-confirmed-account';
 
 const CALLBACK_ERROR_PATH = '/auth?auth_error=callback_failed';
 
@@ -13,12 +14,15 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(
+    const { data, error } = await supabase.auth.exchangeCodeForSession(
       code,
       flowId ? { flowId } : undefined,
     );
 
     if (!error) {
+      if (nextPath === '/auth/confirmed' && data?.session?.access_token) {
+        await subscribeConfirmedAccount(data.session.access_token).catch(() => undefined);
+      }
       return createPrivateAuthRedirect(request, nextPath);
     }
   }

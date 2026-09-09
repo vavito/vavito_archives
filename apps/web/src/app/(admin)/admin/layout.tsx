@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { EditorShell } from '@web/components/layout/editor-shell';
 import type { ReactNode } from 'react';
+
+import { RouteMotion } from '@web/components/feedback/route-motion';
+import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
 
 export const metadata: Metadata = {
   robots: { follow: false, index: false },
   title: 'Administração',
 };
 
-export default function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return <EditorShell>{children}</EditorShell>;
+export default async function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
+  await requireAdminSession();
+  return <RouteMotion>{children}</RouteMotion>;
 }

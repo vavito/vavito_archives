@@ -47,6 +47,7 @@ describe('Endpoints de Posts (e2e)', () => {
 
   const archive = jest.fn();
   const create = jest.fn();
+  const discardPendingChanges = jest.fn();
   const deletePost = jest.fn();
   const getAdminDetail = jest.fn();
   const getPublicDetail = jest.fn();
@@ -81,6 +82,7 @@ describe('Endpoints de Posts (e2e)', () => {
           useValue: {
             archive,
             create,
+            discardPendingChanges,
             delete: deletePost,
             getAdminDetail,
             getPublicDetail,
@@ -120,6 +122,7 @@ describe('Endpoints de Posts (e2e)', () => {
     listRevisions.mockResolvedValue(EMPTY_ADMIN_PAGE);
     getAdminDetail.mockResolvedValue(ADMIN_DETAIL);
     create.mockResolvedValue({ id: POST_ID });
+    discardPendingChanges.mockResolvedValue(undefined);
     update.mockResolvedValue(undefined);
     publish.mockResolvedValue(undefined);
     unpublish.mockResolvedValue(undefined);
@@ -205,6 +208,7 @@ describe('Endpoints de Posts (e2e)', () => {
       () => request(server).get(`/admin/posts/${POST_ID}/revisions`),
       () => request(server).post('/admin/posts').send({ title: 'Novo post' }),
       () => request(server).patch(`/admin/posts/${POST_ID}`).send({ title: 'Post atualizado' }),
+      () => request(server).post(`/admin/posts/${POST_ID}/discard-changes`),
       () => request(server).post(`/admin/posts/${POST_ID}/publish`),
       () => request(server).post(`/admin/posts/${POST_ID}/unpublish`),
       () => request(server).post(`/admin/posts/${POST_ID}/archive`),
@@ -256,6 +260,10 @@ describe('Endpoints de Posts (e2e)', () => {
       .set('authorization', AUTHORIZATION)
       .send({ title: 'Post atualizado' })
       .expect(200);
+    await request(server)
+      .post(`/admin/posts/${POST_ID}/discard-changes`)
+      .set('authorization', AUTHORIZATION)
+      .expect(200);
 
     for (const action of ['publish', 'unpublish', 'archive', 'restore'] as const) {
       await request(server)
@@ -280,6 +288,7 @@ describe('Endpoints de Posts (e2e)', () => {
     expect(listRevisions).toHaveBeenCalledWith(USER.id, POST_ID, { limit: 20, page: 1 });
     expect(create).toHaveBeenCalledWith(USER.id, { title: 'Novo post' });
     expect(update).toHaveBeenCalledWith(USER.id, POST_ID, { title: 'Post atualizado' });
+    expect(discardPendingChanges).toHaveBeenCalledWith(USER.id, POST_ID);
     expect(publish).toHaveBeenCalledWith(USER.id, POST_ID);
     expect(unpublish).toHaveBeenCalledWith(USER.id, POST_ID);
     expect(archive).toHaveBeenCalledWith(USER.id, POST_ID);

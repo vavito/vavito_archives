@@ -16,6 +16,7 @@ import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostContent } from '@api/modules/posts/domain/value-objects/post-content.value-object';
 import { Slug } from '@api/modules/posts/domain/value-objects/slug.value-object';
 import { PrismaPostsRepository } from '@api/modules/posts/repositories/prisma-posts.repository';
+import type { PostPendingDraftRecord } from '@api/modules/posts/repositories/posts.repository';
 
 import { requireIntegrationDatabaseUrl } from '../../helpers/database-url';
 
@@ -189,6 +190,7 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     await createPost(post);
 
     const expectedReference = {
+      cover: null,
       excerpt: 'Resumo para os testes.',
       id: post.id,
       publishedAt: post.publishedAt,
@@ -308,6 +310,84 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
     });
 
     expect(associations).toEqual([{ tag: { name: second.name } }]);
+  });
+
+  it('persiste o autosave pendente e o enquadramento da capa no PostgreSQL', async () => {
+    const authorId = await createAuthor();
+    const post = buildPost(authorId, {
+      currentSlug: 'artigo-publicado-estavel',
+      title: 'Artigo publicado estável',
+    });
+    await createPost(post);
+
+    const mediaAssetId = randomUUID();
+    const storagePath = `posts/${post.id}/cover.webp`;
+    records.mediaAssetIds.push(mediaAssetId);
+    await prisma.mediaAsset.create({
+      data: {
+        altText: 'Capa antes do enquadramento',
+        createdById: authorId,
+        id: mediaAssetId,
+        mimeType: 'image/webp',
+        sizeBytes: 1024n,
+        status: MediaAssetStatus.READY,
+        storagePath,
+      },
+    });
+
+    const pendingEditedAt = new Date('2026-09-08T22:00:00.000Z');
+    const pendingDraft: PostPendingDraftRecord = {
+      content: {
+        content: [
+          { content: [{ text: 'Conteúdo ainda não publicado', type: 'text' }], type: 'paragraph' },
+        ],
+        type: 'doc',
+      },
+      contentSchemaVersion: 1,
+      coverAlt: 'Capa reenquadrada',
+      coverMediaId: mediaAssetId,
+      coverPositionX: 64,
+      coverPositionY: 38,
+      coverScale: 125,
+      coverStoragePath: storagePath,
+      excerpt: 'Resumo ainda não publicado.',
+      readingTimeMinutes: 2,
+      seoDescription: null,
+      seoTitle: null,
+      slug: 'artigo-pendente',
+      tagNames: ['Qualidade'],
+      title: 'Artigo com alterações pendentes',
+    };
+
+    await repository.savePendingDraft(post.id, pendingDraft, pendingEditedAt);
+    await expect(repository.findById(post.id)).resolves.toMatchObject({
+      pendingDraft,
+      pendingEditedAt,
+      post: { title: 'Artigo publicado estável' },
+    });
+
+    await repository.update(post, {
+      coverAlt: pendingDraft.coverAlt,
+      coverMediaId: mediaAssetId,
+      coverPositionX: 64,
+      coverPositionY: 38,
+      coverScale: 125,
+    });
+    await expect(repository.findById(post.id)).resolves.toMatchObject({
+      cover: {
+        altText: 'Capa reenquadrada',
+        displayPositionX: 64,
+        displayPositionY: 38,
+        displayScale: 125,
+        id: mediaAssetId,
+      },
+    });
+
+    await repository.clearPendingDraft(post.id);
+    await expect(repository.findById(post.id)).resolves.toMatchObject({
+      pendingDraft: null,
+      pendingEditedAt: null,
+    });
   });
 
   it('filtra a visão administrativa por status e termo mantendo a ordenação estável', async () => {

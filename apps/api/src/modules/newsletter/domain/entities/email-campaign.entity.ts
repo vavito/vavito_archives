@@ -7,6 +7,9 @@ import { CampaignStateInconsistentError } from '@api/modules/newsletter/domain/e
 import { InvalidCampaignStatusTransitionError } from '@api/modules/newsletter/domain/errors/invalid-campaign-status-transition.error';
 
 export interface CampaignPostSnapshot extends Record<string, unknown> {
+  additionalPosts?: CampaignPostSnapshot[];
+  coverAlt?: string | null;
+  coverUrl?: string | null;
   excerpt: string;
   id: string;
   publishedAt: string;
@@ -128,6 +131,12 @@ export class EmailCampaign {
     return structuredClone(this.props.postSnapshot);
   }
 
+  get postSnapshots(): CampaignPostSnapshot[] {
+    const snapshot = this.postSnapshot;
+    const { additionalPosts = [], ...primary } = snapshot;
+    return [primary, ...additionalPosts];
+  }
+
   get previewText(): string {
     return this.props.previewText;
   }
@@ -154,6 +163,12 @@ export class EmailCampaign {
 
   get updatedAt(): Date {
     return cloneDate(this.props.updatedAt);
+  }
+
+  ensureCanDelete(): void {
+    if (![CampaignStatus.DRAFT, CampaignStatus.FAILED].includes(this.props.status)) {
+      throw new InvalidCampaignStatusTransitionError('delete', this.props.status);
+    }
   }
 
   updateContent(props: {

@@ -557,6 +557,78 @@
 }
 
 @layer components {
+  .article-editor-shell {
+    background: var(--color-surface-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    min-height: 32rem;
+    overflow: clip;
+  }
+
+  .article-editor-content {
+    min-height: 28rem;
+    outline: none;
+    padding: 2rem 1.25rem;
+  }
+
+  .article-editor-toolbar-region {
+    background: var(--color-floating);
+    border-bottom: 1px solid var(--color-divider);
+    box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 0.14);
+    isolation: isolate;
+    padding: 0.5rem 0.75rem;
+    position: sticky;
+    top: 4rem;
+    z-index: 30;
+  }
+
+  .article-editor-toolbar-panel {
+    background: var(--color-floating);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 1.25rem 2.5rem rgb(0 0 0 / 0.28);
+    left: 0;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 100%;
+  }
+
+  .article-editor-context-menu {
+    background: var(--color-floating);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 18px 48px rgb(0 0 0 / 0.35);
+    padding: 0.375rem;
+    z-index: 60;
+  }
+
+  .article-editor-content p.is-editor-empty:first-child::before {
+    color: var(--color-neutral-600);
+    content: 'Comece a escrever seu artigo…';
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .article-editor-content img {
+    border-radius: var(--radius-xl);
+    display: block;
+    height: auto;
+    margin-inline: auto;
+    max-width: 100%;
+  }
+
+  .article-editor-content img.ProseMirror-selectednode {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 70%, transparent);
+  }
+
+  @media (min-width: 640px) {
+    .article-editor-content {
+      padding-inline: 2rem;
+    }
+  }
+
   .article-prose {
     color: var(--color-neutral-200);
     font-size: 1.0625rem;

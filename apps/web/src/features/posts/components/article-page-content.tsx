@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { ProfileAvatar } from '@web/features/profile';
 
 import type { ArticlePageData } from '../types/posts.types';
-import { ArticleCard } from './article-card';
+import { ArticleCoverImage } from './article-cover-image';
+import { RelatedPostsList } from './related-posts-list';
 import { ArticleShareButton } from './article-share-button';
 import { PostViewTracker } from './post-view-tracker';
 import { ReadingProgress } from './reading-progress';
@@ -87,16 +88,17 @@ export function ArticlePageContent({
       </header>
 
       {post.coverUrl ? (
-        <figure className="mx-auto w-full max-w-cover px-4 sm:px-6 lg:px-8">
-          {/* eslint-disable-next-line @next/next/no-img-element -- A URL pública é resolvida pela API a partir do Storage. */}
-          <img
-            alt={post.coverAlt ?? ''}
-            className="motion-media aspect-[16/9] h-auto w-full rounded-2xl border border-border object-cover"
-            decoding="async"
-            fetchPriority="high"
-            src={post.coverUrl}
-          />
-        </figure>
+        <ArticleCoverImage
+          alt={post.coverAlt}
+          className="mx-auto w-full max-w-cover px-4 sm:px-6 lg:px-8"
+          positionX={post.coverPositionX ?? 50}
+          positionY={post.coverPositionY ?? 50}
+          priority
+          scale={post.coverScale ?? 100}
+          src={post.coverUrl}
+          title={post.title}
+          variant="hero"
+        />
       ) : null}
 
       <div className="mx-auto grid min-w-0 w-full max-w-reading gap-8 px-4 pt-6 pb-4 sm:px-6 lg:px-0">
@@ -132,11 +134,7 @@ export function ArticlePageContent({
             </h2>
             <p className="text-neutral-500 text-sm">Continue explorando o mesmo tópico.</p>
           </div>
-          <div className="grid gap-x-8 md:grid-cols-3">
-            {relatedPosts.map((relatedPost) => (
-              <ArticleCard compact key={relatedPost.id} post={relatedPost} />
-            ))}
-          </div>
+          <RelatedPostsList posts={relatedPosts} />
         </section>
       ) : null}
     </article>

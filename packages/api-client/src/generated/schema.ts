@@ -221,8 +221,25 @@ export interface paths {
     delete: operations['adminPosts_delete'];
     options?: never;
     head?: never;
-    /** Edita um post e registra revisão quando já publicado */
+    /** Edita rascunho ou salva alterações pendentes de post publicado */
     patch: operations['adminPosts_update'];
+    trace?: never;
+  };
+  '/api/v1/admin/posts/{id}/discard-changes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Descarta alterações pendentes de um post publicado */
+    post: operations['adminPosts_discardChanges'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   '/api/v1/admin/posts/{id}/publish': {
@@ -234,7 +251,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Publica um rascunho */
+    /** Publica um rascunho ou alterações pendentes */
     post: operations['adminPosts_publish'];
     delete?: never;
     options?: never;
@@ -465,6 +482,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/newsletter/subscriptions/account': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Inclui uma conta confirmada na newsletter de forma idempotente */
+    post: operations['newsletter_subscribeAccount'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/newsletter/campaigns': {
     parameters: {
       query?: never;
@@ -494,7 +528,8 @@ export interface paths {
     get: operations['adminCampaigns_get'];
     put?: never;
     post?: never;
-    delete?: never;
+    /** Exclui campanha em rascunho ou com envio falho */
+    delete: operations['adminCampaigns_delete'];
     options?: never;
     head?: never;
     /** Edita uma campanha ainda em rascunho */
@@ -689,6 +724,15 @@ export interface components {
        * @example 019c2d62-6e90-7000-8000-000000000010
        */
       postId: string;
+      /** @example Arquitetura de aplicações NestJS */
+      postTitle: string;
+      /** @example arquitetura-de-aplicacoes-nestjs */
+      postSlug: string | null;
+      /**
+       * @example PUBLISHED
+       * @enum {string}
+       */
+      postStatus: 'ARCHIVED' | 'DRAFT' | 'PUBLISHED';
       /**
        * Format: uuid
        * @example null
@@ -760,6 +804,12 @@ export interface components {
       coverUrl: string | null;
       /** @example Diagrama de arquitetura */
       coverAlt: string | null;
+      /** @example 100 */
+      coverScale?: number;
+      /** @example 50 */
+      coverPositionX?: number;
+      /** @example 50 */
+      coverPositionY?: number;
       tags: components['schemas']['TagResponseDto'][];
       /**
        * Format: date-time
@@ -811,6 +861,12 @@ export interface components {
       coverUrl: string | null;
       /** @example Diagrama de arquitetura */
       coverAlt: string | null;
+      /** @example 100 */
+      coverScale?: number;
+      /** @example 50 */
+      coverPositionX?: number;
+      /** @example 50 */
+      coverPositionY?: number;
       tags: components['schemas']['TagResponseDto'][];
       /**
        * Format: date-time
@@ -862,7 +918,7 @@ export interface components {
        */
       id: string;
       /** @example arquitetura-aplicacoes-nestjs */
-      slug: Record<string, never> | null;
+      slug: string | null;
       /** @example Arquitetura de aplicações NestJS */
       title: string;
       /** @example PUBLISHED */
@@ -872,12 +928,12 @@ export interface components {
        * Format: date-time
        * @example 2026-08-20T12:00:00.000Z
        */
-      publishedAt: Record<string, never> | null;
+      publishedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T18:30:00.000Z
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-27T20:15:00.000Z
@@ -925,7 +981,7 @@ export interface components {
        */
       id: string;
       /** @example arquitetura-aplicacoes-nestjs */
-      slug: Record<string, never> | null;
+      slug: string | null;
       /** @example Arquitetura de aplicações NestJS */
       title: string;
       /** @example PUBLISHED */
@@ -935,19 +991,26 @@ export interface components {
        * Format: date-time
        * @example 2026-08-20T12:00:00.000Z
        */
-      publishedAt: Record<string, never> | null;
+      publishedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T18:30:00.000Z
        */
-      editedAt: Record<string, never> | null;
+      editedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-27T20:15:00.000Z
        */
       updatedAt: string;
+      /** @example false */
+      hasPendingChanges: boolean;
+      /**
+       * Format: date-time
+       * @example null
+       */
+      pendingEditedAt: string | null;
       /** @example Uma introdução prática à arquitetura. */
-      excerpt: Record<string, never> | null;
+      excerpt: string | null;
       /**
        * @example {
        *       "content": [
@@ -965,18 +1028,31 @@ export interface components {
       contentSchemaVersion: number;
       tags: components['schemas']['TagResponseDto'][];
       /**
+       * @example [
+       *       "NestJS",
+       *       "TypeScript"
+       *     ]
+       */
+      tagNames: string[];
+      /**
        * Format: uuid
        * @example 019c2d62-6e90-7000-8000-000000000020
        */
-      coverMediaId: Record<string, never> | null;
+      coverMediaId: string | null;
       /** @example https://cdn.example.com/posts/capa.webp */
-      coverUrl: Record<string, never> | null;
+      coverUrl: string | null;
       /** @example Diagrama de arquitetura */
-      coverAlt: Record<string, never> | null;
+      coverAlt: string | null;
+      /** @example 100 */
+      coverScale?: number;
+      /** @example 50 */
+      coverPositionX?: number;
+      /** @example 50 */
+      coverPositionY?: number;
       /** @example Arquitetura NestJS */
-      seoTitle: Record<string, never> | null;
+      seoTitle: string | null;
       /** @example Aprenda a organizar uma aplicação NestJS. */
-      seoDescription: Record<string, never> | null;
+      seoDescription: string | null;
       /** @example 6 */
       readingTimeMinutes: number;
       /** @example 128 */
@@ -985,7 +1061,7 @@ export interface components {
        * Format: date-time
        * @example null
        */
-      archivedAt: Record<string, never> | null;
+      archivedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-18T10:00:00.000Z
@@ -1031,7 +1107,15 @@ export interface components {
        * Format: uuid
        * @example 019c2d62-6e90-7000-8000-000000000020
        */
-      coverMediaId?: Record<string, never> | null;
+      coverMediaId?: string | null;
+      /** @example Pessoa escrevendo em um caderno */
+      coverAlt?: string | null;
+      /** @example 100 */
+      coverScale?: number;
+      /** @example 50 */
+      coverPositionX?: number;
+      /** @example 50 */
+      coverPositionY?: number;
       /** @example Arquitetura NestJS */
       seoTitle?: Record<string, never> | null;
       /** @example Aprenda a organizar uma aplicação NestJS. */
@@ -1159,7 +1243,7 @@ export interface components {
       checks: components['schemas']['ReadinessChecksDto'];
     };
     /** @enum {string} */
-    SubscriberConsentSource: 'ARTICLE' | 'FOOTER' | 'HOME';
+    SubscriberConsentSource: 'ACCOUNT' | 'ARTICLE' | 'FOOTER' | 'HOME';
     SubscribeNewsletterDto: {
       /** @example leitor@example.com */
       email: string;
@@ -1196,6 +1280,10 @@ export interface components {
     /** @enum {string} */
     CampaignStatus: 'DRAFT' | 'FAILED' | 'SENDING' | 'SENT';
     CampaignPostSnapshotDto: {
+      /** @example Texto alternativo da capa. */
+      coverAlt: string | null;
+      /** @example https://cdn.example.com/posts/capa.webp */
+      coverUrl: string | null;
       /** @example Resumo congelado do artigo. */
       excerpt: string;
       /**
@@ -1229,7 +1317,7 @@ export interface components {
        */
       createdById: string;
       /** @example null */
-      failureReason: Record<string, never> | null;
+      failureReason: string | null;
       /**
        * @description HTML congelado usado como preview e base para o envio.
        * @example <article><h1>Arquivos e memória digital</h1></article>
@@ -1244,22 +1332,23 @@ export interface components {
        * Format: uuid
        * @example 019c2d62-6e90-7000-8000-000000000051
        */
-      idempotencyKey: Record<string, never> | null;
+      idempotencyKey: string | null;
       postSnapshot: components['schemas']['CampaignPostSnapshotDto'];
+      postSnapshots: components['schemas']['CampaignPostSnapshotDto'][];
       /** @example Uma nova leitura já está disponível. */
       previewText: string;
       /** @example re_123456789 */
-      resendId: Record<string, never> | null;
+      resendId: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T13:00:00.000Z
        */
-      sendStartedAt: Record<string, never> | null;
+      sendStartedAt: string | null;
       /**
        * Format: date-time
        * @example 2026-08-25T13:01:00.000Z
        */
-      sentAt: Record<string, never> | null;
+      sentAt: string | null;
       /** @example SENT */
       status: components['schemas']['CampaignStatus'];
       /** @example Novo artigo: Arquivos e memória digital */
@@ -1286,10 +1375,11 @@ export interface components {
     };
     CreateCampaignDto: {
       /**
-       * Format: uuid
-       * @example 019c2d62-6e90-7000-8000-000000000010
+       * @example [
+       *       "019c2d62-6e90-7000-8000-000000000010"
+       *     ]
        */
-      postId: string;
+      postIds: string[];
       /** @example Novo artigo: Arquivos e memória digital */
       subject: string;
       /** @example Uma nova leitura já está disponível. */
@@ -3005,6 +3095,118 @@ export interface operations {
       };
     };
   };
+  adminPosts_discardChanges: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @example 019c2d62-6e90-7000-8000-000000000010 */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PostAdminDetailDto'];
+        };
+      };
+      /** @description Dados ou parâmetros inválidos. */
+      400: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Autenticação necessária. */
+      401: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Acesso exclusivo de administrador. */
+      403: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Post não encontrado. */
+      404: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Estado ou slug incompatível. */
+      409: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Conteúdo ou slug semanticamente inválido. */
+      422: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/admin/posts/{id}/discard-changes",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
   adminPosts_publish: {
     parameters: {
       query?: never;
@@ -4429,6 +4631,58 @@ export interface operations {
       };
     };
   };
+  newsletter_subscribeAccount: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Limite de solicitações da newsletter excedido. */
+      429: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/newsletter/subscriptions/account",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
   adminCampaigns_list: {
     parameters: {
       query?: {
@@ -4671,6 +4925,97 @@ export interface operations {
       };
       /** @description Campanha não encontrada. */
       404: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/admin/newsletter/campaigns/{id}",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
+  adminCampaigns_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @example 019c2d62-6e90-7000-8000-000000000010 */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Dados ou parâmetros inválidos. */
+      400: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Autenticação necessária. */
+      401: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Acesso exclusivo de administrador. */
+      403: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Campanha não encontrada. */
+      404: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description O estado da campanha não permite exclusão. */
+      409: {
         headers: {
           /** @description Identificador usado para correlacionar a requisição nos logs. */
           'X-Request-Id'?: string;

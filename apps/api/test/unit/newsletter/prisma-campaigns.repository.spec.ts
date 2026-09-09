@@ -37,16 +37,37 @@ describe('PrismaCampaignsRepository', () => {
     emailCampaign: { updateMany },
     emailDelivery: { createMany },
   };
-  const $transaction = jest.fn((callback: (client: typeof transaction) => Promise<boolean>) =>
-    callback(transaction),
+  const count = jest.fn();
+  const findMany = jest.fn();
+  const deleteCampaign = jest.fn();
+  const $transaction = jest.fn(
+    (input: ((client: typeof transaction) => Promise<boolean>) | readonly Promise<unknown>[]) =>
+      Array.isArray(input)
+        ? Promise.all(input)
+        : (input as (client: typeof transaction) => Promise<boolean>)(transaction),
   );
-  const prisma = { $transaction } as unknown as PrismaService;
+  const prisma = {
+    $transaction,
+    emailCampaign: { count, delete: deleteCampaign, findMany },
+  } as unknown as PrismaService;
   const repository = new PrismaCampaignsRepository(prisma);
 
   beforeEach(() => {
     jest.clearAllMocks();
     updateMany.mockResolvedValue({ count: 1 });
     createMany.mockResolvedValue({ count: 1 });
+    count.mockResolvedValue(0);
+    findMany.mockResolvedValue([]);
+  });
+
+  it('exclui a campanha pelo identificador', async () => {
+    deleteCampaign.mockResolvedValueOnce({ id: '0b68ee40-f392-49cb-95c4-dd19cdd1bd43' });
+
+    await repository.delete('0b68ee40-f392-49cb-95c4-dd19cdd1bd43');
+
+    expect(deleteCampaign).toHaveBeenCalledWith({
+      where: { id: '0b68ee40-f392-49cb-95c4-dd19cdd1bd43' },
+    });
   });
 
   it('congela a campanha e cria entregas na mesma transação', async () => {
@@ -81,5 +102,13 @@ describe('PrismaCampaignsRepository', () => {
 
     await expect(repository.startSending(sendingCampaign(), [])).resolves.toBe(false);
     expect(createMany).not.toHaveBeenCalled();
+  });
+
+  it('lista as campanhas mais recentes primeiro com desempate estável', async () => {
+    await repository.list({ limit: 20, page: 1 });
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: [{ createdAt: 'desc' }, { id: 'asc' }] }),
+    );
   });
 });

@@ -60,6 +60,15 @@ export class CommentAdminResponseDto {
   @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
   postId!: string;
 
+  @ApiProperty({ example: 'Arquitetura de aplicações NestJS' })
+  postTitle!: string;
+
+  @ApiProperty({ example: 'arquitetura-de-aplicacoes-nestjs', nullable: true, type: String })
+  postSlug!: string | null;
+
+  @ApiProperty({ enum: ['ARCHIVED', 'DRAFT', 'PUBLISHED'], example: 'PUBLISHED' })
+  postStatus!: 'ARCHIVED' | 'DRAFT' | 'PUBLISHED';
+
   @ApiProperty({ example: null, format: 'uuid', nullable: true, type: String })
   parentId!: string | null;
 

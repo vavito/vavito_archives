@@ -218,6 +218,24 @@ describe('NewsletterService', () => {
     expect(save).toHaveBeenCalledWith(subscriber);
   });
 
+  it('inclui uma conta confirmada sem enviar outro email de confirmação', async () => {
+    await service.subscribeConfirmedAccount('leitor@example.com');
+    const created = createIfEmailAvailable.mock.calls[0]?.[0];
+
+    expect(created?.status).toBe(SubscriberStatus.CONFIRMED);
+    expect(created?.consent.source).toBe(SubscriberConsentSource.ACCOUNT);
+    expect(sendNewsletterConfirmation).not.toHaveBeenCalled();
+  });
+
+  it('respeita o cancelamento anterior ao confirmar uma conta', async () => {
+    findByEmail.mockResolvedValueOnce(subscriberWithStatus(SubscriberStatus.UNSUBSCRIBED));
+
+    await service.subscribeConfirmedAccount('leitor@example.com');
+
+    expect(save).not.toHaveBeenCalled();
+    expect(createIfEmailAvailable).not.toHaveBeenCalled();
+  });
+
   it('rejeita token de confirmação desconhecido', async () => {
     findByConfirmationTokenHash.mockResolvedValueOnce(null);
 

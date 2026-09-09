@@ -102,7 +102,7 @@ export class AdminPostsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Edita um post e registra revisão quando já publicado' })
+  @ApiOperation({ summary: 'Edita rascunho ou salva alterações pendentes de post publicado' })
   @ApiOkResponse({ type: PostAdminDetailDto })
   async update(
     @CurrentUser() user: AuthenticatedUser,
@@ -113,9 +113,21 @@ export class AdminPostsController {
     return this.postsService.getAdminDetail(user.id, id);
   }
 
+  @Post(':id/discard-changes')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Descarta alterações pendentes de um post publicado' })
+  @ApiOkResponse({ type: PostAdminDetailDto })
+  async discardChanges(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<PostAdminDetailDto> {
+    await this.postsService.discardPendingChanges(user.id, id);
+    return this.postsService.getAdminDetail(user.id, id);
+  }
+
   @Post(':id/publish')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Publica um rascunho' })
+  @ApiOperation({ summary: 'Publica um rascunho ou alterações pendentes' })
   @ApiOkResponse({ type: PostAdminDetailDto })
   publish(
     @CurrentUser() user: AuthenticatedUser,

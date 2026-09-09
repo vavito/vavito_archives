@@ -152,7 +152,6 @@ export class Comment {
   softDelete(now: Date): void {
     this.ensureNotDeleted();
 
-    this.props.content = null;
     this.props.deletedAt = cloneDate(now);
     this.props.status = CommentStatus.DELETED;
     this.props.updatedAt = cloneDate(now);

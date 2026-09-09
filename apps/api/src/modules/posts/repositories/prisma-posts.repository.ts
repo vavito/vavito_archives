@@ -20,6 +20,7 @@ import {
   type PaginatedRecords,
   type PostAggregateRecord,
   type PostCoverRecord,
+  type PostPendingDraftRecord,
   type PublishedPostReferenceRecord,
   type PostRevisionRecord,
   type PostSlugLookupRecord,
@@ -78,6 +79,9 @@ const POST_AGGREGATE_SELECT = {
     take: 1,
     where: { usage: MediaUsageType.COVER },
     select: {
+      displayPositionX: true,
+      displayPositionY: true,
+      displayScale: true,
       mediaAsset: {
         select: {
           altText: true,
@@ -87,6 +91,8 @@ const POST_AGGREGATE_SELECT = {
       },
     },
   },
+  pendingDraft: true,
+  pendingEditedAt: true,
   tags: {
     orderBy: { tag: { name: 'asc' } },
     select: {
@@ -135,6 +141,7 @@ const ADMIN_POST_SUMMARY_SELECT = {
 const PUBLISHED_POST_REFERENCE_SELECT = {
   excerpt: true,
   id: true,
+  mediaAssets: POST_AGGREGATE_SELECT.mediaAssets,
   publishedAt: true,
   readingTimeMinutes: true,
   slugs: {
@@ -168,9 +175,18 @@ function mapTags(record: PrismaPostAggregate | PrismaPublicPostSummary): PostTag
   return record.tags.map(({ tag }) => ({ ...tag }));
 }
 
-function mapCover(record: PrismaPostAggregate | PrismaPublicPostSummary): PostCoverRecord | null {
+function mapCover(
+  record: PrismaPostAggregate | PrismaPublicPostSummary | PrismaPublishedPostReference,
+): PostCoverRecord | null {
   const cover = record.mediaAssets[0]?.mediaAsset;
-  return cover ? { ...cover } : null;
+  return cover
+    ? {
+        ...cover,
+        displayPositionX: record.mediaAssets[0]!.displayPositionX,
+        displayPositionY: record.mediaAssets[0]!.displayPositionY,
+        displayScale: record.mediaAssets[0]!.displayScale,
+      }
+    : null;
 }
 
 function mapAggregate(record: PrismaPostAggregate): PostAggregateRecord {
@@ -178,6 +194,8 @@ function mapAggregate(record: PrismaPostAggregate): PostAggregateRecord {
     author: { ...record.author },
     cover: mapCover(record),
     post: PostMapper.toDomain(record),
+    pendingDraft: record.pendingDraft as PostPendingDraftRecord | null,
+    pendingEditedAt: record.pendingEditedAt,
     tags: mapTags(record),
   };
 }
@@ -223,6 +241,7 @@ function mapPublishedReference(record: PrismaPublishedPostReference): PublishedP
   }
 
   return {
+    cover: mapCover(record),
     excerpt: record.excerpt,
     id: record.id,
     publishedAt: record.publishedAt,
@@ -241,6 +260,9 @@ function revisionSnapshot(record: PrismaPostAggregate): Prisma.InputJsonObject {
     content: record.content,
     contentSchemaVersion: record.contentSchemaVersion,
     coverMediaId: record.mediaAssets[0]?.mediaAsset.id ?? null,
+    coverPositionX: record.mediaAssets[0]?.displayPositionX ?? 50,
+    coverPositionY: record.mediaAssets[0]?.displayPositionY ?? 50,
+    coverScale: record.mediaAssets[0]?.displayScale ?? 100,
     excerpt: record.excerpt,
     readingTimeMinutes: record.readingTimeMinutes,
     seoDescription: record.seoDescription,
@@ -254,6 +276,13 @@ function revisionSnapshot(record: PrismaPostAggregate): Prisma.InputJsonObject {
 @Injectable()
 export class PrismaPostsRepository implements PostsRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async clearPendingDraft(postId: string): Promise<void> {
+    await this.prisma.post.update({
+      data: { pendingDraft: Prisma.DbNull, pendingEditedAt: null },
+      where: { id: postId },
+    });
+  }
 
   async create(post: Post): Promise<void> {
     const data = PostMapper.toPersistence(post);
@@ -604,6 +633,9 @@ export class PrismaPostsRepository implements PostsRepository {
           seoTitle: post.seoTitle,
           status: PrismaPostStatus[post.status],
           title: post.title,
+          ...(options.clearPendingDraft
+            ? { pendingDraft: Prisma.DbNull, pendingEditedAt: null }
+            : {}),
           updatedAt: post.updatedAt,
           viewsCount: post.viewsCount,
         },
@@ -633,6 +665,62 @@ export class PrismaPostsRepository implements PostsRepository {
       if (options.tags !== undefined) {
         await this.replaceTagsInTransaction(transaction, post.id, options.tags);
       }
+
+      if (options.coverMediaId !== undefined) {
+        await transaction.postMediaAsset.deleteMany({
+          where: { postId: post.id, usage: MediaUsageType.COVER },
+        });
+
+        if (options.coverMediaId) {
+          if (options.coverAlt) {
+            await transaction.mediaAsset.update({
+              data: { altText: options.coverAlt },
+              where: { id: options.coverMediaId },
+            });
+          }
+          await transaction.postMediaAsset.create({
+            data: {
+              displayPositionX: options.coverPositionX ?? 50,
+              displayPositionY: options.coverPositionY ?? 50,
+              displayScale: options.coverScale ?? 100,
+              mediaAssetId: options.coverMediaId,
+              postId: post.id,
+              usage: MediaUsageType.COVER,
+            },
+          });
+        }
+      } else if (
+        options.coverScale !== undefined ||
+        options.coverPositionX !== undefined ||
+        options.coverPositionY !== undefined
+      ) {
+        await transaction.postMediaAsset.updateMany({
+          data: {
+            ...(options.coverPositionX !== undefined
+              ? { displayPositionX: options.coverPositionX }
+              : {}),
+            ...(options.coverPositionY !== undefined
+              ? { displayPositionY: options.coverPositionY }
+              : {}),
+            ...(options.coverScale !== undefined ? { displayScale: options.coverScale } : {}),
+          },
+          where: { postId: post.id, usage: MediaUsageType.COVER },
+        });
+      }
+    });
+  }
+
+  async savePendingDraft(
+    postId: string,
+    draft: PostPendingDraftRecord,
+    editedAt: Date,
+  ): Promise<void> {
+    await this.prisma.post.update({
+      data: {
+        pendingDraft: draft as Prisma.InputJsonObject,
+        pendingEditedAt: editedAt,
+      },
+      where: { id: postId },
     });
   }
 

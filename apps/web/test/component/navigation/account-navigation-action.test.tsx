@@ -30,7 +30,11 @@ describe('ação de conta do cabeçalho', () => {
   });
 
   it('mostra nome, foto e opções da conta sem abrir um modal', () => {
-    render(<AccountNavigationAction account={{ avatarUrl: null, displayName: 'João Victor' }} />);
+    render(
+      <AccountNavigationAction
+        account={{ avatarUrl: null, displayName: 'João Victor', isAdmin: false }}
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /João Victor/i }));
 
@@ -45,10 +49,30 @@ describe('ação de conta do cabeçalho', () => {
       '/salvos',
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Ir para o painel de administração' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('mostra o acesso ao painel somente para a conta administrativa', () => {
+    render(
+      <AccountNavigationAction
+        account={{ avatarUrl: null, displayName: 'João Victor', isAdmin: true }}
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'Ir para o painel de administração' })).toHaveAttribute(
+      'href',
+      '/admin/posts',
+    );
   });
 
   it('encerra a sessão e retorna à página inicial', async () => {
-    render(<AccountNavigationAction account={{ avatarUrl: null, displayName: 'João Victor' }} />);
+    render(
+      <AccountNavigationAction
+        account={{ avatarUrl: null, displayName: 'João Victor', isAdmin: false }}
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /João Victor/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Fazer Logout' }));
@@ -62,7 +86,11 @@ describe('ação de conta do cabeçalho', () => {
 
   it('permite repetir a saída quando a conexão falha sem expor detalhes', async () => {
     navigationMocks.signOut.mockRejectedValueOnce(new Error('fetch failed with private details'));
-    render(<AccountNavigationAction account={{ avatarUrl: null, displayName: 'João Victor' }} />);
+    render(
+      <AccountNavigationAction
+        account={{ avatarUrl: null, displayName: 'João Victor', isAdmin: false }}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /João Victor/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Fazer Logout' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(

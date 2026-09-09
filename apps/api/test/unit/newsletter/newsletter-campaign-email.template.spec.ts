@@ -7,14 +7,21 @@ import {
 describe('newsletterCampaignEmailTemplate', () => {
   it('escapa conteúdo editorial e mantém placeholder no snapshot', () => {
     const html = newsletterCampaignSnapshot({
-      articleUrl: 'https://vavitoarchives.com.br/artigos/teste?a=1&b=2',
-      excerpt: '<script>alert(1)</script>',
+      articles: [
+        {
+          articleUrl: 'https://vavitoarchives.com.br/artigos/teste?a=1&b=2',
+          coverAlt: 'Capa & segura',
+          coverUrl: 'https://cdn.example.com/capa.webp',
+          excerpt: '<script>alert(1)</script>',
+          title: 'Título <seguro>',
+        },
+      ],
       previewText: 'Preview & leitura',
-      title: 'Título <seguro>',
     });
 
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
+    expect(html).toContain('https://cdn.example.com/capa.webp');
     expect(html).toContain(NEWSLETTER_UNSUBSCRIBE_PLACEHOLDER);
   });
 

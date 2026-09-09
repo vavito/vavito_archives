@@ -26,6 +26,10 @@ export class PrismaCampaignsRepository implements CampaignsRepository {
     await this.prisma.emailCampaign.create({ data: EmailCampaignMapper.toPersistence(campaign) });
   }
 
+  async delete(id: string): Promise<void> {
+    await this.prisma.emailCampaign.delete({ where: { id } });
+  }
+
   async findById(id: string): Promise<EmailCampaign | null> {
     const record = await this.prisma.emailCampaign.findUnique({ where: { id } });
     return record ? EmailCampaignMapper.toDomain(record) : null;

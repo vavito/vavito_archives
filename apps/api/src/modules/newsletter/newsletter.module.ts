@@ -14,11 +14,12 @@ import { NewsletterWebhooksService } from '@api/modules/newsletter/services/news
 import { PrismaWebhookEventsRepository } from '@api/modules/newsletter/repositories/prisma-webhook-events.repository';
 import { WebhookEventsRepository } from '@api/modules/newsletter/repositories/webhook-events.repository';
 import { PostsModule } from '@api/modules/posts/posts.module';
+import { MediaModule } from '@api/modules/media/media.module';
 import { Module } from '@nestjs/common';
 
 @Module({
   controllers: [NewsletterController, AdminCampaignsController, ResendWebhooksController],
-  imports: [AuthModule, MailModule, PostsModule],
+  imports: [AuthModule, MailModule, MediaModule, PostsModule],
   providers: [
     CampaignsService,
     NewsletterService,

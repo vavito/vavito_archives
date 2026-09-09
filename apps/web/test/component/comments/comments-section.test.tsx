@@ -90,6 +90,25 @@ describe('seção de comentários', () => {
     expect(screen.getAllByRole('button', { name: 'Responder' })).toHaveLength(1);
   });
 
+  it('resume comentários longos e permite expandir e recolher o texto', () => {
+    const longContent = `${'Comentário extenso '.repeat(30)}encerramento.`;
+    render(
+      <CommentsSection
+        initialData={{ ...data, items: [{ ...comment, content: longContent, replies: [] }] }}
+        postId="post-id"
+        slug="artigo"
+        viewer={viewer}
+      />,
+    );
+
+    expect(screen.queryByText(/encerramento/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Ler mais' }));
+    expect(screen.getByText(/encerramento/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mostrar menos' }));
+    expect(screen.queryByText(/encerramento/)).not.toBeInTheDocument();
+  });
+
   it('abre a autenticação contextual quando um visitante tenta comentar', async () => {
     render(<CommentsSection initialData={data} postId="post-id" slug="artigo" viewer={null} />);
 

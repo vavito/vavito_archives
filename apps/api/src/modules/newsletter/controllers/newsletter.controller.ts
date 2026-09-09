@@ -1,4 +1,6 @@
 import { Public } from '@api/core/auth/decorators/public.decorator';
+import { CurrentUser } from '@api/core/auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
 import { ErrorResponseDto } from '@api/core/http/dto/error-response.dto';
 import { RATE_LIMITS } from '@api/core/http/security/http-security.constants';
 import { ConfirmSubscriptionDto } from '@api/modules/newsletter/dto/request/confirm-subscription.dto';
@@ -23,7 +25,6 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-@Public()
 @Throttle({ default: RATE_LIMITS.newsletter })
 @ApiTags('Newsletter')
 @ApiTooManyRequestsResponse({
@@ -35,6 +36,7 @@ export class NewsletterController {
   constructor(private readonly newsletterService: NewsletterService) {}
 
   @Post()
+  @Public()
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Solicita inscrição com double opt-in' })
   @ApiAcceptedResponse({ type: SubscriptionAcceptedResponseDto })
@@ -44,6 +46,7 @@ export class NewsletterController {
   }
 
   @Post('confirm')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirma uma inscrição pendente' })
   @ApiOkResponse({ type: SubscriptionConfirmedResponseDto })
@@ -54,10 +57,19 @@ export class NewsletterController {
   }
 
   @Post('unsubscribe')
+  @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancela uma inscrição de forma idempotente' })
   @ApiNoContentResponse()
   unsubscribe(@Body() dto: UnsubscribeDto): Promise<void> {
     return this.newsletterService.unsubscribe(dto);
+  }
+
+  @Post('account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Inclui uma conta confirmada na newsletter de forma idempotente' })
+  @ApiNoContentResponse()
+  subscribeAccount(@CurrentUser() user: AuthenticatedUser): Promise<void> {
+    return this.newsletterService.subscribeConfirmedAccount(user.email);
   }
 }

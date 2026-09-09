@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { MailService } from '@api/core/mail/services/mail.service';
 import { Subscriber } from '@api/modules/newsletter/domain/entities/subscriber.entity';
 import { SubscriberStatus } from '@api/modules/newsletter/domain/enums/subscriber-status.enum';
+import { SubscriberConsentSource } from '@api/modules/newsletter/domain/enums/subscriber-consent-source.enum';
 import { SubscriberConsent } from '@api/modules/newsletter/domain/value-objects/subscriber-consent.value-object';
 import { SubscriberEmail } from '@api/modules/newsletter/domain/value-objects/subscriber-email.value-object';
 import type { ConfirmSubscriptionDto } from '@api/modules/newsletter/dto/request/confirm-subscription.dto';
@@ -70,6 +71,41 @@ export class NewsletterService {
     await this.subscribersRepository.save(subscriber);
 
     return { message: SUBSCRIPTION_CONFIRMED_MESSAGE };
+  }
+
+  async subscribeConfirmedAccount(rawEmail: string): Promise<void> {
+    const now = new Date();
+    const email = this.executeDomainAction(() => SubscriberEmail.create(rawEmail));
+    const existing = await this.subscribersRepository.findByEmail(email.value);
+
+    if (existing) {
+      if (existing.status === SubscriberStatus.PENDING) {
+        this.executeDomainAction(() => existing.confirmVerifiedAccount(now));
+        await this.subscribersRepository.save(existing);
+      }
+      return;
+    }
+
+    const id = randomUUID();
+    const confirmation = this.tokenService.generateConfirmation();
+    const subscriber = this.executeDomainAction(() => {
+      const pending = Subscriber.subscribe({
+        confirmationExpiresAt: this.confirmationExpiry(now),
+        confirmationTokenHash: confirmation.hash,
+        consent: SubscriberConsent.create({
+          consentedAt: now,
+          source: SubscriberConsentSource.ACCOUNT,
+        }),
+        email,
+        id,
+        now,
+        unsubscribeTokenHash: this.tokenService.unsubscribeFor(id).hash,
+      });
+      pending.confirmVerifiedAccount(now);
+      return pending;
+    });
+
+    await this.subscribersRepository.createIfEmailAvailable(subscriber);
   }
 
   async unsubscribe(dto: UnsubscribeDto): Promise<void> {

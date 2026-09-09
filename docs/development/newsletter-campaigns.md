@@ -4,7 +4,9 @@ As campanhas editoriais são administradas pelos endpoints sob `/api/v1/admin/ne
 
 ## Criação e preview
 
-Uma campanha só pode ser criada para um post `PUBLISHED`. No momento da criação, a API congela título, resumo, slug, data de publicação e tempo de leitura em `postSnapshot`, além de produzir `htmlSnapshot` para o preview.
+Uma campanha pode reunir de um a cinco posts `PUBLISHED`. No momento da criação, a API congela título, resumo, slug, capa, data de publicação e tempo de leitura de cada artigo em `postSnapshot`, além de produzir `htmlSnapshot` para o preview. O primeiro artigo permanece como referência principal para compatibilidade histórica.
+
+A listagem administrativa usa `createdAt DESC` e `id ASC`, portanto apresenta primeiro as campanhas mais recentes.
 
 O preview é consultado pelo endpoint `GET /admin/newsletter/campaigns/:id`. Enquanto a campanha estiver em `DRAFT`, assunto, preview e HTML podem ser atualizados. Um HTML personalizado deve preservar o marcador `{{unsubscribeUrl}}`; o endereço individual de cancelamento só é inserido no momento do envio.
 
@@ -25,7 +27,7 @@ Esse bloqueio condicional impede que duas requisições concorrentes iniciem a m
 Cada destinatário recebe um email separado, com:
 
 - chave do Resend `newsletter-campaign/<campaignId>/<deliveryId>`;
-- link de artigo em `/artigos/:slug`;
+- links dos artigos selecionados em `/artigos/:slug` e suas capas, quando disponíveis;
 - link de cancelamento personalizado no fragmento `#token=`;
 - remetente definido em `MAIL_NEWSLETTER_FROM`.
 
@@ -39,5 +41,8 @@ Se uma solicitação for rejeitada, a entrega correspondente e a campanha passam
 - `SENDING`: audiência congelada e envio em processamento;
 - `SENT`: todos os pedidos foram aceitos pelo Resend;
 - `FAILED`: ao menos um pedido não foi aceito e não há reenvio automático.
+
+Campanhas `DRAFT` e `FAILED` podem ser excluídas pelo administrador. Estados `SENDING` e `SENT`
+não permitem exclusão para preservar o histórico operacional e evitar interpretações incorretas do envio.
 
 Webhooks assinados atualizam os estados individuais de entrega sem reabrir uma campanha `SENT`. Bounce permanente altera o subscriber para `BOUNCED`, atraso ou bounce transitório não o bloqueia, e reclamação de spam altera o subscriber para `COMPLAINED`. O processamento completo, incluindo idempotência e eventos fora de ordem, está documentado em `docs/development/resend-webhooks.md`.

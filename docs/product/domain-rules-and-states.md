@@ -42,7 +42,7 @@ stateDiagram-v2
 | --- | --- | --- | --- |
 | `create()` | inexistente | `DRAFT` | Autor válido; título e conteúdo podem começar incompletos. |
 | `edit(changes, now)` | `DRAFT` | `DRAFT` | Alterações válidas; atualiza `updatedAt`; ainda não exige registro de revisão editorial. |
-| `edit(changes, now)` | `PUBLISHED` | `PUBLISHED` | Alterações válidas; service salva uma revisão do conteúdo anterior, define `editedAt = now` e publica a nova versão de forma atômica. |
+| `edit(changes, now)` | `PUBLISHED` | `PUBLISHED` | Alterações válidas são salvas como versão pendente sem modificar o conteúdo público. |
 | `publish(now)` | `DRAFT` | `PUBLISHED` | Título, resumo, slug e conteúdo válidos; conteúdo não vazio; schema do Tiptap suportado; slug único verificado pelo service; `publishedAt = now`. |
 | `unpublish()` | `PUBLISHED` | `DRAFT` | Ação administrativa explícita; remove o post da área pública; limpa `publishedAt`. |
 | `archive(now)` | `DRAFT` | `ARCHIVED` | Ação administrativa explícita; define `archivedAt = now`. |
@@ -53,8 +53,9 @@ stateDiagram-v2
 
 - Somente `PUBLISHED` pode ser retornado por endpoints públicos.
 - `DRAFT` e `PUBLISHED` aceitam alteração de título, resumo, slug, conteúdo, tags, capa e SEO.
-- Toda edição de um post `PUBLISHED` preserva uma revisão do estado anterior, autor da alteração e data.
-- A edição de um post `PUBLISHED` atualiza o conteúdo público imediatamente após a transação.
+- Toda edição de um post `PUBLISHED` permanece pendente até a ação explícita de publicar alterações.
+- Alterações pendentes podem ser descartadas integralmente sem modificar a versão pública nem criar revisão.
+- Publicar alterações preserva uma revisão do estado público anterior e troca a versão pública de forma atômica.
 - `editedAt` e o histórico de revisões são administrativos; a interface pública não exibe a indicação “editado”.
 - `PUBLISHED` exige `publishedAt`, título, resumo, slug e conteúdo válidos.
 - `ARCHIVED` exige `archivedAt`.
@@ -111,7 +112,7 @@ stateDiagram-v2
 | `hide()` | `VISIBLE` ou `SPAM` | `HIDDEN` | Administrador; motivo pode ser registrado para auditoria. |
 | `markAsSpam()` | `VISIBLE` ou `HIDDEN` | `SPAM` | Administrador; motivo pode ser registrado para auditoria. |
 | `edit(content, now)` | `VISIBLE` | `VISIBLE` | Autor; conteúdo válido; define `editedAt = now`; moderação pode ocultar posteriormente. |
-| `softDelete(now)` | `VISIBLE`, `HIDDEN` ou `SPAM` | `DELETED` | Autor do comentário ou administrador, validado pelo service; define `deletedAt = now`. |
+| `softDelete(now)` | `VISIBLE`, `HIDDEN` ou `SPAM` | `DELETED` | Autor do comentário ou administrador, validado pelo service; define `deletedAt = now`, preserva o conteúdo para auditoria administrativa e o oculta nas respostas públicas. |
 
 ### Invariantes
 
@@ -278,6 +279,7 @@ stateDiagram-v2
 | `MEDIA_STORAGE_INCONSISTENT` | Estado do banco diverge do objeto no Storage. |
 | `MEDIA_NOT_ORPHANED` | Purge solicitado para asset ainda referenciado ou fora de `ORPHANED`. |
 | `MEDIA_UPLOAD_RETRY_NOT_ALLOWED` | Retry solicitado fora de `FAILED`. |
+| `MEDIA_NOT_FOUND` | Asset solicitado como capa não existe ou não está pronto para associação. |
 
 ## EmailCampaign
 
@@ -307,19 +309,20 @@ stateDiagram-v2
 
 | Ação | Origem | Destino | Condições |
 | --- | --- | --- | --- |
-| `create(post, audience)` | inexistente | `DRAFT` | Post está `PUBLISHED`; assunto e conteúdo válidos; audiência contém apenas subscribers confirmados. |
+| `create(posts, audience)` | inexistente | `DRAFT` | Entre um e cinco posts estão `PUBLISHED`; assunto e conteúdo válidos; audiência contém apenas subscribers confirmados. |
 | `updateContent()` | `DRAFT` | `DRAFT` | Assunto, preview e conteúdo válidos; campanha ainda não iniciada. |
-| `startSending(now)` | `DRAFT` | `SENDING` | Audiência não vazia; post continua publicado; idempotency key única; define `sendStartedAt = now`. |
+| `startSending(now)` | `DRAFT` | `SENDING` | Audiência não vazia; todos os posts continuam publicados; idempotency key única; define `sendStartedAt = now`. |
 | `markSent(resendId, now)` | `SENDING` | `SENT` | Provedor aceitou a solicitação e retornou ID; define `sentAt = now`. |
 | `markFailed(reason, now)` | `SENDING` | `FAILED` | Provedor rejeitou ou esgotou retry limitado sem aceitar o envio. |
 | `retry(now)` | `FAILED` | `SENDING` | Não existe confirmação de aceite anterior; reutiliza a mesma idempotency key; incrementa tentativa. |
 
 ### Invariantes
 
-- Campanha pertence a um único post publicado.
+- Campanha reúne de um a cinco posts publicados e preserva o primeiro como referência principal.
 - Conteúdo enviado é snapshot e não muda se o post for editado depois.
 - Audiência é formada apenas por `CONFIRMED`.
 - `DRAFT` é o único estado editável.
+- Campanhas `DRAFT` ou `FAILED` podem ser excluídas; campanhas `SENDING` ou `SENT` preservam o histórico de envio.
 - `SENDING` exige `sendStartedAt` e idempotency key.
 - `SENT` exige `resendId` e `sentAt` e é terminal.
 - `FAILED` exige motivo e não possui confirmação de aceite do provedor.

@@ -76,7 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       data-theme="dark"
       lang={SITE_LANGUAGE}
     >
-      <body className="bg-background text-foreground antialiased">
+      <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

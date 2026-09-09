@@ -108,6 +108,8 @@ model Post {
   publishedAt          DateTime?  @db.Timestamptz(3)
   archivedAt           DateTime?  @db.Timestamptz(3)
   editedAt             DateTime?  @db.Timestamptz(3)
+  pendingDraft         Json?      @db.JsonB
+  pendingEditedAt      DateTime?  @db.Timestamptz(3)
   createdAt            DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt            DateTime   @updatedAt @db.Timestamptz(3)
 
@@ -200,10 +202,13 @@ model MediaAsset {
 }
 
 model PostMediaAsset {
-  postId       String         @db.Uuid
-  mediaAssetId String         @db.Uuid
-  usage        MediaUsageType
-  createdAt    DateTime       @default(now()) @db.Timestamptz(3)
+  postId           String         @db.Uuid
+  mediaAssetId     String         @db.Uuid
+  usage            MediaUsageType
+  displayScale     Int            @default(100)
+  displayPositionX Int            @default(50)
+  displayPositionY Int            @default(50)
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
 
   post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
   mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)

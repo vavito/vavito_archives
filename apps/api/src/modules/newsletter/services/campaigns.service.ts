@@ -34,6 +34,7 @@ import {
 import { SubscribersRepository } from '@api/modules/newsletter/repositories/subscribers.repository';
 import { SubscriberTokenService } from '@api/modules/newsletter/services/subscriber-token.service';
 import { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
+import { MediaService } from '@api/modules/media/services/media.service';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { isUUID } from 'class-validator';
@@ -63,6 +64,7 @@ export class CampaignsService {
     private readonly authorizationRepository: ProfileAuthorizationRepository,
     private readonly mailService: MailService,
     private readonly subscriberTokenService: SubscriberTokenService,
+    private readonly mediaService: MediaService,
     configService: ConfigService<ApplicationConfig, true>,
   ) {
     this.frontendUrl = configService.get('app.frontendUrl', { infer: true });
@@ -70,29 +72,43 @@ export class CampaignsService {
 
   async create(actorId: string, dto: CreateCampaignDto): Promise<EmailCampaignAdminDto> {
     await this.ensureAdminActor(actorId);
-    const post = await this.requirePublishedPost(dto.postId);
+    const posts = await Promise.all(dto.postIds.map((postId) => this.requirePublishedPost(postId)));
+    const post = posts[0]!;
 
-    const previewText = dto.previewText?.trim() || `Leia o novo artigo: ${post.title}`;
-    const articleUrl = this.articleUrl(post.slug);
+    const previewText =
+      dto.previewText?.trim() ||
+      (posts.length === 1
+        ? `Leia o novo artigo: ${post.title}`
+        : `Confira ${posts.length} leituras selecionadas para você.`);
+    const snapshots = posts.map((item) => ({
+      coverAlt: item.cover?.altText ?? null,
+      coverUrl: item.cover ? this.mediaService.publicUrl(item.cover.storagePath) : null,
+      excerpt: item.excerpt,
+      id: item.id,
+      publishedAt: item.publishedAt.toISOString(),
+      readingTimeMinutes: item.readingTimeMinutes,
+      slug: item.slug,
+      title: item.title,
+    }));
     const campaign = this.executeDomainAction(() =>
       EmailCampaign.create({
         createdById: actorId,
         htmlSnapshot: newsletterCampaignSnapshot({
-          articleUrl,
-          excerpt: post.excerpt,
+          articles: snapshots.map((snapshot) => ({
+            articleUrl: this.articleUrl(snapshot.slug),
+            coverAlt: snapshot.coverAlt,
+            coverUrl: snapshot.coverUrl,
+            excerpt: snapshot.excerpt,
+            title: snapshot.title,
+          })),
           previewText,
-          title: post.title,
         }),
         id: randomUUID(),
         now: new Date(),
         postId: post.id,
         postSnapshot: {
-          excerpt: post.excerpt,
-          id: post.id,
-          publishedAt: post.publishedAt.toISOString(),
-          readingTimeMinutes: post.readingTimeMinutes,
-          slug: post.slug,
-          title: post.title,
+          ...snapshots[0]!,
+          ...(snapshots.length > 1 ? { additionalPosts: snapshots.slice(1) } : {}),
         },
         previewText,
         subject: dto.subject,
@@ -106,6 +122,13 @@ export class CampaignsService {
   async get(actorId: string, id: string): Promise<EmailCampaignAdminDto> {
     await this.ensureAdminActor(actorId);
     return EmailCampaignResponseMapper.toAdmin(await this.requireCampaign(id));
+  }
+
+  async delete(actorId: string, id: string): Promise<void> {
+    await this.ensureAdminActor(actorId);
+    const campaign = await this.requireCampaign(id);
+    this.executeDomainAction(() => campaign.ensureCanDelete());
+    await this.campaignsRepository.delete(id);
   }
 
   async list(actorId: string, query: ListCampaignsQueryDto): Promise<PaginatedEmailCampaignsDto> {
@@ -163,7 +186,7 @@ export class CampaignsService {
       return EmailCampaignResponseMapper.toAdmin(campaign);
     }
 
-    await this.requirePublishedPost(campaign.postId);
+    await Promise.all(campaign.postSnapshots.map(({ id }) => this.requirePublishedPost(id)));
     const subscribers = await this.subscribersRepository.listEligibleForCampaign();
     const articleUrl = this.articleUrl(campaign.postSnapshot.slug);
     const recipients: CampaignRecipient[] = subscribers.map((subscriber) => {

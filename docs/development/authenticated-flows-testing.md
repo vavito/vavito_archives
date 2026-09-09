@@ -34,6 +34,10 @@ O detalhe público expõe apenas `author.displayName` e `author.avatarUrl`. O av
 
 Os campos de comentário, edição e resposta crescem com os primeiros 1.000 caracteres e depois usam rolagem interna. Tanto no desktop quanto no mobile, o crescimento acompanha novas linhas visuais (quebra automática ou Enter), apenas quando o conteúdo ultrapassa a altura disponível. A medição usa a largura e a fonte reais do campo, sem interferência da animação de entrada ou de uma barra de rolagem prematura. Há um teto de 640px para conteúdos com muitas quebras de linha; o redimensionamento manual fica desativado. O limite de envio continua em 2.000 caracteres.
 
+Comentários e respostas com mais de 400 caracteres aparecem resumidos por padrão. O leitor pode
+usar `Ler mais` para revelar o conteúdo completo e `Mostrar menos` para recolhê-lo novamente, sem
+alterar o texto usado em edição ou moderação.
+
 A leitura usa o centro vertical da tela como referência. O progresso começa quando o início do conteúdo chega a essa linha e termina quando o fim passa por ela. Quando o texto já começa acima do centro na abertura, a contagem começa em zero no topo da página. Resultados de busca entram com fade e pequeno deslocamento vertical, respeitando movimento reduzido; o hover não desloca a caixa horizontalmente.
 
 ## Limites

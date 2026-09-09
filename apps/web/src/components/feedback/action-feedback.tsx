@@ -60,6 +60,7 @@ export function ActionFeedback({ feedback, onDismiss }: Readonly<ActionFeedbackP
           className="-mt-2 -mr-2 size-8 min-h-0 p-0"
           onClick={onDismiss}
           size="icon"
+          title="Fechar aviso"
           variant="ghost"
         >
           <X aria-hidden="true" />

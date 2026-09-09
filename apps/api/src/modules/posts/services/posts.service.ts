@@ -6,6 +6,8 @@ import { AvatarStorageService } from '@api/core/storage/services/avatar-storage.
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
 import { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { UserRole } from '@api/generated/prisma/client';
+import { MediaNotFoundException } from '@api/modules/media/errors/media-not-found.exception';
+import { MediaRepository } from '@api/modules/media/repositories/media.repository';
 import { MediaService } from '@api/modules/media/services/media.service';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
@@ -37,6 +39,7 @@ import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-alrea
 import { PostMapper } from '@api/modules/posts/mappers/post.mapper';
 import {
   type PostAggregateRecord,
+  type PostPendingDraftRecord,
   PostsRepository,
   type TagWriteRecord,
 } from '@api/modules/posts/repositories/posts.repository';
@@ -101,6 +104,7 @@ export class PostsService {
     private readonly postsRepository: PostsRepository,
     private readonly profileAuthorizationRepository: ProfileAuthorizationRepository,
     private readonly postViewFingerprintService: PostViewFingerprintService,
+    private readonly mediaRepository: MediaRepository,
     private readonly mediaService: MediaService,
     private readonly avatarStorage: AvatarStorageService,
   ) {}
@@ -108,7 +112,7 @@ export class PostsService {
   async archive(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
     this.executeDomainAction(() => post.archive(new Date()));
-    await this.postsRepository.update(post);
+    await this.postsRepository.update(post, { clearPendingDraft: true });
     return post;
   }
 
@@ -120,7 +124,40 @@ export class PostsService {
       throw new PostNotFoundException();
     }
 
-    return PostMapper.fromAggregateToAdminDetail(aggregate, this.coverUrl(aggregate.cover));
+    const detail = PostMapper.fromAggregateToAdminDetail(aggregate, this.coverUrl(aggregate.cover));
+    const pending = aggregate.pendingDraft;
+    if (!pending || aggregate.post.status !== PostStatus.PUBLISHED) return detail;
+
+    return {
+      ...detail,
+      content: structuredClone(pending.content),
+      contentSchemaVersion: pending.contentSchemaVersion,
+      coverAlt: pending.coverAlt,
+      coverMediaId: pending.coverMediaId,
+      coverPositionX: pending.coverPositionX ?? aggregate.cover?.displayPositionX ?? 50,
+      coverPositionY: pending.coverPositionY ?? aggregate.cover?.displayPositionY ?? 50,
+      coverScale: pending.coverScale,
+      coverUrl: pending.coverStoragePath
+        ? this.mediaService.publicUrl(pending.coverStoragePath)
+        : null,
+      excerpt: pending.excerpt,
+      hasPendingChanges: true,
+      pendingEditedAt: aggregate.pendingEditedAt?.toISOString() ?? null,
+      readingTimeMinutes: pending.readingTimeMinutes,
+      seoDescription: pending.seoDescription,
+      seoTitle: pending.seoTitle,
+      slug: pending.slug,
+      tagNames: [...pending.tagNames],
+      title: pending.title,
+    };
+  }
+
+  async discardPendingChanges(actorId: string, postId: string): Promise<void> {
+    const { pendingDraft, post } = await this.findAuthorizedPost(actorId, postId);
+
+    if (post.status === PostStatus.PUBLISHED && pendingDraft) {
+      await this.postsRepository.clearPendingDraft(post.id);
+    }
   }
 
   async getPublicDetail(slug: string, viewerId?: string): Promise<PublicPostDetailResult> {
@@ -246,21 +283,60 @@ export class PostsService {
   }
 
   async publish(actorId: string, postId: string): Promise<Post> {
-    const { post } = await this.findAuthorizedPost(actorId, postId);
+    const aggregate = await this.findAuthorizedPost(actorId, postId);
+    const { post, pendingDraft } = aggregate;
+
+    if (post.status === PostStatus.PUBLISHED && pendingDraft) {
+      const nextContent = this.executeDomainAction(() =>
+        PostContent.create(pendingDraft.content, pendingDraft.contentSchemaVersion),
+      );
+      const nextSlug = pendingDraft.slug
+        ? this.executeDomainAction(() => Slug.create(pendingDraft.slug!))
+        : null;
+      if (!nextSlug || pendingDraft.excerpt === null) {
+        throw new PostNotFoundException();
+      }
+      const nextExcerpt = pendingDraft.excerpt;
+      if (nextSlug) await this.ensureSlugAvailable(nextSlug, post.id);
+      const now = new Date();
+      this.executeDomainAction(() =>
+        post.edit({
+          content: nextContent,
+          currentSlug: nextSlug,
+          excerpt: nextExcerpt,
+          now,
+          readingTimeMinutes: pendingDraft.readingTimeMinutes,
+          seoDescription: pendingDraft.seoDescription,
+          seoTitle: pendingDraft.seoTitle,
+          title: pendingDraft.title,
+        }),
+      );
+      await this.postsRepository.update(post, {
+        clearPendingDraft: true,
+        coverAlt: pendingDraft.coverAlt,
+        coverMediaId: pendingDraft.coverMediaId,
+        coverPositionX: pendingDraft.coverPositionX ?? aggregate.cover?.displayPositionX ?? 50,
+        coverPositionY: pendingDraft.coverPositionY ?? aggregate.cover?.displayPositionY ?? 50,
+        coverScale: pendingDraft.coverScale,
+        revision: { createdAt: now, editorId: actorId },
+        tags: normalizeTags(pendingDraft.tagNames),
+      });
+      return post;
+    }
 
     if (post.currentSlug) {
       await this.ensureSlugAvailable(post.currentSlug, post.id);
     }
 
     this.executeDomainAction(() => post.publish(new Date()));
-    await this.postsRepository.update(post);
+    await this.postsRepository.update(post, { clearPendingDraft: true });
     return post;
   }
 
   async restore(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
     this.executeDomainAction(() => post.restoreAsDraft());
-    await this.postsRepository.update(post);
+    await this.postsRepository.update(post, { clearPendingDraft: true });
     return post;
   }
 
@@ -280,7 +356,7 @@ export class PostsService {
   async unpublish(actorId: string, postId: string): Promise<Post> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
     this.executeDomainAction(() => post.unpublish());
-    await this.postsRepository.update(post);
+    await this.postsRepository.update(post, { clearPendingDraft: true });
     return post;
   }
 
@@ -310,10 +386,36 @@ export class PostsService {
       requestedTags === undefined
         ? undefined
         : this.executeDomainAction(() => normalizeTags(requestedTags));
+    const coverMediaId = dto.coverMediaId;
+    let coverRecord = aggregate.cover;
+
+    if (coverMediaId) {
+      const cover = await this.mediaRepository.findById(coverMediaId);
+
+      if (!cover?.canBeAssociatedWithPost) {
+        throw new MediaNotFoundException();
+      }
+      coverRecord = {
+        altText: dto.coverAlt ?? cover.altText,
+        displayPositionX: dto.coverPositionX ?? aggregate.cover?.displayPositionX ?? 50,
+        displayPositionY: dto.coverPositionY ?? aggregate.cover?.displayPositionY ?? 50,
+        displayScale: dto.coverScale ?? aggregate.cover?.displayScale ?? 100,
+        id: cover.id,
+        storagePath: cover.storagePath,
+      };
+    } else if (coverMediaId === null) {
+      coverRecord = null;
+    }
+
     const hasEditableChanges =
       changesContent ||
       nextSlug !== undefined ||
       tags !== undefined ||
+      coverMediaId !== undefined ||
+      dto.coverAlt !== undefined ||
+      dto.coverPositionX !== undefined ||
+      dto.coverPositionY !== undefined ||
+      dto.coverScale !== undefined ||
       dto.excerpt !== undefined ||
       dto.seoDescription !== undefined ||
       dto.seoTitle !== undefined ||
@@ -325,6 +427,50 @@ export class PostsService {
 
     const now = new Date();
     const wasPublished = post.status === PostStatus.PUBLISHED;
+    if (wasPublished) {
+      const existing = aggregate.pendingDraft;
+      const pending: PostPendingDraftRecord = {
+        content: structuredClone(
+          nextContent?.document ?? existing?.content ?? post.content.document,
+        ),
+        contentSchemaVersion:
+          nextContent?.schemaVersion ?? existing?.contentSchemaVersion ?? post.contentSchemaVersion,
+        coverAlt: dto.coverAlt ?? coverRecord?.altText ?? existing?.coverAlt ?? null,
+        coverMediaId:
+          coverMediaId !== undefined
+            ? coverMediaId
+            : (existing?.coverMediaId ?? aggregate.cover?.id ?? null),
+        coverStoragePath:
+          coverMediaId === null
+            ? null
+            : (coverRecord?.storagePath ?? existing?.coverStoragePath ?? null),
+        coverPositionX:
+          dto.coverPositionX ?? existing?.coverPositionX ?? aggregate.cover?.displayPositionX ?? 50,
+        coverPositionY:
+          dto.coverPositionY ?? existing?.coverPositionY ?? aggregate.cover?.displayPositionY ?? 50,
+        coverScale: dto.coverScale ?? existing?.coverScale ?? aggregate.cover?.displayScale ?? 100,
+        excerpt: dto.excerpt !== undefined ? dto.excerpt : (existing?.excerpt ?? post.excerpt),
+        readingTimeMinutes: nextContent
+          ? readingTimeInMinutes(nextContent)
+          : (existing?.readingTimeMinutes ?? post.readingTimeMinutes),
+        seoDescription:
+          dto.seoDescription !== undefined
+            ? dto.seoDescription
+            : (existing?.seoDescription ?? post.seoDescription),
+        seoTitle: dto.seoTitle !== undefined ? dto.seoTitle : (existing?.seoTitle ?? post.seoTitle),
+        slug:
+          nextSlug !== undefined
+            ? nextSlug.value
+            : (existing?.slug ?? post.currentSlug?.value ?? null),
+        tagNames:
+          tags?.map(({ name }) => name) ??
+          existing?.tagNames ??
+          aggregate.tags.map(({ name }) => name),
+        title: dto.title !== undefined ? dto.title : (existing?.title ?? post.title),
+      };
+      await this.postsRepository.savePendingDraft(post.id, pending, now);
+      return post;
+    }
     this.executeDomainAction(() =>
       post.edit({
         now,
@@ -340,7 +486,11 @@ export class PostsService {
     );
 
     await this.postsRepository.update(post, {
-      ...(wasPublished ? { revision: { createdAt: now, editorId: actorId } } : {}),
+      ...(coverMediaId !== undefined ? { coverMediaId } : {}),
+      ...(dto.coverPositionX !== undefined ? { coverPositionX: dto.coverPositionX } : {}),
+      ...(dto.coverPositionY !== undefined ? { coverPositionY: dto.coverPositionY } : {}),
+      ...(dto.coverScale !== undefined ? { coverScale: dto.coverScale } : {}),
+      ...(dto.coverAlt !== undefined ? { coverAlt: dto.coverAlt } : {}),
       ...(tags ? { tags } : {}),
     });
     return post;

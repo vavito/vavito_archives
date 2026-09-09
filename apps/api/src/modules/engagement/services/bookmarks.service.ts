@@ -12,6 +12,7 @@ import {
 import type { PaginatedPostSummaryDto } from '@api/modules/posts/dto/response/paginated-posts-response.dto';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { PostMapper } from '@api/modules/posts/mappers/post.mapper';
+import { MediaService } from '@api/modules/media/services/media.service';
 
 export type ListBookmarksFilters = Pick<BookmarksFilters, 'limit' | 'page'>;
 
@@ -20,6 +21,7 @@ export class BookmarksService {
   constructor(
     private readonly bookmarksRepository: BookmarksRepository,
     private readonly profileAuthorizationRepository: ProfileAuthorizationRepository,
+    private readonly mediaService: MediaService,
   ) {}
 
   async save(profileId: string, postId: string): Promise<Bookmark> {
@@ -45,7 +47,12 @@ export class BookmarksService {
     const result = await this.bookmarksRepository.list({ ...filters, profileId });
 
     return {
-      items: result.items.map((post) => PostMapper.fromPublicSummaryRecord(post)),
+      items: result.items.map((post) =>
+        PostMapper.fromPublicSummaryRecord(
+          post,
+          post.cover ? this.mediaService.publicUrl(post.cover.storagePath) : null,
+        ),
+      ),
       meta: {
         limit: filters.limit,
         page: filters.page,

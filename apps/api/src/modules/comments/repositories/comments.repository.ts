@@ -12,6 +12,12 @@ export interface CommentRecord {
   comment: Comment;
 }
 
+export interface AdminCommentRecord extends CommentRecord {
+  postSlug?: string | null;
+  postStatus?: 'ARCHIVED' | 'DRAFT' | 'PUBLISHED';
+  postTitle: string;
+}
+
 export interface CommentThreadRecord extends CommentRecord {
   replies: CommentRecord[];
 }
@@ -36,11 +42,12 @@ export interface AdminCommentsFilters {
 
 export abstract class CommentsRepository {
   abstract create(comment: Comment): Promise<void>;
+  abstract findAdminById(id: string): Promise<AdminCommentRecord | null>;
   abstract findById(id: string): Promise<CommentRecord | null>;
   abstract findReplyParent(parentId: string, postId: string): Promise<CommentRecord | null>;
   abstract listAdmin(
     filters: AdminCommentsFilters,
-  ): Promise<PaginatedCommentRecords<CommentRecord>>;
+  ): Promise<PaginatedCommentRecords<AdminCommentRecord>>;
   abstract listPublicThreads(
     filters: PublicCommentsFilters,
   ): Promise<PaginatedCommentRecords<CommentThreadRecord>>;

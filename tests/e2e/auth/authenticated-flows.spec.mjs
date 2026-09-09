@@ -122,34 +122,38 @@ test('comentário e resposta crescem com limite, quebram palavras e não alargam
     }
     expect(length).toBeLessThan(512);
   }
-  await input.fill('x'.repeat(1000));
+  const contentPrefix = `${reader.id} ${'x'.repeat(1000 - reader.id.length - 1)}`;
+  await input.fill(contentPrefix);
   const grown = await input.evaluate((el) => el.offsetHeight);
   expect(grown).toBeGreaterThan(initial);
   expect(
     await input.evaluate((el) => el.scrollHeight <= el.clientHeight + 1 || el.offsetHeight === 640),
   ).toBe(true);
-  const content = 'x'.repeat(1900);
+  const content = `${contentPrefix}${'x'.repeat(850)}`;
   await input.fill(content);
   const capped = await input.evaluate((el) => el.offsetHeight);
   expect(capped).toBeLessThanOrEqual(grown + 1);
   expect(await input.evaluate((el) => globalThis.getComputedStyle(el).resize)).toBe('none');
   await page.getByRole('button', { name: 'Comentar', exact: true }).click();
-  const published = page.getByRole('paragraph').filter({ hasText: content });
-  await expect(published).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Comentário publicado.' })).toBeVisible();
-  const card = published.locator('xpath=ancestor::article[1]');
+  const publishedPreview = page.getByRole('paragraph').filter({ hasText: reader.id });
+  const card = publishedPreview.locator('xpath=ancestor::article[1]');
+  await card.getByRole('button', { name: 'Ler mais' }).click();
+  const published = card.getByRole('paragraph').filter({ hasText: content });
+  await expect(published).toBeVisible();
   await card.getByRole('button', { name: 'Responder', exact: true }).click();
   const reply = card.getByRole('textbox');
   const replyInitial = await reply.evaluate((el) => el.offsetHeight);
   await reply.fill('Resposta curta');
   expect(await reply.evaluate((el) => el.offsetHeight)).toBe(replyInitial);
-  await reply.fill('y'.repeat(1000));
+  const replyPrefix = `${reader.id} ${'y'.repeat(1000 - reader.id.length - 1)}`;
+  await reply.fill(replyPrefix);
   const replyGrown = await reply.evaluate((el) => el.offsetHeight);
   expect(replyGrown).toBeGreaterThan(replyInitial);
   expect(
     await reply.evaluate((el) => el.scrollHeight <= el.clientHeight + 1 || el.offsetHeight === 640),
   ).toBe(true);
-  const replyContent = 'y'.repeat(1900);
+  const replyContent = `${replyPrefix}${'y'.repeat(850)}`;
   await reply.fill(replyContent);
   expect(await reply.evaluate((el) => el.offsetHeight)).toBeLessThanOrEqual(replyGrown + 1);
   expect(
@@ -158,6 +162,7 @@ test('comentário e resposta crescem com limite, quebram palavras e não alargam
     ),
   ).toBe(true);
   await card.getByRole('button', { name: 'Responder', exact: true }).last().click();
+  await card.getByRole('button', { name: 'Ler mais' }).click();
   await expect(card.getByRole('paragraph').filter({ hasText: replyContent })).toBeVisible();
   expect(
     await page.evaluate(

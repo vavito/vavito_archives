@@ -1,10 +1,29 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  ArrayUnique,
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateCampaignDto {
-  @ApiProperty({ example: '019c2d62-6e90-7000-8000-000000000010', format: 'uuid' })
-  @IsUUID()
-  postId!: string;
+  @ApiProperty({
+    example: ['019c2d62-6e90-7000-8000-000000000010'],
+    type: [String],
+    maxItems: 5,
+    minItems: 1,
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(5)
+  @ArrayUnique()
+  @IsUUID(undefined, { each: true })
+  postIds!: string[];
 
   @ApiProperty({ example: 'Novo artigo: Arquivos e memória digital', maxLength: 255 })
   @IsString()

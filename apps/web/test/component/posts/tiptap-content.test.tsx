@@ -24,6 +24,16 @@ describe('TiptapContent', () => {
             {
               content: [
                 {
+                  marks: [{ attrs: { href: 'https://example.com/leitura' }, type: 'link' }],
+                  text: 'Leitura externa',
+                  type: 'text',
+                },
+              ],
+              type: 'paragraph',
+            },
+            {
+              content: [
+                {
                   content: [{ content: [{ text: 'Módulos', type: 'text' }], type: 'paragraph' }],
                   type: 'listItem',
                 },
@@ -51,6 +61,10 @@ describe('TiptapContent', () => {
 
     expect(screen.getByRole('heading', { level: 2, name: 'Arquitetura' })).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toHaveProperty('tagName', 'STRONG');
+    expect(screen.getByRole('link', { name: 'Leitura externa' })).toHaveAttribute(
+      'target',
+      '_blank',
+    );
     expect(screen.getByRole('list')).toHaveTextContent('Módulos');
     expect(container.querySelector('pre')).toHaveTextContent('const app = true;');
     expect(screen.getByRole('img', { name: 'Diagrama dos módulos' })).toHaveAttribute(

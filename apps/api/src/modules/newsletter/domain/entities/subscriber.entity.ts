@@ -169,6 +169,17 @@ export class Subscriber {
     this.props.updatedAt = cloneDate(now);
   }
 
+  confirmVerifiedAccount(now: Date): void {
+    this.ensureStatus('confirm verified account', SubscriberStatus.PENDING);
+    this.ensureTransitionDate(now);
+
+    this.props.confirmationExpiresAt = null;
+    this.props.confirmationTokenHash = null;
+    this.props.confirmedAt = cloneDate(now);
+    this.props.status = SubscriberStatus.CONFIRMED;
+    this.props.updatedAt = cloneDate(now);
+  }
+
   unsubscribe(now: Date): void {
     this.ensureStatus('unsubscribe', SubscriberStatus.PENDING, SubscriberStatus.CONFIRMED);
     this.ensureTransitionDate(now);

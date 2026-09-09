@@ -36,6 +36,8 @@ function createRecord(overrides: Partial<PrismaPostWithSlugs> = {}): PrismaPostW
     editedAt: null,
     excerpt: 'Resumo do artigo.',
     id: '957c8388-cb96-4f0c-98b3-56b84c1fe67e',
+    pendingDraft: null,
+    pendingEditedAt: null,
     publishedAt: PUBLISHED_AT,
     readingTimeMinutes: 4,
     seoDescription: 'Descrição SEO',
@@ -53,6 +55,9 @@ const responseContext = {
   cover: {
     alt: 'Capa do post',
     mediaId: '7663419a-6858-43a2-b324-143742206206',
+    positionX: 50,
+    positionY: 50,
+    scale: 100,
     url: 'https://cdn.example.com/capa.webp',
   },
   tags: [
@@ -93,6 +98,8 @@ describe('PostMapper', () => {
 
     expect(summary).toMatchObject({
       coverAlt: 'Capa do post',
+      coverPositionX: 50,
+      coverPositionY: 50,
       excerpt: 'Resumo do artigo.',
       publishedAt: PUBLISHED_AT.toISOString(),
       slug: 'primeiro-artigo',

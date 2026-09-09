@@ -129,5 +129,8 @@ jobs:
       - name: Executar fluxos autenticados com contas isoladas
         run: pnpm test:e2e:auth
 
+      - name: Executar fluxo editorial administrativo isolado
+        run: pnpm test:e2e:admin
+
       - name: Validar lint, tipos e build Vercel
         run: pnpm turbo run lint typecheck build --filter=@vavito/web...
