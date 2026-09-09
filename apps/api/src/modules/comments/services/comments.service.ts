@@ -31,6 +31,7 @@ import { throwCommentDomainException } from '@api/modules/comments/errors/commen
 import { CommentNotFoundException } from '@api/modules/comments/errors/comment-not-found.exception';
 import { CommentResponseMapper } from '@api/modules/comments/mappers/comment-response.mapper';
 import type {
+  AdminCommentRecord,
   CommentAuthorRecord,
   CommentRecord,
 } from '@api/modules/comments/repositories/comments.repository';
@@ -134,7 +135,7 @@ export class CommentsService {
 
   async moderate(actorId: string, id: string, dto: ModerateCommentDto) {
     await this.ensureAdminActor(actorId);
-    const record = await this.requireComment(id);
+    const record = await this.requireAdminComment(id);
     this.executeDomainAction(() => {
       if (dto.status === CommentModerationStatus.VISIBLE) record.comment.approve(new Date());
       else if (dto.status === CommentModerationStatus.HIDDEN)
@@ -206,6 +207,12 @@ export class CommentsService {
 
   private async requireComment(id: string): Promise<CommentRecord> {
     const record = await this.commentsRepository.findById(id);
+    if (!record) throw new CommentNotFoundException();
+    return record;
+  }
+
+  private async requireAdminComment(id: string): Promise<AdminCommentRecord> {
+    const record = await this.commentsRepository.findAdminById(id);
     if (!record) throw new CommentNotFoundException();
     return record;
   }
