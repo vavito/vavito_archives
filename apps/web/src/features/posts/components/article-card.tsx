@@ -33,7 +33,7 @@ export function ArticleCard({
     >
       <Link
         aria-label={`Ler ${post.title}`}
-        className="flex min-w-0 flex-col gap-5 [overflow-wrap:anywhere] sm:flex-row sm:items-start"
+        className="flex min-w-0 flex-col gap-5 [overflow-wrap:anywhere]"
         href={`/artigos/${post.slug}` as Route}
       >
         <div className="grid min-w-0 flex-1 gap-3">
@@ -87,10 +87,13 @@ export function ArticleCard({
         {post.coverUrl ? (
           <ArticleCoverImage
             alt={post.coverAlt}
-            className="w-full shrink-0 rounded-xl border border-border sm:w-[120px]"
+            className="order-last w-full shrink-0 rounded-xl border border-border sm:order-first"
+            positionX={post.coverPositionX ?? 50}
+            positionY={post.coverPositionY ?? 50}
+            scale={post.coverScale ?? 100}
             src={post.coverUrl}
             title={post.title}
-            variant="thumbnail"
+            variant="preview"
           />
         ) : null}
       </Link>

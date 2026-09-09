@@ -4,8 +4,8 @@ import type { ReactNode } from 'react';
 import { ProfileAvatar } from '@web/features/profile';
 
 import type { ArticlePageData } from '../types/posts.types';
-import { ArticleCard } from './article-card';
 import { ArticleCoverImage } from './article-cover-image';
+import { RelatedPostsList } from './related-posts-list';
 import { ArticleShareButton } from './article-share-button';
 import { PostViewTracker } from './post-view-tracker';
 import { ReadingProgress } from './reading-progress';
@@ -91,7 +91,10 @@ export function ArticlePageContent({
         <ArticleCoverImage
           alt={post.coverAlt}
           className="mx-auto w-full max-w-cover px-4 sm:px-6 lg:px-8"
+          positionX={post.coverPositionX ?? 50}
+          positionY={post.coverPositionY ?? 50}
           priority
+          scale={post.coverScale ?? 100}
           src={post.coverUrl}
           title={post.title}
           variant="hero"
@@ -131,11 +134,7 @@ export function ArticlePageContent({
             </h2>
             <p className="text-neutral-500 text-sm">Continue explorando o mesmo tópico.</p>
           </div>
-          <div className="grid gap-x-8 md:grid-cols-3">
-            {relatedPosts.map((relatedPost) => (
-              <ArticleCard compact key={relatedPost.id} post={relatedPost} />
-            ))}
-          </div>
+          <RelatedPostsList posts={relatedPosts} />
         </section>
       ) : null}
     </article>
