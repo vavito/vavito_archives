@@ -121,12 +121,25 @@ export function AdminCommentsPanel({
                 </p>
               ) : null}
               <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/admin/posts/${comment.postId}/preview` as Route}
-                  className="mr-auto text-sm text-accent hover:underline"
-                >
-                  Ver artigo
-                </Link>
+                <div className="mr-auto flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                  <span
+                    className="max-w-80 truncate text-sm text-neutral-400"
+                    title={comment.postTitle}
+                  >
+                    Artigo:{' '}
+                    <strong className="font-medium text-neutral-200">{comment.postTitle}</strong>
+                  </span>
+                  <Link
+                    href={
+                      (comment.postStatus === 'PUBLISHED' && comment.postSlug
+                        ? `/artigos/${comment.postSlug}`
+                        : `/admin/posts/${comment.postId}/preview`) as Route
+                    }
+                    className="text-sm text-accent hover:underline"
+                  >
+                    Ver artigo
+                  </Link>
+                </div>
                 {comment.status !== 'DELETED'
                   ? (['VISIBLE', 'HIDDEN', 'SPAM'] as const)
                       .filter((value) => value !== comment.status)
