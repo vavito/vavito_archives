@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+
+const fixtureUrl = 'http://127.0.0.1:4100';
 
 test.describe('páginas públicas', () => {
   test('navega da Home para a listagem e conclui a leitura de um artigo', async ({ page }) => {
@@ -179,5 +182,64 @@ test.describe('páginas públicas', () => {
 
     await expect(desktopNavigation).toBeVisible();
     await expect(mobileNavigation).toBeHidden();
+  });
+
+  test('conclui inscrição, cancelamento da newsletter e envio de contato', async ({
+    page,
+    request,
+  }) => {
+    const email = `newsletter-${randomUUID()}@example.test`;
+
+    await page.goto('/');
+    const newsletter = page.getByRole('region', { name: 'Novos textos, sem ruído.' });
+    await newsletter.getByLabel('Seu melhor e-mail').fill(email);
+    await newsletter.getByRole('checkbox').check();
+    await newsletter.getByRole('button', { name: 'Quero receber' }).click();
+    await expect(
+      newsletter.getByRole('status').filter({
+        hasText: 'Confira sua caixa de entrada para confirmar a inscrição.',
+      }),
+    ).toBeVisible();
+
+    const subscriptionResponse = await request.get(
+      `${fixtureUrl}/__test/newsletter-subscriptions?email=${encodeURIComponent(email)}`,
+    );
+    expect(subscriptionResponse.ok()).toBe(true);
+    const subscription = await subscriptionResponse.json();
+    expect(subscription.status).toBe('PENDING');
+
+    await page.goto(`/newsletter/confirm#token=${subscription.confirmationToken}`);
+    await expect(
+      page.getByRole('status').filter({
+        hasText: 'Inscrição confirmada! Você receberá os próximos artigos por e-mail.',
+      }),
+    ).toBeVisible();
+
+    await page.goto(`/newsletter/unsubscribe#token=${subscription.unsubscribeToken}`);
+    await expect(
+      page.getByRole('status').filter({
+        hasText: 'Inscrição cancelada. Você não receberá novos envios da newsletter.',
+      }),
+    ).toBeVisible();
+
+    await page.goto('/contato');
+    const contactEmail = `contato-${randomUUID()}@example.test`;
+    await page.getByLabel('Nome', { exact: true }).fill('Leitor E2E');
+    await page.getByLabel('E-mail', { exact: true }).fill(contactEmail);
+    await page
+      .getByLabel('Mensagem', { exact: true })
+      .fill('Gostaria de conversar sobre um dos artigos publicados.');
+    await page.getByRole('button', { name: 'Enviar mensagem' }).click();
+    await expect(
+      page.getByRole('status').filter({
+        hasText: 'Mensagem recebida. Retornaremos assim que possível.',
+      }),
+    ).toBeVisible();
+
+    const messagesResponse = await request.get(`${fixtureUrl}/__test/contact-messages`);
+    const messages = await messagesResponse.json();
+    expect(messages).toContainEqual(
+      expect.objectContaining({ email: contactEmail, name: 'Leitor E2E' }),
+    );
   });
 });
