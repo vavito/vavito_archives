@@ -2681,7 +2681,7 @@
             "supabase-jwt": []
           }
         ],
-        "summary": "Edita um post e registra revisão quando já publicado",
+        "summary": "Edita rascunho ou salva alterações pendentes de post publicado",
         "tags": ["Admin Posts"]
       },
       "delete": {
@@ -2880,6 +2880,200 @@
         "tags": ["Admin Posts"]
       }
     },
+    "/api/v1/admin/posts/{id}/discard-changes": {
+      "post": {
+        "operationId": "adminPosts_discardChanges",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "example": "019c2d62-6e90-7000-8000-000000000010"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostAdminDetailDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados ou parâmetros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticação necessária.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso exclusivo de administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Estado ou slug incompatível.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Conteúdo ou slug semanticamente inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/admin/posts/{id}/discard-changes",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "supabase-jwt": []
+          }
+        ],
+        "summary": "Descarta alterações pendentes de um post publicado",
+        "tags": ["Admin Posts"]
+      }
+    },
     "/api/v1/admin/posts/{id}/publish": {
       "post": {
         "operationId": "adminPosts_publish",
@@ -3070,7 +3264,7 @@
             "supabase-jwt": []
           }
         ],
-        "summary": "Publica um rascunho",
+        "summary": "Publica um rascunho ou alterações pendentes",
         "tags": ["Admin Posts"]
       }
     },
@@ -5233,6 +5427,78 @@
         "tags": ["Newsletter"]
       }
     },
+    "/api/v1/newsletter/subscriptions/account": {
+      "post": {
+        "operationId": "newsletter_subscribeAccount",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Limite de solicitações da newsletter excedido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/newsletter/subscriptions/account",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Inclui uma conta confirmada na newsletter de forma idempotente",
+        "tags": ["Newsletter"]
+      }
+    },
     "/api/v1/admin/newsletter/campaigns": {
       "get": {
         "operationId": "adminCampaigns_list",
@@ -5715,6 +5981,158 @@
           }
         ],
         "summary": "Consulta campanha e seu preview congelado",
+        "tags": ["Admin Newsletter"]
+      },
+      "delete": {
+        "operationId": "adminCampaigns_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "example": "019c2d62-6e90-7000-8000-000000000010"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Dados ou parâmetros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticação necessária.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso exclusivo de administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Campanha não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "O estado da campanha não permite exclusão.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/admin/newsletter/campaigns/{id}",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "supabase-jwt": []
+          }
+        ],
+        "summary": "Exclui campanha em rascunho ou com envio falho",
         "tags": ["Admin Newsletter"]
       },
       "patch": {
@@ -7300,6 +7718,20 @@
             "example": "019c2d62-6e90-7000-8000-000000000010",
             "format": "uuid"
           },
+          "postTitle": {
+            "type": "string",
+            "example": "Arquitetura de aplicações NestJS"
+          },
+          "postSlug": {
+            "type": "string",
+            "example": "arquitetura-de-aplicacoes-nestjs",
+            "nullable": true
+          },
+          "postStatus": {
+            "type": "string",
+            "enum": ["ARCHIVED", "DRAFT", "PUBLISHED"],
+            "example": "PUBLISHED"
+          },
           "parentId": {
             "type": "string",
             "example": null,
@@ -7354,6 +7786,9 @@
         "required": [
           "id",
           "postId",
+          "postTitle",
+          "postSlug",
+          "postStatus",
           "parentId",
           "content",
           "status",
@@ -7459,6 +7894,24 @@
             "type": "string",
             "example": "Diagrama de arquitetura",
             "nullable": true
+          },
+          "coverScale": {
+            "type": "number",
+            "example": 100,
+            "maximum": 160,
+            "minimum": 100
+          },
+          "coverPositionX": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
+          "coverPositionY": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
           },
           "tags": {
             "type": "array",
@@ -7594,6 +8047,24 @@
             "example": "Diagrama de arquitetura",
             "nullable": true
           },
+          "coverScale": {
+            "type": "number",
+            "example": 100,
+            "maximum": 160,
+            "minimum": 100
+          },
+          "coverPositionX": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
+          "coverPositionY": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -7706,7 +8177,7 @@
             "format": "uuid"
           },
           "slug": {
-            "type": "object",
+            "type": "string",
             "example": "arquitetura-aplicacoes-nestjs",
             "nullable": true
           },
@@ -7726,13 +8197,13 @@
             "$ref": "#/components/schemas/PostAuthorDto"
           },
           "publishedAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-20T12:00:00.000Z",
             "format": "date-time",
             "nullable": true
           },
           "editedAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-25T18:30:00.000Z",
             "format": "date-time",
             "nullable": true
@@ -7827,7 +8298,7 @@
             "format": "uuid"
           },
           "slug": {
-            "type": "object",
+            "type": "string",
             "example": "arquitetura-aplicacoes-nestjs",
             "nullable": true
           },
@@ -7847,13 +8318,13 @@
             "$ref": "#/components/schemas/PostAuthorDto"
           },
           "publishedAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-20T12:00:00.000Z",
             "format": "date-time",
             "nullable": true
           },
           "editedAt": {
-            "type": "object",
+            "type": "string",
             "example": "2026-08-25T18:30:00.000Z",
             "format": "date-time",
             "nullable": true
@@ -7863,8 +8334,18 @@
             "example": "2026-08-27T20:15:00.000Z",
             "format": "date-time"
           },
+          "hasPendingChanges": {
+            "type": "boolean",
+            "example": false
+          },
+          "pendingEditedAt": {
+            "type": "string",
+            "example": null,
+            "format": "date-time",
+            "nullable": true
+          },
           "excerpt": {
-            "type": "object",
+            "type": "string",
             "example": "Uma introdução prática à arquitetura.",
             "nullable": true
           },
@@ -7891,29 +8372,54 @@
               "$ref": "#/components/schemas/TagResponseDto"
             }
           },
+          "tagNames": {
+            "example": ["NestJS", "TypeScript"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "coverMediaId": {
-            "type": "object",
+            "type": "string",
             "example": "019c2d62-6e90-7000-8000-000000000020",
             "format": "uuid",
             "nullable": true
           },
           "coverUrl": {
-            "type": "object",
+            "type": "string",
             "example": "https://cdn.example.com/posts/capa.webp",
             "nullable": true
           },
           "coverAlt": {
-            "type": "object",
+            "type": "string",
             "example": "Diagrama de arquitetura",
             "nullable": true
           },
+          "coverScale": {
+            "type": "number",
+            "example": 100,
+            "maximum": 160,
+            "minimum": 100
+          },
+          "coverPositionX": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
+          "coverPositionY": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
           "seoTitle": {
-            "type": "object",
+            "type": "string",
             "example": "Arquitetura NestJS",
             "nullable": true
           },
           "seoDescription": {
-            "type": "object",
+            "type": "string",
             "example": "Aprenda a organizar uma aplicação NestJS.",
             "nullable": true
           },
@@ -7928,7 +8434,7 @@
             "minimum": 0
           },
           "archivedAt": {
-            "type": "object",
+            "type": "string",
             "example": null,
             "format": "date-time",
             "nullable": true
@@ -7948,10 +8454,13 @@
           "publishedAt",
           "editedAt",
           "updatedAt",
+          "hasPendingChanges",
+          "pendingEditedAt",
           "excerpt",
           "content",
           "contentSchemaVersion",
           "tags",
+          "tagNames",
           "coverMediaId",
           "coverUrl",
           "coverAlt",
@@ -8020,10 +8529,34 @@
             }
           },
           "coverMediaId": {
-            "type": "object",
+            "type": "string",
             "example": "019c2d62-6e90-7000-8000-000000000020",
             "format": "uuid",
             "nullable": true
+          },
+          "coverAlt": {
+            "type": "string",
+            "example": "Pessoa escrevendo em um caderno",
+            "maxLength": 180,
+            "nullable": true
+          },
+          "coverScale": {
+            "type": "number",
+            "example": 100,
+            "maximum": 160,
+            "minimum": 100
+          },
+          "coverPositionX": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
+          },
+          "coverPositionY": {
+            "type": "number",
+            "example": 50,
+            "maximum": 100,
+            "minimum": 0
           },
           "seoTitle": {
             "type": "object",
@@ -8291,7 +8824,7 @@
       },
       "SubscriberConsentSource": {
         "type": "string",
-        "enum": ["ARTICLE", "FOOTER", "HOME"]
+        "enum": ["ACCOUNT", "ARTICLE", "FOOTER", "HOME"]
       },
       "SubscribeNewsletterDto": {
         "type": "object",
@@ -8366,6 +8899,16 @@
       "CampaignPostSnapshotDto": {
         "type": "object",
         "properties": {
+          "coverAlt": {
+            "type": "string",
+            "example": "Texto alternativo da capa.",
+            "nullable": true
+          },
+          "coverUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/posts/capa.webp",
+            "nullable": true
+          },
           "excerpt": {
             "type": "string",
             "example": "Resumo congelado do artigo."
@@ -8393,7 +8936,16 @@
             "example": "Arquivos e memória digital"
           }
         },
-        "required": ["excerpt", "id", "publishedAt", "readingTimeMinutes", "slug", "title"]
+        "required": [
+          "coverAlt",
+          "coverUrl",
+          "excerpt",
+          "id",
+          "publishedAt",
+          "readingTimeMinutes",
+          "slug",
+          "title"
+        ]
       },
       "EmailCampaignAdminDto": {
         "type": "object",
@@ -8435,6 +8987,14 @@
           },
           "postSnapshot": {
             "$ref": "#/components/schemas/CampaignPostSnapshotDto"
+          },
+          "postSnapshots": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CampaignPostSnapshotDto"
+            }
           },
           "previewText": {
             "type": "string",
@@ -8484,6 +9044,7 @@
           "id",
           "idempotencyKey",
           "postSnapshot",
+          "postSnapshots",
           "previewText",
           "resendId",
           "sendStartedAt",
@@ -8537,10 +9098,14 @@
       "CreateCampaignDto": {
         "type": "object",
         "properties": {
-          "postId": {
-            "type": "string",
-            "example": "019c2d62-6e90-7000-8000-000000000010",
-            "format": "uuid"
+          "postIds": {
+            "example": ["019c2d62-6e90-7000-8000-000000000010"],
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "subject": {
             "type": "string",
@@ -8553,7 +9118,7 @@
             "maxLength": 255
           }
         },
-        "required": ["postId", "subject"]
+        "required": ["postIds", "subject"]
       },
       "UpdateCampaignDto": {
         "type": "object",
