@@ -17,6 +17,7 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 
 type EditorTool =
   'bold' | 'code' | 'codeBlock' | 'heading2' | 'heading3' | 'image' | 'italic' | 'link' | 'quote';
@@ -202,6 +203,12 @@ export function ArticleEditorContextMenus({
   onAddImage,
   onEditLink,
 }: Readonly<ArticleEditorToolbarProps>) {
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const imageAttributes = editor.getAttributes('image') as {
+    alt?: string;
+    width?: number | string;
+  };
+
   return (
     <>
       <BubbleMenu
@@ -244,16 +251,72 @@ export function ArticleEditorContextMenus({
         options={bubbleMenuOptions}
         shouldShow={({ editor: currentEditor }) => currentEditor.isActive('image')}
       >
-        <Button
-          aria-label="Remover imagem"
-          className="text-destructive hover:text-destructive"
-          onClick={() => editor.chain().focus().deleteSelection().run()}
-          size="small"
-          variant="ghost"
-        >
-          <Trash2 aria-hidden="true" />
-          Remover imagem
-        </Button>
+        <div className="flex flex-wrap items-center gap-1">
+          {[50, 75, 100].map((width) => (
+            <Button
+              aria-label={`Usar ${width}% da largura`}
+              key={width}
+              onClick={() =>
+                editor
+                  .chain()
+                  .focus()
+                  .updateAttributes('image', { height: null, width: `${width}%` })
+                  .run()
+              }
+              size="small"
+              variant={String(imageAttributes.width) === `${width}%` ? 'secondary' : 'ghost'}
+            >
+              {width}%
+            </Button>
+          ))}
+          <Button
+            onClick={() => setIsEditingImage((current) => !current)}
+            size="small"
+            variant="ghost"
+          >
+            Editar descrição
+          </Button>
+          <Button
+            aria-label="Remover imagem"
+            className="text-destructive hover:text-destructive"
+            onClick={() => editor.chain().focus().deleteSelection().run()}
+            size="small"
+            variant="ghost"
+          >
+            <Trash2 aria-hidden="true" />
+            Remover imagem
+          </Button>
+          {isEditingImage ? (
+            <form
+              className="basis-full grid gap-2 border-t border-divider pt-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const data = new FormData(event.currentTarget);
+                const alt = data.get('alt');
+                editor
+                  .chain()
+                  .focus()
+                  .updateAttributes('image', { alt: typeof alt === 'string' ? alt.trim() : '' })
+                  .run();
+                setIsEditingImage(false);
+              }}
+            >
+              <label className="text-xs text-neutral-400" htmlFor="selected-image-alt">
+                Descrição da imagem
+              </label>
+              <input
+                className="rounded-lg border border-border bg-surface-card px-3 py-2 text-sm text-neutral-100 outline-none focus:border-accent"
+                defaultValue={imageAttributes.alt ?? ''}
+                id="selected-image-alt"
+                name="alt"
+                required
+              />
+              <Button size="small" type="submit">
+                Aplicar
+              </Button>
+            </form>
+          ) : null}
+        </div>
       </BubbleMenu>
     </>
   );
