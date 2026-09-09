@@ -5,7 +5,7 @@ import { ArrowUpRight, Clock3, Search } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
@@ -15,6 +15,11 @@ import type { PostSummary } from '../types/posts.types';
 
 const EMPTY_RESULTS: PostSummary[] = [];
 
+interface SearchViewport {
+  height: number;
+  offsetTop: number;
+}
+
 export function SearchOverlay() {
   const router = useRouter();
   const resultsId = useId();
@@ -22,6 +27,7 @@ export function SearchOverlay() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [searchViewport, setSearchViewport] = useState<SearchViewport | null>(null);
   const { data, error, isDebouncing, isFetching, normalizedQuery } = usePostSearch(query);
   const results = data ?? EMPTY_RESULTS;
   const resolvedActiveIndex =
@@ -39,10 +45,35 @@ export function SearchOverlay() {
     return () => window.removeEventListener('keydown', openSearch);
   }, []);
 
+  useEffect(() => {
+    if (!open || !window.visualViewport) {
+      return;
+    }
+
+    const viewport = window.visualViewport;
+    const syncViewport = () => {
+      setSearchViewport({ height: viewport.height, offsetTop: viewport.offsetTop });
+    };
+    const animationFrame = window.requestAnimationFrame(syncViewport);
+    const settleTimer = window.setTimeout(syncViewport, 300);
+
+    syncViewport();
+    viewport.addEventListener('resize', syncViewport);
+    viewport.addEventListener('scroll', syncViewport);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(settleTimer);
+      viewport.removeEventListener('resize', syncViewport);
+      viewport.removeEventListener('scroll', syncViewport);
+    };
+  }, [open]);
+
   const closeSearch = () => {
     setOpen(false);
     setQuery('');
     setActiveIndex(-1);
+    setSearchViewport(null);
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -85,6 +116,12 @@ export function SearchOverlay() {
   const isSearching = isDebouncing || isFetching;
   const activeResultId =
     resolvedActiveIndex >= 0 ? `${resultsId}-${resolvedActiveIndex}` : undefined;
+  const viewportStyle: CSSProperties | undefined = searchViewport
+    ? {
+        maxHeight: `${Math.max(searchViewport.height - 24, 240)}px`,
+        top: `${searchViewport.offsetTop + searchViewport.height / 2}px`,
+      }
+    : undefined;
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
@@ -102,7 +139,10 @@ export function SearchOverlay() {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="bg-overlay max-w-md gap-0 overflow-hidden p-0">
+      <DialogContent
+        className="bg-overlay max-w-md gap-0 overflow-hidden p-0"
+        style={viewportStyle}
+      >
         <DialogTitle className="sr-only">Buscar artigos</DialogTitle>
         <DialogDescription className="sr-only">
           Pesquise artigos publicados por título, resumo ou tópico.
@@ -156,7 +196,7 @@ export function SearchOverlay() {
 
         <div
           aria-live="polite"
-          className="max-h-[min(28rem,60vh)] overflow-x-hidden overflow-y-auto"
+          className="max-h-[min(28rem,calc(100dvh-10rem))] overflow-x-hidden overflow-y-auto"
         >
           {!normalizedQuery ? (
             <p className="text-neutral-500 px-5 py-8 text-center text-sm">
