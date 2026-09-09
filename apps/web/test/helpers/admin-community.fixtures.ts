@@ -12,6 +12,8 @@ export const campaignFixture: AdminCampaign = {
   htmlSnapshot: '<h1>Leitura da semana</h1><a href="{{unsubscribeUrl}}">Cancelar</a>',
   idempotencyKey: null,
   postSnapshot: {
+    coverAlt: null,
+    coverUrl: null,
     id: 'post',
     title: 'Leitura da semana',
     excerpt: 'Resumo',
@@ -19,6 +21,18 @@ export const campaignFixture: AdminCampaign = {
     publishedAt: '2026-09-07T12:00:00Z',
     readingTimeMinutes: 3,
   },
+  postSnapshots: [
+    {
+      coverAlt: null,
+      coverUrl: null,
+      excerpt: 'Resumo',
+      id: 'post',
+      publishedAt: '2026-09-07T12:00:00Z',
+      readingTimeMinutes: 3,
+      slug: 'leitura',
+      title: 'Leitura da semana',
+    },
+  ],
   previewText: 'Uma nova leitura',
   resendId: null,
   sendStartedAt: null,
@@ -33,6 +47,9 @@ export const commentsFixture: AdminCommentsPage = {
     {
       id: 'comment',
       postId: 'post',
+      postTitle: 'Leitura da semana',
+      postSlug: 'leitura',
+      postStatus: 'PUBLISHED',
       parentId: null,
       content: 'Conversa sobre o artigo',
       status: 'VISIBLE',

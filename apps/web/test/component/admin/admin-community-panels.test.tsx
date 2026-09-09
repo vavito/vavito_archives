@@ -6,15 +6,22 @@ import { AdminCampaignsPanel } from '@web/features/admin/components/admin-campai
 import { campaignFixture, commentsFixture } from '../../helpers/admin-community.fixtures';
 
 const mocks = vi.hoisted(() => ({
+  delete: vi.fn(),
   moderate: vi.fn(),
   edit: vi.fn(),
+  push: vi.fn(),
+  routerRefresh: vi.fn(),
   send: vi.fn(),
   refresh: vi.fn(),
+}));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mocks.push, refresh: mocks.routerRefresh }),
 }));
 vi.mock('@web/features/admin/actions/admin-comment.actions', () => ({
   moderateCommentAction: mocks.moderate,
 }));
 vi.mock('@web/features/admin/actions/admin-campaign.actions', () => ({
+  deleteCampaignAction: mocks.delete,
   editCampaignAction: mocks.edit,
   sendCampaignAction: mocks.send,
   refreshCampaignAction: mocks.refresh,
@@ -26,6 +33,11 @@ describe('moderação e campanhas no painel', () => {
   it('exige confirmação e motivo opcional para ocultar um comentário', async () => {
     mocks.moderate.mockResolvedValue({ ok: true, data: {}, message: 'Moderação atualizada.' });
     render(<AdminCommentsPanel data={commentsFixture} />);
+    expect(screen.getByText('Leitura da semana')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver artigo' })).toHaveAttribute(
+      'href',
+      '/artigos/leitura',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar' }));
     expect(mocks.moderate).not.toHaveBeenCalled();
     fireEvent.change(screen.getByRole('textbox', { name: 'Motivo (opcional)' }), {
@@ -46,7 +58,7 @@ describe('moderação e campanhas no painel', () => {
           items: commentsFixture.items.map((item) => ({
             ...item,
             status: 'DELETED',
-            content: null,
+            content: 'Conteúdo preservado para moderação.',
             author: null,
           })),
         }}
@@ -55,6 +67,7 @@ describe('moderação e campanhas no painel', () => {
     expect(screen.queryByRole('button', { name: 'Aprovar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ocultar' })).not.toBeInTheDocument();
     expect(screen.getByText('Conta excluída')).toBeInTheDocument();
+    expect(screen.getByText('Conteúdo preservado para moderação.')).toBeInTheDocument();
   });
 
   it('isola o HTML do preview e impede envio com edição pendente', () => {

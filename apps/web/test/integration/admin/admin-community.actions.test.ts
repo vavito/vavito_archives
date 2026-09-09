@@ -62,7 +62,7 @@ describe('ações administrativas de comunidade', () => {
   it('exige sessão administrativa em todas as ações, inclusive consulta de estado', async () => {
     mocks.session.mockRejectedValue(new Error('Forbidden'));
     for (const action of [
-      () => createCampaignAction({ postId: id, subject: 'Artigo', previewText: '' }),
+      () => createCampaignAction({ postIds: [id], subject: 'Artigo', previewText: '' }),
       () => editCampaignAction(id, { subject: 'Artigo', previewText: '' }),
       () => sendCampaignAction(id, key),
       () => refreshCampaignAction(id),
@@ -78,7 +78,7 @@ describe('ações administrativas de comunidade', () => {
 
   it('rejeita referência inválida, assunto vazio e motivo longo antes de alterar dados', async () => {
     expect((await sendCampaignAction(id, 'invalid')).ok).toBe(false);
-    expect((await createCampaignAction({ postId: id, subject: '  ' })).ok).toBe(false);
+    expect((await createCampaignAction({ postIds: [id], subject: '  ' })).ok).toBe(false);
     expect((await moderateCommentAction(id, 'HIDDEN', 'x'.repeat(501))).ok).toBe(false);
     expect(mocks.send).not.toHaveBeenCalled();
     expect(mocks.create).not.toHaveBeenCalled();
@@ -102,12 +102,12 @@ describe('ações administrativas de comunidade', () => {
 
   it('cria e edita apenas os campos permitidos e revalida o painel', async () => {
     await createCampaignAction({
-      postId: id,
+      postIds: [id],
       subject: '  Novo artigo  ',
       previewText: 'Leia agora',
     });
     expect(mocks.create).toHaveBeenCalledWith(
-      { postId: id, subject: 'Novo artigo', previewText: 'Leia agora' },
+      { postIds: [id], subject: 'Novo artigo', previewText: 'Leia agora' },
       'client',
     );
     await editCampaignAction(id, { subject: 'Novo assunto', previewText: '' });
