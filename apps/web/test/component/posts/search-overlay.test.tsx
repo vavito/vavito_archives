@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { components } from '@vavito/api-client';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SearchOverlay } from '@web/features/posts/components/search-overlay';
 
@@ -49,6 +49,40 @@ describe('SearchOverlay', () => {
     mocks.push.mockReset();
     mocks.searchPublishedPosts.mockReset();
     mocks.searchPublishedPosts.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'visualViewport', {
+      configurable: true,
+      value: undefined,
+    });
+  });
+
+  it('acompanha a área visível quando o teclado virtual abre', async () => {
+    const viewport = new EventTarget() as EventTarget & {
+      height: number;
+      offsetTop: number;
+    };
+    viewport.height = 720;
+    viewport.offsetTop = 0;
+    Object.defineProperty(window, 'visualViewport', {
+      configurable: true,
+      value: viewport,
+    });
+    renderSearchOverlay();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar artigos' }));
+    const dialog = screen.getByRole('dialog', { name: 'Buscar artigos' });
+    await waitFor(() => expect(dialog).toHaveStyle({ maxHeight: '696px', top: '360px' }));
+
+    viewport.height = 420;
+    viewport.offsetTop = 20;
+    await act(() => {
+      viewport.dispatchEvent(new Event('resize'));
+      return Promise.resolve();
+    });
+
+    await waitFor(() => expect(dialog).toHaveStyle({ maxHeight: '396px', top: '230px' }));
   });
 
   it('abre com Ctrl+K e fecha com Escape', async () => {
