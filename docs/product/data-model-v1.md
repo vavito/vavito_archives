@@ -256,7 +256,7 @@ O Mermaid identifica os campos, mas não expressa todas as regras compostas com 
 - `EMAIL_DELIVERY`: unique `(campaignId, subscriberId)`;
 - `COMMENT`: o pai usa a combinação `(parentId, postId)` para permanecer no mesmo artigo;
 - `POST_SLUG`: índice parcial garante apenas um slug atual por post;
-- `POST_MEDIA_ASSET`: índice parcial garante apenas uma capa por post.
+- `POST_MEDIA_ASSET`: índice parcial garante apenas uma capa por post; `displayScale` preserva o zoom escolhido entre 100% e 160%, enquanto `displayPositionX` e `displayPositionY` preservam o enquadramento horizontal e vertical entre 0% e 100%.
 
 ## Enums
 
@@ -331,7 +331,7 @@ Uma consulta por qualquer slug encontra o post. Se `isCurrent = false`, a API in
 | `snapshot` | JSONB | estado anterior completo dos campos editáveis, inclusive slug atual e tags. |
 | `createdAt` | timestamptz | momento da edição publicada. |
 
-Rascunhos não exigem uma revisão a cada autosave. Uma edição de `PUBLISHED` salva a revisão anterior e atualiza o post na mesma transação.
+Rascunhos não exigem uma revisão a cada autosave. Alterações posteriores à publicação ficam em `Post.pendingDraft`, com `pendingEditedAt`, sem modificar a versão pública. A ação explícita de publicar cria a revisão da versão pública anterior, aplica o conteúdo pendente e limpa esses campos na mesma transação.
 
 ### Tag e PostTag
 
@@ -363,6 +363,8 @@ Rascunhos não exigem uma revisão a cada autosave. Uma edição de `PUBLISHED` 
 | --- | --- | --- |
 | `postId`, `mediaAssetId`, `usage` | chaves | PK composta. |
 | `usage` | `MediaUsageType` | `COVER` ou `CONTENT`. |
+| `displayScale` | inteiro | Zoom da capa entre 100 e 160; padrão 100. |
+| `displayPositionX`, `displayPositionY` | inteiro | Ponto do enquadramento em porcentagem, entre 0 e 100; padrão central em 50. |
 | `createdAt` | timestamptz | auditoria. |
 
 Um asset pode ser reutilizado por mais de um post. Apenas uma associação `COVER` é permitida por post. Um asset só se torna órfão quando não aparece em nenhuma associação.

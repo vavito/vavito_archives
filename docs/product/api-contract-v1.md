@@ -229,6 +229,10 @@ interface UpdatePostDto {
   contentSchemaVersion?: number;
   tagNames?: string[];
   coverMediaId?: UUID | null;
+  coverAlt?: string | null;
+  coverScale?: number;
+  coverPositionX?: number;
+  coverPositionY?: number;
   seoTitle?: string | null;
   seoDescription?: string | null;
 }
@@ -237,7 +241,7 @@ interface UpdatePostDto {
 O detalhe do artigo permanece público. Quando recebe um Bearer token válido, preenche `viewer`
 com a reação e o bookmark do leitor; sem autenticação, retorna `viewer: null`.
 
-O autor público expõe somente nome e URL pública do avatar, sem email, ID ou caminho interno de armazenamento. `PostAdminDetailDto` inclui `status`, identificação administrativa do autor, datas administrativas e dados do editor. Edição de post publicado cria revisão com snapshot anterior, autor e data; esse histórico não aparece em `PostDetailResponseDto`.
+O autor público expõe somente nome e URL pública do avatar, sem email, ID ou caminho interno de armazenamento. `PostAdminDetailDto` inclui `status`, identificação administrativa do autor, datas administrativas, dados do editor e a indicação de alterações pendentes. Editar um post publicado não muda a versão pública; publicar as alterações cria a revisão com snapshot anterior, autor e data. Esse histórico não aparece em `PostDetailResponseDto`.
 
 Tags são normalizadas e associadas a partir de `tagNames`. A V1 não exige CRUD administrativo separado para tags.
 
@@ -408,7 +412,8 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 | `GET` | `/admin/posts` | ADMIN | `status`, `q`, `page`, `limit` | `200 Paginated<PostAdminSummaryDto>`. |
 | `GET` | `/admin/posts/:id` | ADMIN | UUID | `200 PostAdminDetailDto`. |
 | `POST` | `/admin/posts` | ADMIN | `CreatePostDto` | `201 PostAdminDetailDto`. |
-| `PATCH` | `/admin/posts/:id` | ADMIN | `UpdatePostDto` | `200 PostAdminDetailDto`; também permite edição publicada com revisão. |
+| `PATCH` | `/admin/posts/:id` | ADMIN | `UpdatePostDto` | `200 PostAdminDetailDto`; em post publicado salva alterações pendentes. |
+| `POST` | `/admin/posts/:id/discard-changes` | ADMIN | — | `200 PostAdminDetailDto`; remove a versão pendente e devolve a versão pública atual. |
 | `GET` | `/admin/posts/:id/revisions` | ADMIN | `page`, `limit` | `200 Paginated<PostRevisionAdminDto>`. |
 | `POST` | `/admin/posts/:id/publish` | ADMIN | — | `200 PostAdminDetailDto`. |
 | `POST` | `/admin/posts/:id/unpublish` | ADMIN | — | `200 PostAdminDetailDto`. |
@@ -521,7 +526,7 @@ Eventos da V1:
 - Inscrição e cancelamento não revelam estado anterior.
 - Webhook repetido não duplica transição nem log de entrega.
 - Envio de campanha exige `Idempotency-Key`; a mesma chave retorna a campanha já iniciada e não dispara novamente.
-- Edição de post publicado e criação de sua revisão acontecem na mesma transação.
+- Publicação das alterações pendentes e criação da revisão anterior acontecem na mesma transação.
 - Contadores de reação e visualização nunca são a única fonte de verdade do vínculo individual.
 
 ## Decisões aprovadas

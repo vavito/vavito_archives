@@ -28,16 +28,25 @@ O editor preserva os atalhos do `StarterKit`, incluindo `Ctrl/⌘ + B` para negr
 link. Endereços sem protocolo recebem `https://`; protocolos não reconhecidos não são executados
 como esquemas e também são tratados como endereços HTTPS.
 
+Na leitura e no preview, links inseridos no conteúdo abrem em uma nova guia com `noopener noreferrer`.
+
 ## Imagens e capa
+
+No painel, a seção **Capa do artigo** fica entre os dados editoriais e o conteúdo. Ela permite
+adicionar, trocar ou remover a capa e editar sua descrição. Um clique duplo ativa o ajuste direto:
+arrastar reposiciona a imagem horizontal e verticalmente dentro da moldura; os controles `−/+`, a
+roda do mouse e as teclas `−/+` ajustam o zoom entre 100% e 160%. As setas reposicionam a capa pelo
+teclado. A prévia mantém a proporção `16:9` e inclui escala e posição no mesmo autosave do rascunho.
+O envio exige a mesma validação de formato, tamanho e descrição acessível usada pelas imagens do
+corpo.
 
 Imagens inseridas no corpo pertencem ao JSON do conteúdo. A capa não é um node do documento: ela é
 um `MediaAsset` associado ao post como `COVER` e enviado à API por `coverMediaId`. Essa separação
 permite usar a capa na listagem, nos artigos relacionados, na página de leitura e nos metadados
 sociais sem interpretar o conteúdo do editor.
 
-O schema já reconhece nodes de imagem. O upload e a inserção do arquivo no editor serão conectados
-ao `MediaController` na Task 12.3, incluindo progresso, remoção em caso de falha e texto alternativo
-obrigatório.
+O schema reconhece nodes de imagem. O upload e a inserção do arquivo usam o `MediaController`,
+incluindo progresso, cancelamento em caso de falha e texto alternativo obrigatório.
 
 ### Upload no corpo do artigo
 
@@ -51,16 +60,26 @@ mensagem segura de falha; cancelar o formulário interrompe a requisição em an
 
 Depois da resposta `READY`, o editor insere no JSON um node `image` com URL pública, descrição,
 largura e altura disponíveis. A leitura pública usa os mesmos atributos. Selecionar a imagem no
-editor oferece a ação de removê-la do documento. Essa remoção não apaga imediatamente o objeto do
+editor permite alterar sua descrição, ajustar sua largura ou removê-la do documento. Essa remoção não apaga imediatamente o objeto do
 Storage: enquanto não houver uma associação persistida com um post, o ciclo de limpeza de mídia
 órfã permanece responsável por sua remoção segura.
 
 ## Autosave de rascunho
 
-O editor mantém um único salvamento em andamento. Alterações de título, resumo, endereço e conteúdo
+O editor mantém um único salvamento em andamento. Alterações de título, resumo, endereço, capa e conteúdo
 aguardam 800 ms sem nova digitação antes de serem enviadas; se outra alteração acontecer durante a
 requisição, ela permanece pendente e é salva depois, sem concorrer com a versão anterior. Assim, a
 última versão editada no navegador é a última enviada ao servidor.
+
+Em artigos já publicados, o autosave grava uma versão pendente separada. O conteúdo que os leitores
+veem não muda durante a escrita; o cabeçalho informa a pendência e oferece **Publicar alterações**
+para promover a versão salva e registrar a revisão do conteúdo público anterior. A ação **Descartar
+alterações** remove integralmente essa versão pendente e recupera no editor o conteúdo ainda público.
+
+Os tópicos são informados no próprio editor e só viram chips depois de confirmados com vírgula,
+`Enter` ou ao sair do campo; digitar parcialmente não cria uma tag. O frontend os envia em
+`tagNames`; a API normaliza, reutiliza ou cria as tags e a interface pública as apresenta como
+hashtags que também funcionam como filtros da listagem.
 
 Na primeira alteração, o frontend cria um `DRAFT` e guarda somente seu identificador no
 armazenamento local do navegador. Ao reabrir `/admin`, esse identificador consulta novamente a API,

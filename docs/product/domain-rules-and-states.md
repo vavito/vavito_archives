@@ -42,7 +42,7 @@ stateDiagram-v2
 | --- | --- | --- | --- |
 | `create()` | inexistente | `DRAFT` | Autor válido; título e conteúdo podem começar incompletos. |
 | `edit(changes, now)` | `DRAFT` | `DRAFT` | Alterações válidas; atualiza `updatedAt`; ainda não exige registro de revisão editorial. |
-| `edit(changes, now)` | `PUBLISHED` | `PUBLISHED` | Alterações válidas; service salva uma revisão do conteúdo anterior, define `editedAt = now` e publica a nova versão de forma atômica. |
+| `edit(changes, now)` | `PUBLISHED` | `PUBLISHED` | Alterações válidas são salvas como versão pendente sem modificar o conteúdo público. |
 | `publish(now)` | `DRAFT` | `PUBLISHED` | Título, resumo, slug e conteúdo válidos; conteúdo não vazio; schema do Tiptap suportado; slug único verificado pelo service; `publishedAt = now`. |
 | `unpublish()` | `PUBLISHED` | `DRAFT` | Ação administrativa explícita; remove o post da área pública; limpa `publishedAt`. |
 | `archive(now)` | `DRAFT` | `ARCHIVED` | Ação administrativa explícita; define `archivedAt = now`. |
@@ -53,8 +53,9 @@ stateDiagram-v2
 
 - Somente `PUBLISHED` pode ser retornado por endpoints públicos.
 - `DRAFT` e `PUBLISHED` aceitam alteração de título, resumo, slug, conteúdo, tags, capa e SEO.
-- Toda edição de um post `PUBLISHED` preserva uma revisão do estado anterior, autor da alteração e data.
-- A edição de um post `PUBLISHED` atualiza o conteúdo público imediatamente após a transação.
+- Toda edição de um post `PUBLISHED` permanece pendente até a ação explícita de publicar alterações.
+- Alterações pendentes podem ser descartadas integralmente sem modificar a versão pública nem criar revisão.
+- Publicar alterações preserva uma revisão do estado público anterior e troca a versão pública de forma atômica.
 - `editedAt` e o histórico de revisões são administrativos; a interface pública não exibe a indicação “editado”.
 - `PUBLISHED` exige `publishedAt`, título, resumo, slug e conteúdo válidos.
 - `ARCHIVED` exige `archivedAt`.
@@ -278,6 +279,7 @@ stateDiagram-v2
 | `MEDIA_STORAGE_INCONSISTENT` | Estado do banco diverge do objeto no Storage. |
 | `MEDIA_NOT_ORPHANED` | Purge solicitado para asset ainda referenciado ou fora de `ORPHANED`. |
 | `MEDIA_UPLOAD_RETRY_NOT_ALLOWED` | Retry solicitado fora de `FAILED`. |
+| `MEDIA_NOT_FOUND` | Asset solicitado como capa não existe ou não está pronto para associação. |
 
 ## EmailCampaign
 
