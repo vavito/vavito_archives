@@ -32,7 +32,9 @@ O Playwright inicia e encerra automaticamente a API controlada na porta `4100` e
 
 A suíte autenticada (`pnpm test:e2e:auth`) roda em seguida, com Next.js em `3101` e dublê de Auth/API em `4101`, reutilizando o servidor de conteúdo público em `4100`. Ambas usam `.next-e2e` para não disputar o cache do desenvolvimento. As contas e dados desses testes são locais e descartáveis. Consulte [Testes dos fluxos autenticados](authenticated-flows-testing.md) para cobertura e limites dessa validação.
 
-A suíte administrativa (`pnpm test:e2e:admin`) usa Next.js em `3102` e um dublê local de Auth, API e mídia em `4102`. O fluxo cria um rascunho, aplica formatação pela toolbar, confirma o autosave, envia uma capa controlada, revisa o preview protegido e publica o artigo. A execução usa somente Chromium desktop, não acessa serviços externos e passa a integrar o job `Quality / Web`.
+A suíte administrativa (`pnpm test:e2e:admin`) usa Next.js em `3102` e um dublê local de Auth, API e mídia em `4102`. O fluxo cria um rascunho, aplica formatação pela toolbar, confirma o autosave, envia uma capa controlada, revisa o preview protegido e publica o artigo. A execução usa somente Chromium desktop e não acessa serviços externos.
+
+O comando `pnpm test:e2e:full-stack` executa as três suítes em sequência e é a entrada usada pelo job `Quality / Web`. Além das regressões já existentes, ele cobre cadastro até comentário, inscrição e cancelamento da newsletter e envio de contato sem intervenção. Consulte [Jornadas E2E full stack](full-stack-e2e.md) para cobertura, isolamento e limites.
 
 O fixture existe apenas porque o PostgreSQL puro da CI não inclui o schema gerenciado pelo Supabase Auth. Ele contém somente as colunas consumidas pelo trigger de criação de `Profile`, é protegido pela mesma validação de URL local da suíte e nunca é aplicado ao Supabase.
 
