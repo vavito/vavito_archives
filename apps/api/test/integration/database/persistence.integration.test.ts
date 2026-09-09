@@ -117,7 +117,14 @@ describe('Persistência PostgreSQL', () => {
       '20260813101000_create_auth_user_profile_trigger',
     );
     expect(tables.map(({ table_name: tableName }) => tableName)).toEqual(expectedApplicationTables);
-    expect(checkConstraints).toHaveLength(14);
+    expect(checkConstraints).toHaveLength(17);
+    expect(checkConstraints.map(({ constraint_name: constraintName }) => constraintName)).toEqual(
+      expect.arrayContaining([
+        'PostMediaAsset_displayPositionX_check',
+        'PostMediaAsset_displayPositionY_check',
+        'PostMediaAsset_displayScale_check',
+      ]),
+    );
   });
 
   it('persiste, consulta e remove um perfil de integração', async () => {

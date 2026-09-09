@@ -23,6 +23,7 @@ const USER = { email: 'admin@example.com', id: ADMIN_ID };
 function services() {
   const archive = jest.fn();
   const create = jest.fn();
+  const discardPendingChanges = jest.fn();
   const deletePost = jest.fn();
   const getAdminDetail = jest.fn();
   const getPublicDetail = jest.fn();
@@ -39,6 +40,7 @@ function services() {
   const service = {
     archive,
     create,
+    discardPendingChanges,
     delete: deletePost,
     getAdminDetail,
     getPublicDetail,
@@ -57,6 +59,7 @@ function services() {
   return {
     archive,
     create,
+    discardPendingChanges,
     deletePost,
     getAdminDetail,
     getPublicDetail,
@@ -177,6 +180,17 @@ describe('Controllers de Posts', () => {
 
     await expect(controller[method](USER, POST_ID)).resolves.toBe(detail);
     expect(mocks[mockName]).toHaveBeenCalledWith(ADMIN_ID, POST_ID);
+  });
+
+  it('descarta alterações pendentes e devolve a versão persistida', async () => {
+    const mocks = services();
+    const controller = new AdminPostsController(mocks.service);
+    const detail = { id: POST_ID } as PostAdminDetailDto;
+    mocks.getAdminDetail.mockResolvedValueOnce(detail);
+
+    await expect(controller.discardChanges(USER, POST_ID)).resolves.toBe(detail);
+    expect(mocks.discardPendingChanges).toHaveBeenCalledWith(ADMIN_ID, POST_ID);
+    expect(mocks.getAdminDetail).toHaveBeenCalledWith(ADMIN_ID, POST_ID);
   });
 
   it('exige confirmação tipada e delega a exclusão permanente', async () => {

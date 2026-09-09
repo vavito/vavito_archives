@@ -3,6 +3,8 @@ import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 import { UserRole } from '@api/generated/prisma/client';
 import type { MediaService } from '@api/modules/media/services/media.service';
+import type { MediaRepository } from '@api/modules/media/repositories/media.repository';
+import { MediaNotFoundException } from '@api/modules/media/errors/media-not-found.exception';
 import { ReactionType } from '@api/modules/engagement/domain/enums/reaction-type.enum';
 import { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
@@ -56,12 +58,15 @@ function aggregate(restoredPost: Post): PostAggregateRecord {
     author: { avatarPath: null, displayName: 'Autora', id: AUTHOR_ID },
     cover: null,
     post: restoredPost,
+    pendingDraft: null,
+    pendingEditedAt: null,
     tags: [],
   };
 }
 
 describe('PostsService', () => {
   const create = jest.fn();
+  const clearPendingDraft = jest.fn();
   const deletePost = jest.fn();
   const findById = jest.fn();
   const findBySlug = jest.fn();
@@ -76,10 +81,12 @@ describe('PostsService', () => {
     Parameters<PostsRepository['registerView']>
   >();
   const update = jest.fn();
+  const savePendingDraft = jest.fn();
   const findActiveRoleByProfileId = jest.fn();
   const createDailyFingerprint = jest.fn();
   const repository = {
     create,
+    clearPendingDraft,
     delete: deletePost,
     findById,
     findBySlug,
@@ -90,6 +97,7 @@ describe('PostsService', () => {
     listTags,
     searchPublic,
     registerView,
+    savePendingDraft,
     update,
   } as unknown as PostsRepository;
   const authorizationRepository = {
@@ -100,10 +108,13 @@ describe('PostsService', () => {
   } as unknown as PostViewFingerprintService;
   const publicUrl = jest.fn((storagePath: string) => `https://storage.test/media/${storagePath}`);
   const mediaService = { publicUrl } as unknown as MediaService;
+  const findMediaById = jest.fn();
+  const mediaRepository = { findById: findMediaById } as unknown as MediaRepository;
   const service = new PostsService(
     repository,
     authorizationRepository,
     fingerprintService,
+    mediaRepository,
     mediaService,
     {
       publicUrl: (path: string) => `https://storage.test/avatars/${path}`,
@@ -118,6 +129,7 @@ describe('PostsService', () => {
     findActiveRoleByProfileId.mockResolvedValue(UserRole.USER);
     findSlugOwner.mockResolvedValue(null);
     createDailyFingerprint.mockReturnValue('daily-fingerprint');
+    findMediaById.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -330,17 +342,127 @@ describe('PostsService', () => {
     });
   });
 
-  it('permite que admin edite post alheio e solicita revisão da versão publicada', async () => {
+  it('associa uma mídia pronta como capa do artigo', async () => {
+    const restoredPost = post();
+    findById.mockResolvedValueOnce(aggregate(restoredPost));
+    findMediaById.mockResolvedValueOnce({ canBeAssociatedWithPost: true });
+
+    await service.update(AUTHOR_ID, POST_ID, { coverMediaId: OTHER_ID });
+
+    expect(findMediaById).toHaveBeenCalledWith(OTHER_ID);
+    expect(update).toHaveBeenCalledWith(restoredPost, { coverMediaId: OTHER_ID });
+  });
+
+  it('remove a capa sem exigir outra mídia', async () => {
+    const restoredPost = post();
+    findById.mockResolvedValueOnce(aggregate(restoredPost));
+
+    await service.update(AUTHOR_ID, POST_ID, { coverMediaId: null });
+
+    expect(findMediaById).not.toHaveBeenCalled();
+    expect(update).toHaveBeenCalledWith(restoredPost, { coverMediaId: null });
+  });
+
+  it('rejeita uma capa que não esteja pronta para associação', async () => {
+    const restoredPost = post();
+    findById.mockResolvedValueOnce(aggregate(restoredPost));
+    findMediaById.mockResolvedValueOnce({ canBeAssociatedWithPost: false });
+
+    await expect(
+      service.update(AUTHOR_ID, POST_ID, { coverMediaId: OTHER_ID }),
+    ).rejects.toBeInstanceOf(MediaNotFoundException);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('salva alterações de post publicado sem modificar a versão pública', async () => {
     const restoredPost = post(PostStatus.PUBLISHED);
     findById.mockResolvedValueOnce(aggregate(restoredPost));
     findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.ADMIN);
 
-    await service.update(ADMIN_ID, POST_ID, { excerpt: 'Resumo revisado.' });
-
-    expect(restoredPost.editedAt).toEqual(NOW);
-    expect(update).toHaveBeenCalledWith(restoredPost, {
-      revision: { createdAt: NOW, editorId: ADMIN_ID },
+    await service.update(ADMIN_ID, POST_ID, {
+      coverPositionX: 35,
+      coverPositionY: 70,
+      excerpt: 'Resumo revisado.',
     });
+
+    expect(restoredPost.editedAt).toBeNull();
+    expect(update).not.toHaveBeenCalled();
+    expect(savePendingDraft).toHaveBeenCalledWith(
+      POST_ID,
+      expect.objectContaining({
+        coverPositionX: 35,
+        coverPositionY: 70,
+        excerpt: 'Resumo revisado.',
+        title: 'Post original',
+      }),
+      NOW,
+    );
+  });
+
+  it('publica explicitamente as alterações pendentes e preserva a versão anterior', async () => {
+    const restoredPost = post(PostStatus.PUBLISHED);
+    findById.mockResolvedValueOnce({
+      ...aggregate(restoredPost),
+      pendingDraft: {
+        content: DOCUMENT,
+        contentSchemaVersion: 1,
+        coverAlt: null,
+        coverMediaId: null,
+        coverPositionX: 35,
+        coverPositionY: 70,
+        coverScale: 100,
+        coverStoragePath: null,
+        excerpt: 'Resumo novo.',
+        readingTimeMinutes: 1,
+        seoDescription: null,
+        seoTitle: null,
+        slug: 'post-revisado',
+        tagNames: [],
+        title: 'Post revisado',
+      },
+      pendingEditedAt: NOW,
+    });
+
+    await service.publish(AUTHOR_ID, POST_ID);
+
+    expect(restoredPost.title).toBe('Post revisado');
+    expect(update).toHaveBeenCalledWith(
+      restoredPost,
+      expect.objectContaining({
+        clearPendingDraft: true,
+        coverPositionX: 35,
+        coverPositionY: 70,
+        revision: { createdAt: NOW, editorId: AUTHOR_ID },
+      }),
+    );
+  });
+
+  it('descarta alterações pendentes sem modificar a versão pública', async () => {
+    const restoredPost = post(PostStatus.PUBLISHED);
+    findById.mockResolvedValueOnce({
+      ...aggregate(restoredPost),
+      pendingDraft: {
+        content: DOCUMENT,
+        contentSchemaVersion: 1,
+        coverAlt: null,
+        coverMediaId: null,
+        coverScale: 100,
+        coverStoragePath: null,
+        excerpt: 'Resumo ainda não publicado.',
+        readingTimeMinutes: 1,
+        seoDescription: null,
+        seoTitle: null,
+        slug: 'post-original',
+        tagNames: [],
+        title: 'Título ainda não publicado',
+      },
+      pendingEditedAt: NOW,
+    });
+
+    await service.discardPendingChanges(AUTHOR_ID, POST_ID);
+
+    expect(clearPendingDraft).toHaveBeenCalledWith(POST_ID);
+    expect(update).not.toHaveBeenCalled();
   });
 
   it('rejeita alteração por usuário que não é autor', async () => {
@@ -360,7 +482,7 @@ describe('PostsService', () => {
 
     expect(findSlugOwner).toHaveBeenCalledWith('post-original');
     expect(published.status).toBe(PostStatus.PUBLISHED);
-    expect(update).toHaveBeenCalledWith(restoredPost);
+    expect(update).toHaveBeenCalledWith(restoredPost, { clearPendingDraft: true });
   });
 
   it.each([
@@ -377,7 +499,7 @@ describe('PostsService', () => {
       const transitionedPost = await service[action](AUTHOR_ID, POST_ID);
 
       expect(transitionedPost.status).toBe(expectedStatus);
-      expect(update).toHaveBeenCalledWith(restoredPost);
+      expect(update).toHaveBeenCalledWith(restoredPost, { clearPendingDraft: true });
     },
   );
 
