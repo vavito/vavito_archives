@@ -112,7 +112,7 @@ stateDiagram-v2
 | `hide()` | `VISIBLE` ou `SPAM` | `HIDDEN` | Administrador; motivo pode ser registrado para auditoria. |
 | `markAsSpam()` | `VISIBLE` ou `HIDDEN` | `SPAM` | Administrador; motivo pode ser registrado para auditoria. |
 | `edit(content, now)` | `VISIBLE` | `VISIBLE` | Autor; conteúdo válido; define `editedAt = now`; moderação pode ocultar posteriormente. |
-| `softDelete(now)` | `VISIBLE`, `HIDDEN` ou `SPAM` | `DELETED` | Autor do comentário ou administrador, validado pelo service; define `deletedAt = now`. |
+| `softDelete(now)` | `VISIBLE`, `HIDDEN` ou `SPAM` | `DELETED` | Autor do comentário ou administrador, validado pelo service; define `deletedAt = now`, preserva o conteúdo para auditoria administrativa e o oculta nas respostas públicas. |
 
 ### Invariantes
 

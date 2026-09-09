@@ -12,13 +12,15 @@ desde a criação; aprovar restaura um comentário ocultado ou marcado como spam
 confirmação e permite registrar um motivo de até 500 caracteres. Comentários excluídos não
 oferecem ações de moderação.
 
+O conteúdo original de uma exclusão passa a ser preservado para auditoria e continua visível apenas no painel. A resposta pública mantém o conteúdo oculto. **Ver artigo** abre a página pública quando o post está publicado e usa o preview protegido quando ele está em rascunho ou arquivado.
+
 Após a resposta, a fila e as páginas de artigos são revalidadas. Conflitos de estado orientam a
 atualizar a lista, sem assumir uma alteração que a API não confirmou.
 
 ## Campanhas
 
-O painel lista campanhas por estado e página. A criação permite buscar e selecionar um artigo
-publicado, preencher assunto e texto de prévia, e abrir o rascunho para revisão. O HTML exibido é o
+O painel lista campanhas da mais recente para a mais antiga, por estado e página. A criação permite buscar e selecionar de um a cinco artigos
+publicados, preencher assunto e texto de prévia, e abrir o rascunho para revisão. O HTML exibido é o
 snapshot produzido pela API, isolado em um iframe sem permissões de scripts, formulários ou acesso
 à página administrativa. O cancelamento é personalizado por destinatário durante o envio.
 
