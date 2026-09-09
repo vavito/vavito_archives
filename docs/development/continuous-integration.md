@@ -5,7 +5,7 @@ O workflow `.github/workflows/quality.yml` executa a qualidade do monorepo em pu
 ## Checks
 
 - `Quality / API`: formatação, regressão com cobertura, lint, typecheck e build da API e de suas dependências internas.
-- `Quality / Web`: formatação, sincronização do cliente OpenAPI, testes de componente e integração, fluxos públicos e autenticados Playwright, lint, typecheck e build do frontend e de suas dependências internas.
+- `Quality / Web`: formatação, sincronização do cliente OpenAPI, testes de componente e integração, fluxos públicos, autenticados e administrativos no Playwright, lint, typecheck e build do frontend e de suas dependências internas.
 
 Cada job usa Node.js 24.18.0 e a versão do pnpm declarada em `packageManager`, instala o monorepo pela raiz com `pnpm install --frozen-lockfile` e mantém caches separados do pnpm e do Turborepo.
 
@@ -31,6 +31,8 @@ pnpm test:e2e:public
 O Playwright inicia e encerra automaticamente a API controlada na porta `4100` e o Next.js na porta `3100`, sem ocupar as portas padrão usadas no desenvolvimento.
 
 A suíte autenticada (`pnpm test:e2e:auth`) roda em seguida, com Next.js em `3101` e dublê de Auth/API em `4101`, reutilizando o servidor de conteúdo público em `4100`. Ambas usam `.next-e2e` para não disputar o cache do desenvolvimento. As contas e dados desses testes são locais e descartáveis. Consulte [Testes dos fluxos autenticados](authenticated-flows-testing.md) para cobertura e limites dessa validação.
+
+A suíte administrativa (`pnpm test:e2e:admin`) usa Next.js em `3102` e um dublê local de Auth, API e mídia em `4102`. O fluxo cria um rascunho, aplica formatação pela toolbar, confirma o autosave, envia uma capa controlada, revisa o preview protegido e publica o artigo. A execução usa somente Chromium desktop, não acessa serviços externos e passa a integrar o job `Quality / Web`.
 
 O fixture existe apenas porque o PostgreSQL puro da CI não inclui o schema gerenciado pelo Supabase Auth. Ele contém somente as colunas consumidas pelo trigger de criação de `Profile`, é protegido pela mesma validação de URL local da suíte e nunca é aplicado ao Supabase.
 
