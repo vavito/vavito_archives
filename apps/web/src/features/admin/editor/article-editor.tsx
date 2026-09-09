@@ -36,7 +36,9 @@ export function ArticleEditor({
     editorProps: {
       attributes: {
         'aria-label': 'Conteúdo do artigo',
+        'aria-multiline': 'true',
         class: 'article-editor-content article-prose',
+        role: 'textbox',
       },
       handleKeyDown: (_view, event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -89,23 +91,29 @@ export function ArticleEditor({
   return (
     <section aria-label="Editor do artigo" className="article-editor-shell">
       {editor && editable ? (
-        <div className="article-editor-toolbar-region">
-          <ArticleEditorToolbar
-            editor={editor}
-            onAddImage={openImageForm}
-            onEditLink={openLinkForm}
-          />
-          {isImageFormOpen ? (
-            <ArticleImageForm
-              onClose={() => setIsImageFormOpen(false)}
-              onUploaded={insertUploadedImage}
-              uploadImage={uploadImage}
+        <>
+          <div className="article-editor-toolbar-region">
+            <ArticleEditorToolbar
+              editor={editor}
+              onAddImage={openImageForm}
+              onEditLink={openLinkForm}
             />
-          ) : null}
-          {isLinkFormOpen ? (
-            <ArticleLinkForm editor={editor} onClose={() => setIsLinkFormOpen(false)} />
-          ) : null}
-        </div>
+            {isImageFormOpen || isLinkFormOpen ? (
+              <div className="article-editor-toolbar-panel">
+                {isImageFormOpen ? (
+                  <ArticleImageForm
+                    onClose={() => setIsImageFormOpen(false)}
+                    onUploaded={insertUploadedImage}
+                    uploadImage={uploadImage}
+                  />
+                ) : null}
+                {isLinkFormOpen ? (
+                  <ArticleLinkForm editor={editor} onClose={() => setIsLinkFormOpen(false)} />
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </>
       ) : null}
       <div className="relative">
         <EditorContent editor={editor} />

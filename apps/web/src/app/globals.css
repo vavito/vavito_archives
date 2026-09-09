@@ -562,7 +562,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-2xl);
     min-height: 32rem;
-    overflow: hidden;
+    overflow: clip;
   }
 
   .article-editor-content {
@@ -572,13 +572,26 @@
   }
 
   .article-editor-toolbar-region {
-    background: color-mix(in srgb, var(--color-surface-card) 94%, transparent);
+    background: var(--color-floating);
     border-bottom: 1px solid var(--color-divider);
+    box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 0.14);
+    isolation: isolate;
     padding: 0.5rem 0.75rem;
     position: sticky;
-    top: 5rem;
+    top: 4rem;
     z-index: 30;
-    backdrop-filter: blur(12px);
+  }
+
+  .article-editor-toolbar-panel {
+    background: var(--color-floating);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 1.25rem 2.5rem rgb(0 0 0 / 0.28);
+    left: 0;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 100%;
   }
 
   .article-editor-context-menu {
