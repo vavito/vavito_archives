@@ -27,6 +27,11 @@ const IDEMPOTENCY_KEY = 'e1903668-2b3e-4df8-b945-eddb4ef53f90';
 
 function publishedPost() {
   return {
+    cover: {
+      altText: 'Capa do artigo',
+      id: '0a2adce3-a99c-46f5-b402-06719ef60502',
+      storagePath: 'posts/capa.webp',
+    },
     excerpt: 'Resumo do artigo.',
     id: POST_ID,
     publishedAt: new Date('2026-08-24T12:00:00.000Z'),
@@ -56,6 +61,7 @@ function confirmedSubscriber(): Subscriber {
 
 describe('CampaignsService', () => {
   const create = jest.fn<Promise<void>, [EmailCampaign]>();
+  const deleteCampaign = jest.fn<Promise<void>, [string]>();
   const findById = jest.fn<Promise<EmailCampaign | null>, [string]>();
   const findByIdempotencyKey = jest.fn<Promise<EmailCampaign | null>, [string]>();
   const list = jest.fn<
@@ -71,6 +77,7 @@ describe('CampaignsService', () => {
   >();
   const campaignsRepository = {
     create,
+    delete: deleteCampaign,
     findById,
     findByIdempotencyKey,
     list,
@@ -99,6 +106,7 @@ describe('CampaignsService', () => {
     raw: 'unsubscribe-token',
   }));
   const tokenService = { unsubscribeFor } as unknown as SubscriberTokenService;
+  const mediaService = { publicUrl: jest.fn((path: string) => `https://cdn.example.com/${path}`) };
   const configService = new ConfigService({
     app: { frontendUrl: 'https://vavitoarchives.com.br' },
   });
@@ -109,8 +117,35 @@ describe('CampaignsService', () => {
     authorizationRepository,
     mailService,
     tokenService,
+    mediaService as never,
     configService as never,
   );
+
+  it('exclui campanha em rascunho', async () => {
+    const campaign = EmailCampaign.create({
+      createdById: ACTOR_ID,
+      htmlSnapshot: `<p>Conteúdo</p>${NEWSLETTER_UNSUBSCRIBE_PLACEHOLDER}`,
+      id: CAMPAIGN_ID,
+      now: new Date('2026-08-24T10:00:00.000Z'),
+      postId: POST_ID,
+      postSnapshot: {
+        excerpt: 'Resumo do artigo.',
+        id: POST_ID,
+        publishedAt: '2026-08-24T12:00:00.000Z',
+        readingTimeMinutes: 5,
+        slug: 'artigo-publicado',
+        title: 'Artigo publicado',
+      },
+      previewText: 'Prévia',
+      subject: 'Assunto',
+    });
+    findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.ADMIN);
+    findById.mockResolvedValueOnce(campaign);
+
+    await service.delete(ACTOR_ID, CAMPAIGN_ID);
+
+    expect(deleteCampaign).toHaveBeenCalledWith(CAMPAIGN_ID);
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -127,7 +162,7 @@ describe('CampaignsService', () => {
 
   it('cria DRAFT com snapshot do post e preview seguro', async () => {
     const response = await service.create(ACTOR_ID, {
-      postId: POST_ID,
+      postIds: [POST_ID],
       previewText: 'Nova leitura',
       subject: 'Novo artigo',
     });
@@ -138,10 +173,11 @@ describe('CampaignsService', () => {
     expect(persisted.postSnapshot.slug).toBe('artigo-publicado');
     expect(persisted.htmlSnapshot).toContain(NEWSLETTER_UNSUBSCRIBE_PLACEHOLDER);
     expect(persisted.htmlSnapshot).toContain('/artigos/artigo-publicado');
+    expect(persisted.htmlSnapshot).toContain('https://cdn.example.com/posts/capa.webp');
   });
 
   it('inicia atomicamente, envia para confirmados e conclui a campanha', async () => {
-    await service.create(ACTOR_ID, { postId: POST_ID, subject: 'Novo artigo' });
+    await service.create(ACTOR_ID, { postIds: [POST_ID], subject: 'Novo artigo' });
     const campaign = create.mock.calls[0]?.[0];
     if (!campaign) throw new Error('Campanha não persistida pelo teste.');
     findById.mockResolvedValue(campaign);
@@ -240,7 +276,7 @@ describe('CampaignsService', () => {
   });
 
   it('rejeita envio sem assinantes confirmados', async () => {
-    await service.create(ACTOR_ID, { postId: POST_ID, subject: 'Novo artigo' });
+    await service.create(ACTOR_ID, { postIds: [POST_ID], subject: 'Novo artigo' });
     const campaign = create.mock.calls[0]?.[0];
     if (!campaign) throw new Error('Campanha não persistida pelo teste.');
     findById.mockResolvedValue(campaign);
@@ -253,7 +289,7 @@ describe('CampaignsService', () => {
   });
 
   it('marca campanha e entrega como FAILED quando o Resend rejeita', async () => {
-    await service.create(ACTOR_ID, { postId: POST_ID, subject: 'Novo artigo' });
+    await service.create(ACTOR_ID, { postIds: [POST_ID], subject: 'Novo artigo' });
     const campaign = create.mock.calls[0]?.[0];
     if (!campaign) throw new Error('Campanha não persistida pelo teste.');
     findById.mockResolvedValue(campaign);
