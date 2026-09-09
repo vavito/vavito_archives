@@ -50,6 +50,7 @@ export const DialogContent = forwardRef<
       <DialogPrimitive.Close
         aria-label="Fechar"
         className="text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 absolute top-4 right-4 inline-flex size-9 items-center justify-center rounded-full transition-[color,background-color,transform] duration-300 hover:rotate-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none"
+        title="Fechar"
       >
         <X aria-hidden="true" className="size-4" />
       </DialogPrimitive.Close>
