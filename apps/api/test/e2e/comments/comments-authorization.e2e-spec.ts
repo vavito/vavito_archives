@@ -22,6 +22,7 @@ import { CommentContent } from '@api/modules/comments/domain/value-objects/comme
 import { CommentModerationStatus } from '@api/modules/comments/dto/request/moderate-comment.dto';
 import { CommentsRepository } from '@api/modules/comments/repositories/comments.repository';
 import type {
+  AdminCommentRecord,
   AdminCommentsFilters,
   CommentAuthorRecord,
   CommentRecord,
@@ -73,10 +74,18 @@ function commentsFixture() {
     author: comment.authorId ? (authors.get(comment.authorId) ?? null) : null,
     comment,
   });
+  const toAdminRecord = (comment: Comment): AdminCommentRecord => ({
+    ...toRecord(comment),
+    postTitle: 'Artigo publicado',
+  });
   const repository: CommentsRepository = {
     create: (comment: Comment) => {
       comments.set(comment.id, comment);
       return Promise.resolve();
+    },
+    findAdminById: (id: string) => {
+      const comment = comments.get(id);
+      return Promise.resolve(comment ? toAdminRecord(comment) : null);
     },
     findById: (id: string) => {
       const comment = comments.get(id);
@@ -94,7 +103,7 @@ function commentsFixture() {
       const items = [...comments.values()]
         .filter((comment) => !filters.postId || comment.postId === filters.postId)
         .filter((comment) => !filters.status || comment.status === filters.status)
-        .map(toRecord);
+        .map(toAdminRecord);
       return Promise.resolve({ items, total: items.length });
     },
     listPublicThreads: (filters: PublicCommentsFilters) => {
@@ -264,6 +273,10 @@ describe('Autorização de comentários por usuário (e2e)', () => {
       .send(body)
       .expect(200);
 
-    expect(response.body).toMatchObject({ moderationReason: 'Abuso', status: CommentStatus.SPAM });
+    expect(response.body).toMatchObject({
+      moderationReason: 'Abuso',
+      postTitle: 'Artigo publicado',
+      status: CommentStatus.SPAM,
+    });
   });
 });

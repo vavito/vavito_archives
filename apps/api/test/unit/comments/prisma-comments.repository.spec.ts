@@ -86,6 +86,28 @@ describe('PrismaCommentsRepository', () => {
     expect(JSON.stringify(select)).not.toContain('email');
   });
 
+  it('consulta o comentário administrativo com o título do artigo', async () => {
+    findUnique.mockResolvedValueOnce({
+      ...commentRecord(),
+      author: { avatarPath: null, displayName: 'Autor', id: AUTHOR_ID },
+      post: {
+        slugs: [{ slug: 'artigo-publicado' }],
+        status: 'PUBLISHED',
+        title: 'Artigo publicado',
+      },
+    });
+
+    await expect(repository.findAdminById(COMMENT_ID)).resolves.toMatchObject({
+      comment: { id: COMMENT_ID },
+      postSlug: 'artigo-publicado',
+      postStatus: 'PUBLISHED',
+      postTitle: 'Artigo publicado',
+    });
+    expect(findUnique.mock.calls[0]?.[0].select?.post).toMatchObject({
+      select: { status: true, title: true },
+    });
+  });
+
   it('encontra somente pai principal do mesmo post', async () => {
     findFirst.mockResolvedValueOnce(null);
 
@@ -152,8 +174,18 @@ describe('PrismaCommentsRepository', () => {
   });
 
   it('filtra a fila administrativa com paginação e ordem estável', async () => {
-    count.mockResolvedValueOnce(0);
-    findMany.mockResolvedValueOnce([]);
+    count.mockResolvedValueOnce(1);
+    findMany.mockResolvedValueOnce([
+      {
+        ...commentRecord(),
+        author: { avatarPath: null, displayName: 'Autor', id: AUTHOR_ID },
+        post: {
+          slugs: [{ slug: 'artigo-publicado' }],
+          status: 'PUBLISHED',
+          title: 'Artigo publicado',
+        },
+      },
+    ]);
 
     await expect(
       repository.listAdmin({
@@ -162,13 +194,19 @@ describe('PrismaCommentsRepository', () => {
         postId: POST_ID,
         status: CommentStatus.SPAM,
       }),
-    ).resolves.toEqual({ items: [], total: 0 });
+    ).resolves.toMatchObject({
+      items: [{ comment: { id: COMMENT_ID }, postTitle: 'Artigo publicado' }],
+      total: 1,
+    });
     expect(findMany).toHaveBeenCalledTimes(1);
     expect(findMany.mock.calls[0]?.[0]).toMatchObject({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       skip: 0,
       take: 20,
       where: { postId: POST_ID, status: PrismaCommentStatus.SPAM },
+    });
+    expect(findMany.mock.calls[0]?.[0].select?.post).toMatchObject({
+      select: { status: true, title: true },
     });
   });
 

@@ -121,7 +121,7 @@ describe('Comment', () => {
       comment.softDelete(deletedAt);
 
       expect(comment.status).toBe(CommentStatus.DELETED);
-      expect(comment.content).toBeNull();
+      expect(comment.content?.value).toBe('Comentário original.');
       expect(comment.deletedAt).toEqual(deletedAt);
       expect(comment.updatedAt).toEqual(deletedAt);
     },

@@ -11,6 +11,7 @@ import { CommentStatus } from '@api/modules/comments/domain/enums/comment-status
 import { CommentContent } from '@api/modules/comments/domain/value-objects/comment-content.value-object';
 import { CommentModerationStatus } from '@api/modules/comments/dto/request/moderate-comment.dto';
 import type {
+  AdminCommentRecord,
   CommentRecord,
   CommentsRepository,
 } from '@api/modules/comments/repositories/comments.repository';
@@ -45,6 +46,10 @@ function record(comment: Comment, authorId: string = USER_ID): CommentRecord {
   };
 }
 
+function adminRecord(comment: Comment, authorId: string = USER_ID): AdminCommentRecord {
+  return { ...record(comment, authorId), postTitle: 'Artigo publicado' };
+}
+
 function restoredComment(authorId: string = USER_ID, parentId: string | null = null): Comment {
   return Comment.restore({
     authorId,
@@ -63,6 +68,7 @@ function restoredComment(authorId: string = USER_ID, parentId: string | null = n
 
 describe('CommentsService', () => {
   const create = jest.fn();
+  const findAdminById = jest.fn();
   const findById = jest.fn();
   const findReplyParent = jest.fn();
   const listAdmin = jest.fn();
@@ -74,6 +80,7 @@ describe('CommentsService', () => {
   const sendNewCommentNotification = jest.fn();
   const commentsRepository = {
     create,
+    findAdminById,
     findById,
     findReplyParent,
     listAdmin,
@@ -223,7 +230,7 @@ describe('CommentsService', () => {
 
   it('permite que administrador modere comentário', async () => {
     const comment = restoredComment();
-    findById.mockResolvedValueOnce(record(comment));
+    findAdminById.mockResolvedValueOnce(adminRecord(comment));
     findActiveRoleByProfileId.mockResolvedValueOnce(UserRole.ADMIN);
 
     await expect(
@@ -231,7 +238,11 @@ describe('CommentsService', () => {
         reason: 'Abuso',
         status: CommentModerationStatus.SPAM,
       }),
-    ).resolves.toMatchObject({ moderationReason: 'Abuso', status: CommentStatus.SPAM });
+    ).resolves.toMatchObject({
+      moderationReason: 'Abuso',
+      postTitle: 'Artigo publicado',
+      status: CommentStatus.SPAM,
+    });
     expect(save).toHaveBeenCalledWith(comment);
   });
 });
