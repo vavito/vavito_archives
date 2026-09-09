@@ -5,6 +5,7 @@ import type {
   CommentResponseDto,
 } from '@api/modules/comments/dto/response/comment-response.dto';
 import type {
+  AdminCommentRecord,
   CommentRecord,
   CommentThreadRecord,
 } from '@api/modules/comments/repositories/comments.repository';
@@ -23,7 +24,7 @@ export class CommentResponseMapper {
 
     return {
       author,
-      content: comment.content?.value ?? null,
+      content: comment.status === CommentStatus.DELETED ? null : (comment.content?.value ?? null),
       createdAt: comment.createdAt.toISOString(),
       edited: comment.editedAt !== null,
       editedAt: comment.editedAt?.toISOString() ?? null,
@@ -47,7 +48,10 @@ export class CommentResponseMapper {
     );
   }
 
-  static toAdmin(record: CommentRecord, author: CommentAuthorDto | null): CommentAdminResponseDto {
+  static toAdmin(
+    record: AdminCommentRecord,
+    author: CommentAuthorDto | null,
+  ): CommentAdminResponseDto {
     const { comment } = record;
 
     return {
@@ -60,6 +64,9 @@ export class CommentResponseMapper {
       moderationReason: comment.moderationReason,
       parentId: comment.parentId,
       postId: comment.postId,
+      postSlug: record.postSlug ?? null,
+      postStatus: record.postStatus ?? 'DRAFT',
+      postTitle: record.postTitle,
       status: comment.status,
     };
   }
