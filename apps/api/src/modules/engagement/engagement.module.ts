@@ -8,11 +8,12 @@ import { PrismaReactionsRepository } from '@api/modules/engagement/repositories/
 import { ReactionsRepository } from '@api/modules/engagement/repositories/reactions.repository';
 import { BookmarksService } from '@api/modules/engagement/services/bookmarks.service';
 import { ReactionsService } from '@api/modules/engagement/services/reactions.service';
+import { MediaModule } from '@api/modules/media/media.module';
 
 @Module({
   controllers: [EngagementController],
   exports: [BookmarksRepository, BookmarksService, ReactionsRepository, ReactionsService],
-  imports: [AuthModule],
+  imports: [AuthModule, MediaModule],
   providers: [
     BookmarksService,
     ReactionsService,

@@ -28,6 +28,9 @@ const BOOKMARKED_POST_SELECT = {
     take: 1,
     where: { usage: MediaUsageType.COVER },
     select: {
+      displayPositionX: true,
+      displayPositionY: true,
+      displayScale: true,
       mediaAsset: {
         select: {
           altText: true,
@@ -82,7 +85,14 @@ function mapTags(post: PrismaBookmarkWithPost['post']): PostTagRecord[] {
 
 function mapCover(post: PrismaBookmarkWithPost['post']): PostCoverRecord | null {
   const cover = post.mediaAssets[0]?.mediaAsset;
-  return cover ? { ...cover } : null;
+  return cover
+    ? {
+        ...cover,
+        displayPositionX: post.mediaAssets[0]!.displayPositionX,
+        displayPositionY: post.mediaAssets[0]!.displayPositionY,
+        displayScale: post.mediaAssets[0]!.displayScale,
+      }
+    : null;
 }
 
 function mapPostSummary(record: PrismaBookmarkWithPost): PublicPostSummaryRecord {
