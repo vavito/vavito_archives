@@ -53,11 +53,34 @@ describe('navegação autenticada da conta', () => {
     accountMocks.getProfile.mockResolvedValueOnce({
       avatarUrl: null,
       displayName: 'João Victor',
+      role: 'READER',
     });
 
     render(await AccountNavigation());
 
     expect(screen.getByRole('button', { name: /João Victor/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Ir para o painel de administração' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('oferece o painel quando a role persistida do perfil é administrativa', async () => {
+    accountMocks.getSession.mockResolvedValueOnce({
+      accessToken: 'access-token',
+      email: 'admin@example.com',
+    });
+    accountMocks.getProfile.mockResolvedValueOnce({
+      avatarUrl: null,
+      displayName: 'João Victor',
+      role: 'ADMIN',
+    });
+
+    render(await AccountNavigation());
+
+    expect(screen.getByRole('link', { name: 'Ir para o painel de administração' })).toHaveAttribute(
+      'href',
+      '/admin/posts',
+    );
   });
 
   it('mantém a conta visível quando somente o perfil está indisponível', async () => {

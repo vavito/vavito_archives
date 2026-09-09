@@ -8,17 +8,20 @@ const supabaseMocks = vi.hoisted(() => ({
   exchangeCodeForSession: vi.fn(),
   verifyOtp: vi.fn(),
 }));
+const newsletterMocks = vi.hoisted(() => ({ subscribeConfirmedAccount: vi.fn() }));
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('@web/lib/auth/supabase/server', () => ({
   createServerSupabaseClient: () => Promise.resolve({ auth: supabaseMocks }),
 }));
+vi.mock('@web/features/newsletter/services/subscribe-confirmed-account', () => newsletterMocks);
 
 describe('callbacks de autenticação', () => {
   beforeEach(() => {
     supabaseMocks.exchangeCodeForSession.mockResolvedValue({ error: null });
     supabaseMocks.verifyOtp.mockResolvedValue({ error: null });
+    newsletterMocks.subscribeConfirmedAccount.mockResolvedValue(undefined);
   });
 
   it('troca o código PKCE pela sessão e redireciona somente dentro do site', async () => {
@@ -42,6 +45,10 @@ describe('callbacks de autenticação', () => {
   });
 
   it('confirma o token por e-mail e abre a etapa de cadastro concluído', async () => {
+    supabaseMocks.verifyOtp.mockResolvedValueOnce({
+      data: { session: { access_token: 'access-token' } },
+      error: null,
+    });
     const response = await confirmAuthEmail(
       new NextRequest(
         'http://localhost:3000/auth/confirm?token_hash=hash&type=signup&next=/auth/confirmed',
@@ -50,6 +57,7 @@ describe('callbacks de autenticação', () => {
 
     expect(supabaseMocks.verifyOtp).toHaveBeenCalledWith({ token_hash: 'hash', type: 'signup' });
     expect(response.headers.get('location')).toBe('http://localhost:3000/auth/confirmed');
+    expect(newsletterMocks.subscribeConfirmedAccount).toHaveBeenCalledWith('access-token');
   });
 
   it('usa a etapa de cadastro concluído como destino padrão da confirmação', async () => {
