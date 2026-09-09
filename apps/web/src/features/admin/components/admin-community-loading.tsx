@@ -5,7 +5,7 @@ export function AdminCommunityLoading() {
     <main
       aria-busy="true"
       aria-label="Carregando administração"
-      className="mx-auto grid w-full max-w-6xl gap-6 p-6"
+      className="page-state-enter mx-auto grid w-full max-w-6xl gap-6 p-6"
     >
       <p role="status" className="flex items-center gap-2 text-neutral-400">
         <LoadingSpinner /> Carregando…

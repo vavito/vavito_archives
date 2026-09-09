@@ -100,7 +100,7 @@ export function AdminCommentsPanel({
         <ul className="grid gap-4">
           {data.items.map((comment) => (
             <li
-              className="min-w-0 rounded-2xl border border-border bg-surface-card p-5"
+              className="motion-card min-w-0 rounded-2xl border border-border bg-surface-card p-5"
               key={comment.id}
             >
               <div className="flex flex-wrap justify-between gap-3">

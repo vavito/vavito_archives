@@ -1,5 +1,5 @@
 import { buttonVariants, chipVariants, cn, Input } from '@vavito/ui';
-import { ArrowLeft, Eye, FilePenLine, Plus, Search } from 'lucide-react';
+import { Eye, FilePenLine, Plus, Search } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 
@@ -35,29 +35,20 @@ function filterUrl(data: AdminPostsPage, status: AdminPostStatus | null): Route 
 
 export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage }>) {
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-6xl gap-10 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <main className="mx-auto grid min-h-screen w-full max-w-6xl content-start gap-10 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <header className="grid gap-6 sm:flex sm:items-end sm:justify-between">
-        <div className="grid gap-3">
-          <Link
-            className="text-neutral-400 hover:text-neutral-100 inline-flex w-fit items-center gap-2 text-sm transition-colors"
-            href="/"
-          >
-            <ArrowLeft aria-hidden="true" className="size-4" />
-            Voltar ao site
-          </Link>
-          <div>
-            <p className="text-accent font-mono text-xs tracking-eyebrow uppercase">
-              Administração
-            </p>
-            <h1 className="text-neutral-100 mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Artigos
-            </h1>
-            <p className="text-neutral-400 mt-2 text-sm">
-              Encontre rascunhos, versões publicadas e conteúdos arquivados.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-neutral-100 mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Artigos
+          </h1>
+          <p className="text-neutral-400 mt-2 text-sm">
+            Encontre rascunhos, versões publicadas e conteúdos arquivados.
+          </p>
         </div>
-        <Link className={cn(buttonVariants({ variant: 'primary' }))} href="/admin?new=1">
+        <Link
+          className={cn('h-fit shrink-0 self-start', buttonVariants({ variant: 'primary' }))}
+          href="/admin?new=1"
+        >
           <Plus aria-hidden="true" />
           Novo artigo
         </Link>
@@ -67,7 +58,11 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
         <h2 className="sr-only" id="admin-post-filters">
           Filtrar artigos
         </h2>
-        <form action="/admin/posts" className="flex flex-col gap-3 sm:flex-row" method="get">
+        <form
+          action="/admin/posts"
+          className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+          method="get"
+        >
           {data.filters.status ? (
             <input name="status" type="hidden" value={data.filters.status} />
           ) : null}
@@ -81,16 +76,25 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
               type="search"
             />
           </div>
-          <button className={cn(buttonVariants({ variant: 'secondary' }))} type="submit">
+          <button
+            className={cn(
+              'h-fit shrink-0 self-start sm:self-center',
+              buttonVariants({ variant: 'secondary' }),
+            )}
+            type="submit"
+          >
             <Search aria-hidden="true" />
             Buscar
           </button>
         </form>
-        <nav aria-label="Filtrar por status" className="flex flex-wrap gap-2">
+        <nav aria-label="Filtrar por status" className="flex flex-wrap items-center gap-2">
           {statusOptions.map((option) => (
             <Link
               aria-current={data.filters.status === option.value ? 'page' : undefined}
-              className={cn(chipVariants({ active: data.filters.status === option.value }))}
+              className={cn(
+                'h-fit shrink-0 self-center',
+                chipVariants({ active: data.filters.status === option.value }),
+              )}
               href={filterUrl(data, option.value)}
               key={option.label}
             >
@@ -119,7 +123,7 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
             <ul className="divide-y divide-divider">
               {data.items.map((post) => (
                 <li
-                  className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center"
+                  className="grid gap-4 p-5 transition-colors duration-300 hover:bg-surface-raised sm:grid-cols-[1fr_auto] sm:items-center"
                   key={post.id}
                 >
                   <div className="min-w-0">

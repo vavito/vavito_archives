@@ -46,7 +46,7 @@ export function AdminCampaignsPanel({
         <ul className="grid gap-4">
           {data.items.map((campaign) => (
             <li
-              className="flex min-w-0 flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface-card p-5"
+              className="motion-card flex min-w-0 flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface-card p-5"
               key={campaign.id}
             >
               <div className="min-w-0 flex-1">
