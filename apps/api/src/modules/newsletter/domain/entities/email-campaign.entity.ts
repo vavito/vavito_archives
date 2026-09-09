@@ -7,6 +7,9 @@ import { CampaignStateInconsistentError } from '@api/modules/newsletter/domain/e
 import { InvalidCampaignStatusTransitionError } from '@api/modules/newsletter/domain/errors/invalid-campaign-status-transition.error';
 
 export interface CampaignPostSnapshot extends Record<string, unknown> {
+  additionalPosts?: CampaignPostSnapshot[];
+  coverAlt?: string | null;
+  coverUrl?: string | null;
   excerpt: string;
   id: string;
   publishedAt: string;
@@ -126,6 +129,12 @@ export class EmailCampaign {
 
   get postSnapshot(): CampaignPostSnapshot {
     return structuredClone(this.props.postSnapshot);
+  }
+
+  get postSnapshots(): CampaignPostSnapshot[] {
+    const snapshot = this.postSnapshot;
+    const { additionalPosts = [], ...primary } = snapshot;
+    return [primary, ...additionalPosts];
   }
 
   get previewText(): string {

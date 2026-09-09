@@ -11,9 +11,15 @@ import {
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 import { createCampaignAction } from '../actions/admin-campaign.actions';
 
-export function AdminCampaignForm({ postId, title }: Readonly<{ postId: string; title: string }>) {
+interface CampaignPostOption {
+  id: string;
+  title: string;
+}
+
+export function AdminCampaignForm({ posts }: Readonly<{ posts: readonly CampaignPostOption[] }>) {
   const router = useRouter();
-  const [subject, setSubject] = useState(`Novo artigo: ${title}`.slice(0, 255));
+  const [postIds, setPostIds] = useState<string[]>([]);
+  const [subject, setSubject] = useState('Leituras selecionadas do Vavito Archives');
   const [previewText, setPreviewText] = useState('');
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<ActionFeedbackMessage | null>(null);
@@ -25,7 +31,7 @@ export function AdminCampaignForm({ postId, title }: Readonly<{ postId: string; 
     busy.current = true;
     startTransition(async () => {
       try {
-        const result = await createCampaignAction({ postId, subject, previewText });
+        const result = await createCampaignAction({ postIds, subject, previewText });
         if (result.ok) {
           router.push(`/admin/campaigns/${result.data.id}` as Route);
           return;
@@ -48,7 +54,35 @@ export function AdminCampaignForm({ postId, title }: Readonly<{ postId: string; 
       onSubmit={submit}
       className="grid gap-5 rounded-2xl border border-border bg-surface-card p-6"
     >
-      <p className="text-neutral-400 [overflow-wrap:anywhere]">Artigo: {title}</p>
+      <fieldset className="grid gap-3">
+        <legend className="text-sm font-medium text-neutral-200">
+          Artigos da campanha ({postIds.length}/5)
+        </legend>
+        {posts.map((post) => {
+          const selected = postIds.includes(post.id);
+          return (
+            <label
+              className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 transition-colors hover:border-accent"
+              key={post.id}
+            >
+              <input
+                checked={selected}
+                className="mt-1 size-4 accent-[var(--color-accent)]"
+                disabled={pending || (!selected && postIds.length >= 5)}
+                onChange={() =>
+                  setPostIds((current) =>
+                    selected ? current.filter((id) => id !== post.id) : [...current, post.id],
+                  )
+                }
+                type="checkbox"
+              />
+              <span className="text-sm text-neutral-300 [overflow-wrap:anywhere]">
+                {post.title}
+              </span>
+            </label>
+          );
+        })}
+      </fieldset>
       <Input
         label="Assunto do email"
         required
@@ -67,7 +101,7 @@ export function AdminCampaignForm({ postId, title }: Readonly<{ postId: string; 
       <p className="text-sm text-neutral-500">
         Você poderá revisar o email antes de confirmar o envio.
       </p>
-      <Button type="submit" disabled={pending || !subject.trim()}>
+      <Button type="submit" disabled={pending || !subject.trim() || postIds.length === 0}>
         {pending ? <LoadingSpinner /> : null}
         {pending ? 'Criando…' : 'Criar rascunho e revisar'}
       </Button>

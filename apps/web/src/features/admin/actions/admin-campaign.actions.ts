@@ -53,7 +53,10 @@ export async function createCampaignAction(
   const session = await requireAdminSession();
   if (
     !input ||
-    !isAdminResourceId(input.postId) ||
+    !Array.isArray(input.postIds) ||
+    input.postIds.length < 1 ||
+    input.postIds.length > 5 ||
+    input.postIds.some((postId) => !isAdminResourceId(postId)) ||
     !isCampaignText(input.subject, input.previewText ?? '')
   ) {
     return {
@@ -63,7 +66,11 @@ export async function createCampaignAction(
   }
   try {
     const data = await createAdminCampaign(
-      { postId: input.postId, subject: input.subject.trim(), previewText: input.previewText ?? '' },
+      {
+        postIds: input.postIds,
+        subject: input.subject.trim(),
+        previewText: input.previewText ?? '',
+      },
       createWebAuthenticatedApiClient(() => session.accessToken),
     );
     refreshCampaign();

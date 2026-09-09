@@ -1,37 +1,25 @@
 import { Input } from '@vavito/ui';
 import Link from 'next/link';
-import type { Route } from 'next';
 import { PageError } from '@web/components/feedback/page-error';
 import { AdminCampaignForm } from '@web/features/admin/components/admin-campaign-form';
 import { AdminCommunityPagination } from '@web/features/admin/components/admin-community-pagination';
-import {
-  adminPageNumber,
-  isAdminResourceId,
-} from '@web/features/admin/schemas/admin-community.schema';
-import {
-  getAdminPostDetail,
-  listAdminPosts,
-} from '@web/features/admin/services/admin-posts-query.service';
+import { adminPageNumber } from '@web/features/admin/schemas/admin-community.schema';
+import { listAdminPosts } from '@web/features/admin/services/admin-posts-query.service';
 import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 
 export default async function NewCampaignPage({
   searchParams,
-}: Readonly<{ searchParams: Promise<{ postId?: string; q?: string; page?: string }> }>) {
+}: Readonly<{ searchParams: Promise<{ q?: string; page?: string }> }>) {
   const [params, session] = await Promise.all([searchParams, requireAdminSession()]);
   const client = createWebAuthenticatedApiClient(() => session.accessToken);
-  let post;
   let data;
   const query = typeof params.q === 'string' ? params.q.slice(0, 200) : '';
   try {
-    if (isAdminResourceId(params.postId)) {
-      post = await getAdminPostDetail(params.postId, client);
-    } else {
-      data = await listAdminPosts(
-        { page: adminPageNumber(params.page), query, status: 'PUBLISHED' },
-        client,
-      );
-    }
+    data = await listAdminPosts(
+      { page: adminPageNumber(params.page), query, status: 'PUBLISHED' },
+      client,
+    );
   } catch {
     return (
       <PageError
@@ -40,15 +28,9 @@ export default async function NewCampaignPage({
       />
     );
   }
-  const content = post ? (
-    post.status === 'PUBLISHED' ? (
-      <AdminCampaignForm postId={post.id} title={post.title} />
-    ) : (
-      <p>Publique o artigo antes de criar a campanha.</p>
-    )
-  ) : data ? (
+  const content = data ? (
     <section className="grid gap-5">
-      <h2 className="text-xl font-semibold">Escolha um artigo publicado</h2>
+      <h2 className="text-xl font-semibold">Escolha até cinco artigos publicados</h2>
       <form action="/admin/campaigns/new" method="get" className="flex gap-3">
         <Input
           aria-label="Buscar artigo publicado"
@@ -62,18 +44,7 @@ export default async function NewCampaignPage({
         </button>
       </form>
       {data.items.length ? (
-        <ul className="grid gap-3">
-          {data.items.map((post) => (
-            <li key={post.id}>
-              <Link
-                className="block rounded-xl border border-border p-4 transition-colors hover:border-accent [overflow-wrap:anywhere]"
-                href={`/admin/campaigns/new?postId=${post.id}` as Route}
-              >
-                {post.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <AdminCampaignForm posts={data.items.map(({ id, title }) => ({ id, title }))} />
       ) : (
         <p className="text-neutral-400">Nenhum artigo publicado encontrado.</p>
       )}

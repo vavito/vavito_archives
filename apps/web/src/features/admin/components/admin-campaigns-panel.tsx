@@ -55,7 +55,7 @@ export function AdminCampaignsPanel({
                   {campaign.subject}
                 </h2>
                 <p className="mt-1 text-sm text-neutral-400 [overflow-wrap:anywhere]">
-                  {campaign.postSnapshot.title}
+                  {campaign.postSnapshots.map(({ title }) => title).join(' · ')}
                 </p>
                 <p className="mt-2 text-xs text-neutral-500">
                   {campaign.status === 'DRAFT'

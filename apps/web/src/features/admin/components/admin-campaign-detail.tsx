@@ -97,7 +97,7 @@ export function AdminCampaignDetail({
         </p>
         <h1 className="mt-2 text-3xl font-semibold [overflow-wrap:anywhere]">Revisar campanha</h1>
         <p className="mt-2 text-neutral-400 [overflow-wrap:anywhere]">
-          {current.postSnapshot.title}
+          {current.postSnapshots.map(({ title }) => title).join(' · ')}
         </p>
       </header>
       <div className="grid gap-4 rounded-2xl border border-border bg-surface-card p-5">
