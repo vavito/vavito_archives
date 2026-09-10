@@ -57,7 +57,7 @@ export function AdminEditorHeader() {
             className={
               isError
                 ? 'flex items-center gap-1 text-xs text-destructive'
-                : 'text-xs text-neutral-500'
+                : 'text-xs text-neutral-400'
             }
             role={isError ? 'alert' : 'status'}
           >

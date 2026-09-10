@@ -93,7 +93,7 @@ export function AdminDraftWorkspace() {
         </label>
         <textarea
           ref={titleFieldRef}
-          className="placeholder:text-neutral-600 mt-4 min-h-16 max-h-60 w-full resize-none overflow-y-auto bg-transparent text-4xl leading-tight font-semibold text-neutral-100 outline-none sm:text-5xl"
+          className="placeholder:text-neutral-400 mt-4 min-h-16 max-h-60 w-full resize-none overflow-y-auto rounded-lg bg-transparent text-4xl leading-tight font-semibold text-neutral-100 sm:text-5xl"
           disabled={isArchived}
           id="article-title"
           maxLength={200}
@@ -110,7 +110,7 @@ export function AdminDraftWorkspace() {
         </label>
         <textarea
           ref={excerptFieldRef}
-          className="placeholder:text-neutral-600 mt-4 mb-4 min-h-14 max-h-80 w-full resize-none overflow-y-auto bg-transparent text-lg leading-relaxed text-neutral-300 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          className="placeholder:text-neutral-400 mt-4 mb-4 min-h-14 max-h-80 w-full resize-none overflow-y-auto rounded-lg bg-transparent text-lg leading-relaxed text-neutral-300 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isArchived}
           id="article-excerpt"
           maxLength={500}
