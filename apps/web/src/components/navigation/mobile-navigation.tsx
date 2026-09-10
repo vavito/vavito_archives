@@ -79,7 +79,7 @@ export function MobileNavigation() {
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     'group flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] transition-colors duration-300 active:scale-95',
-                    isActive ? 'text-accent' : 'text-neutral-500 hover:text-neutral-200',
+                    isActive ? 'text-accent' : 'text-neutral-300 hover:text-neutral-100',
                   )}
                   href={href}
                   onClick={(event) => {
