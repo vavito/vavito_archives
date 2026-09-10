@@ -33,6 +33,22 @@ tests do ambiente publicado. A persistência real permanece coberta pela regress
 Storage e Resend serão verificados no ambiente apropriado sem colocar credenciais reais no
 Playwright.
 
+## Acessibilidade
+
+A suíte também executa auditorias WCAG A e AA com Axe nas superfícies críticas da busca, do editor
+e da navegação mobile. Os cenários confirmam ausência de violações automatizáveis, contraste,
+rótulos e anúncios semânticos, foco visível e os caminhos essenciais por teclado.
+
+Para executar somente essa revisão:
+
+```bash
+pnpm test:e2e:a11y
+```
+
+A auditoria automatizada complementa, mas não substitui, a revisão manual com teclado e tecnologia
+assistiva. Os testes de acessibilidade também fazem parte das suítes pública e administrativa e,
+portanto, continuam protegidos por `pnpm test:e2e:full-stack` na CI.
+
 ## Execução local e CI
 
 Na primeira execução, instale os navegadores administrados pelo Playwright:
