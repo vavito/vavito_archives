@@ -181,7 +181,7 @@ export function SearchOverlay() {
           />
           {query ? (
             <button
-              className="text-neutral-500 hover:text-neutral-100 absolute top-1/2 right-14 inline-flex min-h-10 -translate-y-1/2 items-center rounded-md px-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="text-neutral-300 hover:text-neutral-100 absolute top-1/2 right-14 inline-flex min-h-10 -translate-y-1/2 items-center rounded-md px-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => {
                 setQuery('');
                 setActiveIndex(-1);
@@ -235,14 +235,9 @@ export function SearchOverlay() {
               role="listbox"
             >
               {results.map((post, index) => (
-                <li
-                  aria-selected={resolvedActiveIndex === index}
-                  className="contents"
-                  id={`${resultsId}-${index}`}
-                  key={post.id}
-                  role="option"
-                >
+                <li className="contents" key={post.id} role="none">
                   <Link
+                    aria-selected={resolvedActiveIndex === index}
                     className={`search-result-enter group grid min-w-0 gap-2 px-5 py-4 [overflow-wrap:anywhere] transition-colors duration-300 ${
                       resolvedActiveIndex === index
                         ? 'bg-surface-raised'
@@ -250,8 +245,10 @@ export function SearchOverlay() {
                     }`}
                     style={{ animationDelay: `${index * 45}ms` }}
                     href={`/artigos/${post.slug}` as Route}
+                    id={`${resultsId}-${index}`}
                     onClick={closeSearch}
                     onMouseEnter={() => setActiveIndex(index)}
+                    role="option"
                     tabIndex={resolvedActiveIndex === index ? 0 : -1}
                   >
                     <span className="flex items-start justify-between gap-4">
@@ -263,10 +260,10 @@ export function SearchOverlay() {
                         className="text-neutral-600 group-hover:text-accent mt-0.5 size-4 shrink-0"
                       />
                     </span>
-                    <span className="text-neutral-500 line-clamp-2 text-xs leading-relaxed">
+                    <span className="text-neutral-300 line-clamp-2 text-xs leading-relaxed">
                       {post.excerpt}
                     </span>
-                    <span className="text-neutral-600 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px]">
+                    <span className="text-neutral-400 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px]">
                       <span className="inline-flex items-center gap-1">
                         <Clock3 aria-hidden="true" className="size-3" />
                         {post.readingTimeMinutes} min
@@ -284,7 +281,7 @@ export function SearchOverlay() {
           ) : null}
         </div>
 
-        <div className="text-neutral-600 hidden items-center justify-between border-t border-divider px-5 py-3 font-mono text-[10px] sm:flex">
+        <div className="text-neutral-400 hidden items-center justify-between border-t border-divider px-5 py-3 font-mono text-[10px] sm:flex">
           <span>↑↓ navegar · Enter abrir</span>
           <span>Esc fechar</span>
         </div>
