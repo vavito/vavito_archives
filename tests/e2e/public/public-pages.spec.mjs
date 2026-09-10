@@ -48,7 +48,7 @@ test.describe('páginas públicas', () => {
     const input = page.getByRole('combobox', { name: 'Buscar artigos' });
     await input.fill('prisma');
 
-    const result = page.getByRole('link', { name: /Prisma com PostgreSQL/u });
+    const result = page.getByRole('option', { name: /Prisma com PostgreSQL/u });
     await expect(result).toBeVisible();
     await expect.poll(centerOffset).toBeLessThanOrEqual(2);
     await result.hover();
