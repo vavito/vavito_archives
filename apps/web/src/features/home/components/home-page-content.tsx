@@ -132,7 +132,7 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
         {data.popularPosts.length > 0 ? (
           <div className="bg-surface-card rounded-2xl border border-border p-3 sm:p-4">
             {data.popularPosts.map((post) => (
-              <ArticleCard compact metadataPosition="bottom" key={post.id} post={post} />
+              <ArticleCard compact key={post.id} post={post} />
             ))}
           </div>
         ) : (
@@ -140,7 +140,7 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
         )}
       </section>
 
-      <dl className="grid grid-cols-2 gap-4 border-y border-divider py-5 sm:grid-cols-3">
+      <dl className="mx-auto grid w-full max-w-sm grid-cols-2 gap-4 border-y border-divider py-5 text-center sm:max-w-none sm:grid-cols-3">
         <div className="grid gap-1">
           <dt className="text-neutral-500 text-xs">Artigos publicados</dt>
           <dd className="text-neutral-100 font-mono text-xl">{data.publishedPostsCount}</dd>
