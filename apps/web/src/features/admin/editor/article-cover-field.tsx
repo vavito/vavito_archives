@@ -188,6 +188,7 @@ export function ArticleCoverField({
                 quality={80}
                 sizes="(max-width: 1024px) calc(100vw - 2rem), 960px"
                 src={url}
+                onDragStart={(event) => event.preventDefault()}
                 style={{
                   objectPosition: `${positionX}% ${positionY}%`,
                   transform: `scale(${scale / 100})`,
