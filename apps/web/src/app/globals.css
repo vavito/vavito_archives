@@ -115,7 +115,7 @@
   }
 }
 
-@keyframes profile-avatar-loading {
+@keyframes image-loading {
   from {
     transform: translateY(-130%);
   }
@@ -349,12 +349,12 @@
     animation: action-feedback-exit 240ms ease-in both;
   }
 
-  .profile-avatar-loading {
+  .image-loading {
     background: var(--color-surface-raised);
   }
 
-  .profile-avatar-loading::after {
-    animation: profile-avatar-loading 1.25s ease-in-out infinite;
+  .image-loading::after {
+    animation: image-loading 1.25s ease-in-out infinite;
     background: linear-gradient(
       to bottom,
       transparent,
@@ -529,7 +529,7 @@
   .page-state-enter,
   .action-feedback-enter,
   .action-feedback-exit,
-  .profile-avatar-loading::after,
+  .image-loading::after,
   .dialog-overlay-motion,
   .dialog-content-motion,
   .auth-panel-enter,
