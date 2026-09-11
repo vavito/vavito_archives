@@ -71,6 +71,9 @@ describe('capa do artigo no editor', () => {
     const cover = screen.getByRole('button', {
       name: 'Clique duas vezes para ajustar a capa',
     });
+    const coverImage = screen.getByRole('img', { name: 'Capa atual' });
+    expect(coverImage).toHaveAttribute('draggable', 'false');
+    expect(fireEvent.dragStart(coverImage)).toBe(false);
     Object.assign(cover, {
       getBoundingClientRect: () => ({ height: 300, width: 500 }),
       hasPointerCapture: vi.fn().mockReturnValue(true),
