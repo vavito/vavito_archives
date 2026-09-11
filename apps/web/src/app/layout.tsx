@@ -14,7 +14,7 @@ import {
 import './globals.css';
 
 const inter = Inter({
-  display: 'swap',
+  display: 'optional',
   subsets: ['latin'],
   variable: '--font-inter',
 });
