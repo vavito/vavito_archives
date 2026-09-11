@@ -15,15 +15,10 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 
 interface ArticleCardProps {
   compact?: boolean;
-  metadataPosition?: 'top' | 'bottom';
   post: PostSummary;
 }
 
-export function ArticleCard({
-  compact = false,
-  metadataPosition = 'top',
-  post,
-}: Readonly<ArticleCardProps>) {
+export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps>) {
   return (
     <article
       className={cn(
@@ -36,28 +31,20 @@ export function ArticleCard({
         className="flex min-w-0 flex-col gap-5 [overflow-wrap:anywhere]"
         href={`/artigos/${post.slug}` as Route}
       >
-        <div className="grid min-w-0 flex-1 gap-3">
-          <div
-            className={cn(
-              'text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]',
-              metadataPosition === 'bottom' && 'order-last',
-            )}
-          >
-            <time dateTime={post.publishedAt}>
-              {dateFormatter.format(new Date(post.publishedAt))}
-            </time>
-            <span aria-hidden="true">·</span>
-            <span className="inline-flex items-center gap-1">
-              <Clock3 aria-hidden="true" className="size-3" />
-              {post.readingTimeMinutes} min
-            </span>
-            <span aria-hidden="true">·</span>
-            <span className="inline-flex items-center gap-1">
-              <Eye aria-hidden="true" className="size-3" />
-              {post.viewCount.toLocaleString('pt-BR')}
-            </span>
-          </div>
+        {post.coverUrl ? (
+          <ArticleCoverImage
+            alt={post.coverAlt}
+            className="w-full shrink-0 rounded-xl border border-border"
+            positionX={post.coverPositionX ?? 50}
+            positionY={post.coverPositionY ?? 50}
+            scale={post.coverScale ?? 100}
+            src={post.coverUrl}
+            title={post.title}
+            variant="preview"
+          />
+        ) : null}
 
+        <div className="grid min-w-0 flex-1 gap-3">
           <div className="grid gap-2">
             <div className="flex items-start justify-between gap-4">
               <h3
@@ -83,19 +70,26 @@ export function ArticleCard({
               </li>
             ))}
           </ul>
+
+          <div
+            aria-label="Estatísticas do artigo"
+            className="text-neutral-500 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]"
+          >
+            <time dateTime={post.publishedAt}>
+              {dateFormatter.format(new Date(post.publishedAt))}
+            </time>
+            <span aria-hidden="true">·</span>
+            <span className="inline-flex items-center gap-1">
+              <Clock3 aria-hidden="true" className="size-3" />
+              {post.readingTimeMinutes} min
+            </span>
+            <span aria-hidden="true">·</span>
+            <span className="inline-flex items-center gap-1">
+              <Eye aria-hidden="true" className="size-3" />
+              {post.viewCount.toLocaleString('pt-BR')}
+            </span>
+          </div>
         </div>
-        {post.coverUrl ? (
-          <ArticleCoverImage
-            alt={post.coverAlt}
-            className="order-last w-full shrink-0 rounded-xl border border-border sm:order-first"
-            positionX={post.coverPositionX ?? 50}
-            positionY={post.coverPositionY ?? 50}
-            scale={post.coverScale ?? 100}
-            src={post.coverUrl}
-            title={post.title}
-            variant="preview"
-          />
-        ) : null}
       </Link>
     </article>
   );
