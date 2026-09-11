@@ -4,6 +4,8 @@ import { Button, Input } from '@vavito/ui';
 import { Check, ImagePlus, Move, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { ProgressiveImage } from '@web/components/feedback/progressive-image';
+
 import { uploadArticleImage } from '../services/admin-media.service';
 import type { AdminDraftCover } from '../types/admin-draft.types';
 import type { UploadArticleImage } from '../types/admin-media.types';
@@ -176,17 +178,22 @@ export function ArticleCoverField({
               }}
               type="button"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- URL pública resolvida em runtime pelo Storage. */}
-              <img
+              <ProgressiveImage
                 alt={altText ?? 'Capa do artigo'}
-                className="motion-media aspect-[16/9] max-h-[26rem] w-full select-none object-cover"
+                className="motion-media select-none object-cover"
+                containerClassName="aspect-[16/9] max-h-[26rem] w-full"
                 draggable={false}
+                fill
+                loadingLabel="Carregando capa do artigo"
+                quality={80}
+                sizes="(max-width: 1024px) calc(100vw - 2rem), 960px"
                 src={url}
                 style={{
                   objectPosition: `${positionX}% ${positionY}%`,
                   transform: `scale(${scale / 100})`,
                   transformOrigin: `${positionX}% ${positionY}%`,
                 }}
+                unoptimized={url.startsWith('blob:')}
               />
             </button>
             <div
