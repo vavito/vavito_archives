@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 
-import { QueryProvider } from '@web/providers/query-provider';
 import {
   SITE_AUTHOR,
   SITE_DESCRIPTION,
@@ -77,7 +76,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       lang={SITE_LANGUAGE}
     >
       <body className="bg-background text-foreground antialiased" suppressHydrationWarning>
-        <QueryProvider>{children}</QueryProvider>
+        {children}
       </body>
     </html>
   );
