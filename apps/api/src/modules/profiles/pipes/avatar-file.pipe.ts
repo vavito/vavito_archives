@@ -2,8 +2,10 @@ import { HttpStatus, Injectable, type PipeTransform } from '@nestjs/common';
 
 import type { AvatarUpload } from '@api/core/storage/services/avatar-storage.service';
 import { ApplicationException } from '@api/core/http/exceptions/application.exception';
+import { optimizeImageToWebp } from '@api/shared/images/image-optimizer';
 
 export const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_AVATAR_DIMENSION = 512;
 
 const extensionsByMimeType: Readonly<Record<string, string>> = {
   'image/jpeg': 'jpg',
@@ -34,9 +36,9 @@ function hasExpectedSignature(buffer: Buffer, mimeType: string): boolean {
 @Injectable()
 export class AvatarFilePipe implements PipeTransform<
   Express.Multer.File | undefined,
-  AvatarUpload
+  Promise<AvatarUpload>
 > {
-  transform(file: Express.Multer.File | undefined): AvatarUpload {
+  async transform(file: Express.Multer.File | undefined): Promise<AvatarUpload> {
     if (!file || file.size === 0) {
       throw new ApplicationException({
         code: 'VALIDATION_ERROR',
@@ -64,10 +66,23 @@ export class AvatarFilePipe implements PipeTransform<
       });
     }
 
-    return {
-      buffer: file.buffer,
-      contentType: file.mimetype,
-      extension,
-    };
+    try {
+      const optimized = await optimizeImageToWebp(file.buffer, {
+        maxHeight: MAX_AVATAR_DIMENSION,
+        maxWidth: MAX_AVATAR_DIMENSION,
+      });
+
+      return {
+        buffer: optimized.buffer,
+        contentType: 'image/webp',
+        extension: 'webp',
+      };
+    } catch {
+      throw new ApplicationException({
+        code: 'UNSUPPORTED_MEDIA_TYPE',
+        message: 'Envie uma imagem JPEG, PNG ou WebP válida.',
+        statusCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+      });
+    }
   }
 }
