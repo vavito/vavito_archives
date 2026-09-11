@@ -29,6 +29,7 @@
     "test:e2e:admin": "pnpm --filter @vavito/e2e test:admin",
     "test:e2e:a11y": "pnpm --filter @vavito/e2e test:a11y",
     "test:e2e:full-stack": "pnpm --filter @vavito/e2e test:full-stack",
+    "test:performance:web": "pnpm --filter @vavito/e2e test:performance",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
     "test:web": "pnpm --filter @vavito/web test",
     "typecheck": "turbo run typecheck",
