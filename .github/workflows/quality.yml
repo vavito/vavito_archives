@@ -128,3 +128,6 @@ jobs:
 
       - name: Validar lint, tipos e build Vercel
         run: pnpm turbo run lint typecheck build --filter=@vavito/web...
+
+      - name: Validar metas de performance das páginas públicas
+        run: pnpm test:performance:web
