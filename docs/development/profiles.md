@@ -24,7 +24,11 @@ Crie no Supabase Storage um bucket público cujo nome corresponda a `SUPABASE_AV
 - `image/png`;
 - `image/webp`.
 
-A API repete essas validações e verifica a assinatura binária do arquivo. Upload e remoção usam a `SUPABASE_SERVICE_ROLE_KEY`, exclusiva do backend; o navegador não recebe essa chave nem grava diretamente no bucket. Cada objeto usa o caminho `<profileId>/<uuid>.<extensão>`.
+A API repete essas validações, verifica a assinatura binária e decodifica a imagem. Antes do upload,
+ela corrige a orientação, limita cada dimensão a 512 px sem ampliar o arquivo e converte o resultado
+para WebP com qualidade 82. Upload e remoção usam a `SUPABASE_SERVICE_ROLE_KEY`, exclusiva do
+backend; o navegador não recebe essa chave nem grava diretamente no bucket. Cada novo objeto usa o
+caminho `<profileId>/<uuid>.webp`.
 
 O bucket precisa ser público porque `ProfileResponseDto.avatarUrl` é uma URL pública derivada por `getPublicUrl`. Se futuramente os avatares se tornarem privados, o contrato deve migrar para URLs assinadas.
 
@@ -56,7 +60,7 @@ Referência oficial: [exclusão administrativa de usuário](https://supabase.com
 
 A rota autenticada `/perfil` consulta o perfil pela API usando o access token da sessão validada no servidor. Visitantes são direcionados para `/auth?next=/perfil`, e a página não é indexada.
 
-O leitor pode alterar o nome público, adicionar, substituir ou remover o avatar e acessar o fluxo de alteração de senha. As mutações são executadas por Server Actions autenticadas, que revalidam os dados recebidos e fazem a comunicação com a API no servidor do frontend. A interface repete as restrições de formato e tamanho do avatar antes do envio, apresenta feedback flutuante durante cada operação e atualiza os dados exibidos com a resposta da API. Enquanto a imagem é carregada, o avatar mantém um estado visual pulsante dentro de sua própria forma. Um novo carregamento sempre consulta novamente o perfil persistido. O envio do arquivo aceita uma janela de até 30 segundos, separada do limite menor aplicado às consultas de página, para absorver a latência do armazenamento sem apresentar uma falha antes da conclusão real da operação.
+O leitor pode alterar o nome público, adicionar, substituir ou remover o avatar e acessar o fluxo de alteração de senha. As mutações são executadas por Server Actions autenticadas, que revalidam os dados recebidos e fazem a comunicação com a API no servidor do frontend. A interface repete as restrições de formato e tamanho do avatar antes do envio, apresenta feedback flutuante durante cada operação e atualiza os dados exibidos com a resposta da API. Enquanto a imagem é carregada, o avatar usa o mesmo feixe vertical do componente compartilhado empregado por capas e mídia editorial. Um novo carregamento sempre consulta novamente o perfil persistido. O envio do arquivo aceita uma janela de até 30 segundos, separada do limite menor aplicado às consultas de página, para absorver a latência do armazenamento sem apresentar uma falha antes da conclusão real da operação.
 
 O cabeçalho acompanha a sessão validada no servidor: apresenta `Entrar` para visitantes e, para leitores autenticados, mostra avatar e nome com um menu não modal contendo `Minha Conta` e `Fazer Logout`. Se a consulta dos dados complementares falhar, a sessão autenticada continua sendo representada por um nome derivado do e-mail. A rota `/auth` redireciona leitores que já estão autenticados para `/perfil` ou para o destino interno solicitado pelo fluxo.
 

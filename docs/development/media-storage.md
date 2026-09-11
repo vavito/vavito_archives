@@ -44,7 +44,14 @@ Antes de chamar o Storage, a API:
 2. inspeciona os bytes com `sharp` para identificar o formato e as dimensões reais;
 3. exige correspondência entre conteúdo real, MIME declarado e extensão do nome enviado;
 4. aceita apenas JPEG (`.jpg` ou `.jpeg`), PNG (`.png`) e WebP (`.webp`);
-5. normaliza o texto alternativo e exige que ele não seja vazio.
+5. normaliza o texto alternativo e exige que ele não seja vazio;
+6. corrige a orientação EXIF, limita cada dimensão a 2400 px sem ampliar arquivos menores e preserva
+   a proporção original;
+7. converte o resultado para WebP com qualidade 82 antes de calcular os metadados e armazenar.
+
+JPEG, PNG e WebP são formatos de entrada. Novos objetos editoriais são persistidos como WebP; os
+formatos anteriores continuam aceitos pelo domínio para manter compatibilidade com arquivos já
+existentes. O limite de 10 MB é aplicado ao arquivo recebido, antes da otimização.
 
 Arquivos acima do limite retornam `413 PAYLOAD_TOO_LARGE`. Conteúdo corrompido, formato não permitido ou divergência entre bytes, MIME e extensão retornam `415 UNSUPPORTED_MEDIA_TYPE`. O objeto só é enviado ao bucket depois dessas validações.
 
@@ -92,3 +99,5 @@ Antes de concluir a configuração de um ambiente, confirme:
 - upload com publishable/anon key falha por ausência de policy de escrita;
 - upload e remoção com a service role funcionam somente no backend;
 - limite e MIME types coincidem com a tabela desta documentação.
+- um novo upload JPEG ou PNG produz objeto `.webp` e metadados correspondentes;
+- imagens maiores que 2400 px são reduzidas sem distorção.
