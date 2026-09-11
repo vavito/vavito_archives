@@ -11,6 +11,7 @@ import {
 import { MediaFileRequiredException } from '@api/modules/media/errors/media-file-required.exception';
 import { MediaFileTooLargeException } from '@api/modules/media/errors/media-file-too-large.exception';
 import { MediaFileUnsupportedException } from '@api/modules/media/errors/media-file-unsupported.exception';
+import { optimizeImageToWebp } from '@api/shared/images/image-optimizer';
 
 export interface ValidatedMediaUpload {
   buffer: Buffer;
@@ -25,6 +26,8 @@ const mimeTypeByFormat = {
   png: 'image/png',
   webp: 'image/webp',
 } as const;
+
+const MAX_EDITORIAL_IMAGE_DIMENSION = 2400;
 
 function normalizedExtension(filename: string): string {
   return extname(filename).slice(1).trim().toLowerCase();
@@ -68,12 +71,17 @@ export class MediaFilePipe implements PipeTransform<
         throw new MediaFileUnsupportedException();
       }
 
+      const optimized = await optimizeImageToWebp(file.buffer, {
+        maxHeight: MAX_EDITORIAL_IMAGE_DIMENSION,
+        maxWidth: MAX_EDITORIAL_IMAGE_DIMENSION,
+      });
+
       return {
-        buffer: file.buffer,
-        extension: mimeType === 'image/jpeg' ? 'jpg' : extension,
-        height,
-        mimeType,
-        width,
+        buffer: optimized.buffer,
+        extension: 'webp',
+        height: optimized.height,
+        mimeType: 'image/webp',
+        width: optimized.width,
       };
     } catch (error) {
       if (error instanceof MediaFileUnsupportedException) {
