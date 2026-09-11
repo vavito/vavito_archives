@@ -1,7 +1,6 @@
-'use client';
-
 import { cn } from '@vavito/ui';
-import { useState } from 'react';
+
+import { ProgressiveImage } from '@web/components/feedback/progressive-image';
 
 interface ArticleCoverImageProps {
   alt: string | null;
@@ -26,7 +25,20 @@ export function ArticleCoverImage({
   title,
   variant = 'card',
 }: Readonly<ArticleCoverImageProps>) {
-  const [loaded, setLoaded] = useState(false);
+  const imageSize =
+    variant === 'thumbnail'
+      ? 'h-[120px] sm:h-20'
+      : variant === 'preview'
+        ? 'h-[180px] sm:aspect-[16/9] sm:h-auto'
+        : variant === 'hero'
+          ? 'h-[16rem] sm:aspect-[16/9] sm:h-auto'
+          : 'aspect-[16/9]';
+  const sizes =
+    variant === 'hero'
+      ? '(max-width: 640px) 100vw, 1024px'
+      : variant === 'thumbnail'
+        ? '(max-width: 640px) 100vw, 192px'
+        : '(max-width: 768px) 100vw, 50vw';
 
   return (
     <figure
@@ -37,33 +49,18 @@ export function ArticleCoverImage({
         className,
       )}
     >
-      {!loaded ? (
-        <span
-          aria-label="Carregando capa"
-          className="absolute inset-0 animate-pulse bg-gradient-to-b from-surface-card via-surface-raised to-surface-card"
-          role="status"
-        />
-      ) : null}
-      {/* eslint-disable-next-line @next/next/no-img-element -- A URL pública é dinâmica e resolvida pela API a partir do Storage. */}
-      <img
+      <ProgressiveImage
         alt={alt ?? title}
         className={cn(
-          'motion-media w-full object-cover transition-opacity duration-300',
-          variant === 'thumbnail'
-            ? 'h-[120px] sm:h-20'
-            : variant === 'preview'
-              ? 'h-[180px] sm:aspect-[16/9] sm:h-auto'
-              : variant === 'hero'
-                ? 'h-[16rem] sm:aspect-[16/9] sm:h-auto'
-                : 'aspect-[16/9] h-auto',
+          'motion-media size-full object-cover',
           variant === 'hero' && 'rounded-2xl border border-border',
-          loaded ? 'opacity-100' : 'opacity-0',
         )}
-        decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'}
-        loading={priority ? 'eager' : 'lazy'}
-        onError={() => setLoaded(true)}
-        onLoad={() => setLoaded(true)}
+        containerClassName={cn('w-full', imageSize)}
+        fill
+        loadingLabel={`Carregando capa de ${title}`}
+        preload={priority}
+        quality={80}
+        sizes={sizes}
         src={src}
         style={{
           objectPosition: `${positionX}% ${positionY}%`,

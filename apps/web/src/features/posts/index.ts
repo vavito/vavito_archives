@@ -1,4 +1,5 @@
 export { ArticleCard } from './components/article-card';
+export { ArticleCoverImage } from './components/article-cover-image';
 export { TiptapContent } from './components/tiptap-content';
 export { ArticlePageContent } from './components/article-page-content';
 export { ArticlesPageContent } from './components/articles-page-content';
