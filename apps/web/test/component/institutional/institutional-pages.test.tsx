@@ -35,6 +35,7 @@ describe('páginas institucionais', () => {
       screen.getByText(/comentários, respostas, reações e artigos salvos/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/email, origem e momento do consentimento/i)).toBeInTheDocument();
+    expect(screen.getByText(/ao confirmar uma nova conta/i)).toBeInTheDocument();
     expect(screen.getByText(/nome, email e mensagem enviados/i)).toBeInTheDocument();
     expect(screen.getByText(/provedores especializados em serviços/i)).toBeInTheDocument();
     expect(screen.queryByText(/Supabase|Resend|Vercel|Render/i)).not.toBeInTheDocument();

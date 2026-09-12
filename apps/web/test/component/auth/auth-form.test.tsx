@@ -165,6 +165,11 @@ describe('AuthForm', () => {
     expect(indicator).toHaveClass('translate-x-full');
     expect(fields.firstElementChild).toHaveClass('auth-mode-enter-forward');
     expect(screen.getByRole('heading', { name: 'Crie sua conta' })).toBeInTheDocument();
+    expect(screen.getByText(/também passa a receber a newsletter/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'página de privacidade' })).toHaveAttribute(
+      'href',
+      '/privacidade',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Selecionar entrada' }));
 
