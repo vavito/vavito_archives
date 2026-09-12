@@ -22,6 +22,7 @@
     "lint:fix": "turbo run lint -- --fix",
     "lint:web": "pnpm --filter @vavito/web lint",
     "openapi:export": "pnpm --filter @vavito/api openapi:export",
+    "security:check": "node scripts/security/check-repository-secrets.mjs && pnpm audit --prod --audit-level high",
     "start:web": "pnpm --filter @vavito/web start",
     "test": "turbo run test",
     "test:e2e:public": "pnpm --filter @vavito/e2e test:public",

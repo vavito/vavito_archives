@@ -65,6 +65,9 @@ jobs:
       - name: Instalar dependências do monorepo
         run: pnpm install --frozen-lockfile
 
+      - name: Validar segredos e dependências de produção
+        run: pnpm security:check
+
       - name: Validar formatação
         run: pnpm format:check
 
