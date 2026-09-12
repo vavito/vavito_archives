@@ -27,7 +27,7 @@ export function PrivacyPageContent() {
       title="Seus dados, sem letras miúdas."
     >
       <p className="text-neutral-500 font-mono text-xs">
-        Última atualização: 30 de agosto de 2026.
+        Última atualização: 12 de setembro de 2026.
       </p>
 
       <div className="grid gap-10">
@@ -58,6 +58,10 @@ export function PrivacyPageContent() {
             Os dados são usados somente para oferecer as funcionalidades solicitadas: manter sua
             conta, publicar sua participação, guardar preferências, entregar a newsletter, responder
             contatos e proteger a aplicação contra abuso.
+          </p>
+          <p>
+            Ao confirmar uma nova conta, seu email também passa a receber a newsletter. Cada envio
+            oferece uma forma simples de cancelar o recebimento quando você quiser.
           </p>
           <p>
             O Vavito Archives não vende dados pessoais. Emails de newsletter e contato não são
