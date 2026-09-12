@@ -76,6 +76,34 @@ describe('Segurança HTTP (e2e)', () => {
     expect(response.headers['access-control-allow-origin']).toBeUndefined();
   });
 
+  it('responde o preflight apenas com métodos e headers previstos', async () => {
+    const response = await request(app.getHttpServer() as Server)
+      .options('/api/v1/security-check')
+      .set('origin', 'https://vavitoarchives.com.br')
+      .set('access-control-request-method', 'POST')
+      .set('access-control-request-headers', 'authorization,content-type')
+      .expect(204);
+
+    expect(response.headers['access-control-allow-origin']).toBe('https://vavitoarchives.com.br');
+    expect(response.headers['access-control-allow-credentials']).toBeUndefined();
+    expect(response.headers['access-control-allow-methods']).toBe(
+      'GET,HEAD,POST,PATCH,DELETE,OPTIONS',
+    );
+    expect(response.headers['access-control-allow-headers']).toBe(
+      'authorization,content-type,idempotency-key,x-request-id',
+    );
+  });
+
+  it('não publica CORS no preflight de uma origin não autorizada', async () => {
+    const response = await request(app.getHttpServer() as Server)
+      .options('/api/v1/security-check')
+      .set('origin', 'https://malicious.example')
+      .set('access-control-request-method', 'POST')
+      .expect(404);
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('rejeita JSON acima de 1 MiB com o contrato global de erro', async () => {
     const response = await request(app.getHttpServer() as Server)
       .post('/api/v1/security-check')

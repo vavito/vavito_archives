@@ -32,6 +32,7 @@
     "test:e2e:full-stack": "pnpm --filter @vavito/e2e test:full-stack",
     "test:performance:web": "pnpm --filter @vavito/e2e test:performance",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
+    "test:security:api": "pnpm --filter @vavito/api exec jest --runInBand --runTestsByPath test/unit/config/env.validation.spec.ts test/e2e/auth/supabase-auth.guard.e2e-spec.ts test/e2e/http/security.e2e-spec.ts test/e2e/media/media.e2e-spec.ts test/e2e/profiles/profiles.e2e-spec.ts test/e2e/newsletter/newsletter.e2e-spec.ts test/e2e/contact/contact.e2e-spec.ts test/e2e/comments/comments-authorization.e2e-spec.ts",
     "test:web": "pnpm --filter @vavito/web test",
     "typecheck": "turbo run typecheck",
     "typecheck:web": "pnpm --filter @vavito/web typecheck"

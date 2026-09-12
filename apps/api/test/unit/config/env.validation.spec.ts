@@ -19,6 +19,22 @@ function validEnvironment(): Record<string, unknown> {
   };
 }
 
+function validProductionEnvironment(): Record<string, unknown> {
+  return {
+    ...validEnvironment(),
+    CORS_ALLOWED_ORIGINS: 'https://vavitoarchives.com.br',
+    FRONTEND_URL: 'https://vavitoarchives.com.br',
+    NEWSLETTER_TOKEN_SECRET: 'newsletter_production_secret_with_32_characters',
+    NODE_ENV: 'production',
+    RESEND_API_KEY: 're_production_key_fixture',
+    RESEND_WEBHOOK_SECRET: 'whsec_production+webhook/fixture=',
+    REVALIDATION_SECRET: 'revalidation_production_secret_with_32_characters',
+    SUPABASE_SERVICE_ROLE_KEY: 'production_service_role_fixture',
+    SUPABASE_URL: 'https://project.supabase.co',
+    VIEW_FINGERPRINT_SECRET: 'fingerprint_production_secret_with_32_characters',
+  };
+}
+
 describe('validateEnvironment', () => {
   it('aplica os padrões seguros para desenvolvimento', () => {
     const environment = validateEnvironment(validEnvironment());
@@ -93,8 +109,7 @@ describe('validateEnvironment', () => {
 
   it('desabilita o Swagger por padrão em produção', () => {
     const environment = validateEnvironment({
-      ...validEnvironment(),
-      NODE_ENV: 'production',
+      ...validProductionEnvironment(),
     });
 
     expect(environment.SWAGGER_ENABLED).toBe(false);
@@ -103,12 +118,50 @@ describe('validateEnvironment', () => {
   it('rejeita segredos placeholder em produção', () => {
     expect(() =>
       validateEnvironment({
-        ...validEnvironment(),
-        NODE_ENV: 'production',
+        ...validProductionEnvironment(),
         RESEND_API_KEY: 're_replace_me',
       }),
     ).toThrow(
       'Invalid production environment configuration: placeholder values are not allowed for RESEND_API_KEY.',
     );
   });
+
+  it('exige HTTPS nas URLs públicas de produção', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validProductionEnvironment(),
+        CORS_ALLOWED_ORIGINS: 'https://vavitoarchives.com.br,http://preview.example.com',
+        FRONTEND_URL: 'http://vavitoarchives.com.br',
+        SUPABASE_URL: 'http://project.supabase.co',
+      }),
+    ).toThrow(
+      'Invalid production environment configuration: HTTPS is required for FRONTEND_URL, SUPABASE_URL, CORS_ALLOWED_ORIGINS.',
+    );
+  });
+
+  it('exige segredos internos distintos em produção', () => {
+    const sharedSecret = 'shared_production_secret_with_32_characters';
+
+    expect(() =>
+      validateEnvironment({
+        ...validProductionEnvironment(),
+        NEWSLETTER_TOKEN_SECRET: sharedSecret,
+        REVALIDATION_SECRET: sharedSecret,
+      }),
+    ).toThrow(
+      'Invalid production environment configuration: NEWSLETTER_TOKEN_SECRET, REVALIDATION_SECRET, VIEW_FINGERPRINT_SECRET must use distinct values.',
+    );
+  });
+
+  it.each(['change-me-secure-value-with-32-chars', 'example_secret_value_with_32_chars'])(
+    'rejeita o placeholder de produção %s',
+    (placeholder) => {
+      expect(() =>
+        validateEnvironment({
+          ...validProductionEnvironment(),
+          REVALIDATION_SECRET: placeholder,
+        }),
+      ).toThrow('placeholder values are not allowed for REVALIDATION_SECRET');
+    },
+  );
 });
