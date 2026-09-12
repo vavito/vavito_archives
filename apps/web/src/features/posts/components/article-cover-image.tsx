@@ -51,11 +51,12 @@ export function ArticleCoverImage({
     >
       <ProgressiveImage
         alt={alt ?? title}
-        className={cn(
-          'motion-media size-full object-cover',
+        className="motion-media size-full object-cover"
+        containerClassName={cn(
+          'w-full',
+          imageSize,
           variant === 'hero' && 'rounded-2xl border border-border',
         )}
-        containerClassName={cn('w-full', imageSize)}
         fill
         loadingLabel={`Carregando capa de ${title}`}
         preload={priority}
