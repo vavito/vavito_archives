@@ -4,10 +4,15 @@ O workflow `.github/workflows/quality.yml` executa a qualidade do monorepo em pu
 
 ## Checks
 
-- `Quality / API`: formatação, regressão com cobertura, lint, typecheck e build da API e de suas dependências internas.
+- `Quality / API`: segredos e dependências de produção, formatação, regressão com cobertura, lint, typecheck e build da API e de suas dependências internas.
 - `Quality / Web`: formatação, sincronização do cliente OpenAPI, testes de componente e integração, fluxos públicos, autenticados e administrativos no Playwright, lint, typecheck e build do frontend e de suas dependências internas.
 
 Cada job usa Node.js 24.18.0 e a versão do pnpm declarada em `packageManager`, instala o monorepo pela raiz com `pnpm install --frozen-lockfile` e mantém caches separados do pnpm e do Turborepo.
+
+O check `pnpm security:check` falha quando encontra um arquivo de ambiente versionado, um padrão de
+credencial conhecido, uma referência a segredo server-only no frontend ou uma vulnerabilidade
+conhecida com severidade alta ou crítica. A matriz focada e o checklist operacional estão em
+[Revisão de segurança e privacidade para go-live](security-privacy-go-live.md).
 
 O job da API sobe um service container PostgreSQL exclusivo, aguarda o `pg_isready`, prepara um fixture mínimo de `auth.users`, aplica as migrations versionadas com `prisma migrate deploy` e executa `test:regression:api`. A regressão cobre testes unitários, E2E, cobertura mínima, ausência de testes ignorados e toda a suíte de integração. O job da Web não sobe banco: ele executa o Vitest com jsdom e Testing Library e os fluxos públicos Playwright antes do lint, typecheck e build de produção compatível com a Vercel.
 

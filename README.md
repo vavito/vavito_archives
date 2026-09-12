@@ -57,6 +57,8 @@ pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
 pnpm test:regression:api # executa cobertura e integração da API
+pnpm security:check      # verifica segredos versionados e vulnerabilidades high/critical
+pnpm test:security:api   # executa a matriz focada de segurança e privacidade da API
 pnpm test:web   # executa os testes de componente e integração do frontend
 pnpm api-client:generate # gera os tipos e o cliente a partir do OpenAPI versionado
 pnpm api-client:check # verifica se os tipos gerados estão sincronizados
