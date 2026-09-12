@@ -74,7 +74,7 @@ export function ArticleCoverField({
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
         <div className="grid gap-1">
           <h2 className="text-sm font-semibold text-neutral-100">Capa do artigo</h2>
-          <p className="text-xs leading-relaxed text-neutral-500">
+          <p className="text-xs leading-relaxed text-neutral-400">
             Aparece nas listagens, no artigo e nos compartilhamentos.
           </p>
         </div>
@@ -237,7 +237,7 @@ export function ArticleCoverField({
             }
             value={altText ?? ''}
           />
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-400">
             <p>
               {isAdjusting
                 ? 'Arraste para reposicionar e use os controles, a roda ou +/− para ajustar o zoom.'

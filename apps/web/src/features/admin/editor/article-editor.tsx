@@ -132,7 +132,7 @@ export function ArticleEditor({
         type="hidden"
         value={ARTICLE_CONTENT_SCHEMA_VERSION}
       />
-      <p className="text-neutral-600 border-divider border-t px-5 py-3 font-mono text-[11px]">
+      <p className="text-neutral-400 border-divider border-t px-5 py-3 font-mono text-[11px]">
         Conteúdo estruturado · versão {ARTICLE_CONTENT_SCHEMA_VERSION}
       </p>
     </section>

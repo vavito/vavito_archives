@@ -69,7 +69,7 @@ export function ArticleTagsField({
         placeholder="Digite um tópico e pressione Enter"
         value={value}
       />
-      <p className="text-xs leading-relaxed text-neutral-500">
+      <p className="text-xs leading-relaxed text-neutral-400">
         Confirme com vírgula ou Enter. Os tópicos aparecerão como hashtags e poderão filtrar os
         artigos.
       </p>
