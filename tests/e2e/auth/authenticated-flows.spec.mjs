@@ -94,6 +94,7 @@ test('login, atualização de perfil e logout acessível também no mobile', asy
     page.getByRole('status').filter({ hasText: 'Seu nome foi atualizado.' }),
   ).toBeVisible();
   await page.reload();
+  await page.waitForLoadState('networkidle');
   await expect(page.getByLabel('Nome', { exact: true })).toHaveValue('Leitor atualizado');
   const profileLogout = page
     .getByRole('main')
@@ -243,6 +244,7 @@ test('comentário e resposta crescem com limite, quebram palavras e não alargam
 
 test('visitante recebe orientação para entrar ao salvar ou reagir', async ({ page }) => {
   await page.goto(articlePath);
+  await page.waitForLoadState('networkidle');
   await page.getByRole('button', { name: 'Salvar artigo', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByRole('dialog').getByRole('link').first()).toHaveAttribute('href', /auth/u);
