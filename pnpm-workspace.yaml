@@ -2,6 +2,16 @@ packages:
   - apps/*
   - packages/*
   - tests/*
+overrides:
+  # Correções transitivas de segurança enquanto Nest e Prisma ainda
+  # mantêm intervalos vulneráveis nas versões compatíveis com a V1.
+  deepmerge-ts: 8.0.0
+  fast-uri: 3.1.6
+  'js-yaml@>=4.0.0 <4.3.2': 4.3.2
+  multer: 2.3.0
+  mysql2: 3.23.1
+  nanoid: 3.3.18
+  qs: 6.16.0
 allowBuilds:
   # Telemetria opcional de dependência transitiva do Swagger UI; não é
   # necessária para instalar, gerar ou servir o contrato OpenAPI.
@@ -15,15 +25,15 @@ allowBuilds:
   # apenas seleciona o binding N-API correspondente à plataforma.
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@next/env@16.3.0'
-  - '@next/swc-darwin-arm64@16.3.0'
-  - '@next/swc-darwin-x64@16.3.0'
-  - '@next/swc-linux-arm64-gnu@16.3.0'
-  - '@next/swc-linux-arm64-musl@16.3.0'
-  - '@next/swc-linux-x64-gnu@16.3.0'
-  - '@next/swc-linux-x64-musl@16.3.0'
-  - '@next/swc-win32-arm64-msvc@16.3.0'
-  - '@next/swc-win32-x64-msvc@16.3.0'
-  - next@16.3.0
-  - '@next/eslint-plugin-next@16.3.0'
-  - eslint-config-next@16.3.0
+  - '@next/env@16.3.5'
+  - '@next/swc-darwin-arm64@16.3.5'
+  - '@next/swc-darwin-x64@16.3.5'
+  - '@next/swc-linux-arm64-gnu@16.3.5'
+  - '@next/swc-linux-arm64-musl@16.3.5'
+  - '@next/swc-linux-x64-gnu@16.3.5'
+  - '@next/swc-linux-x64-musl@16.3.5'
+  - '@next/swc-win32-arm64-msvc@16.3.5'
+  - '@next/swc-win32-x64-msvc@16.3.5'
+  - next@16.3.5
+  - '@next/eslint-plugin-next@16.3.5'
+  - eslint-config-next@16.3.5
