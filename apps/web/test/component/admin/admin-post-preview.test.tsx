@@ -5,8 +5,13 @@ import { AdminPostPreview } from '@web/features/admin/components/admin-post-prev
 import type { AdminPostDetail } from '@web/features/admin/types/admin-post.types';
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  deleteAdminPostAction: vi.fn(),
   discardAdminPostChangesAction: vi.fn(),
   transitionAdminPostAction: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 const post: AdminPostDetail = {

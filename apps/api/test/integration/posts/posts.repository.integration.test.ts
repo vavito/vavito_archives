@@ -30,6 +30,7 @@ const content = PostContent.create(
 );
 
 interface TestRecords {
+  campaignIds: string[];
   mediaAssetIds: string[];
   postIds: string[];
   profileIds: string[];
@@ -120,10 +121,11 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
   });
 
   beforeEach(() => {
-    records = { mediaAssetIds: [], postIds: [], profileIds: [], tagNames: [] };
+    records = { campaignIds: [], mediaAssetIds: [], postIds: [], profileIds: [], tagNames: [] };
   });
 
   afterEach(async () => {
+    await prisma.emailCampaign.deleteMany({ where: { id: { in: records.campaignIds } } });
     await prisma.post.deleteMany({ where: { id: { in: records.postIds } } });
     await prisma.mediaAsset.deleteMany({ where: { id: { in: records.mediaAssetIds } } });
     await prisma.tag.deleteMany({ where: { name: { in: records.tagNames } } });
@@ -177,8 +179,54 @@ describe('PrismaPostsRepository com PostgreSQL real', () => {
       postId: post.id,
     });
 
+    const parentCommentId = randomUUID();
+    await prisma.comment.create({
+      data: {
+        authorId,
+        content: 'Comentário que acompanha o artigo.',
+        id: parentCommentId,
+        postId: post.id,
+      },
+    });
+    await prisma.comment.create({
+      data: {
+        authorId,
+        content: 'Resposta relacionada.',
+        id: randomUUID(),
+        parentId: parentCommentId,
+        postId: post.id,
+      },
+    });
+    const campaignId = randomUUID();
+    records.campaignIds.push(campaignId);
+    await prisma.emailCampaign.create({
+      data: {
+        createdById: authorId,
+        htmlSnapshot: '<html>Conteúdo congelado</html>',
+        id: campaignId,
+        postId: post.id,
+        postSnapshot: {
+          excerpt: 'Resumo histórico',
+          id: post.id,
+          publishedAt: post.publishedAt!.toISOString(),
+          readingTimeMinutes: 3,
+          slug: 'slug-atualizado',
+          title: 'Post atualizado',
+        },
+        previewText: 'Preview histórico',
+        subject: 'Campanha histórica',
+      },
+    });
+
     await repository.delete(post.id);
     await expect(repository.findById(post.id)).resolves.toBeNull();
+    await expect(prisma.comment.count({ where: { postId: post.id } })).resolves.toBe(0);
+    await expect(
+      prisma.emailCampaign.findUniqueOrThrow({
+        select: { postId: true },
+        where: { id: campaignId },
+      }),
+    ).resolves.toEqual({ postId: null });
   });
 
   it('carrega somente a referência publicada necessária para integrações internas', async () => {

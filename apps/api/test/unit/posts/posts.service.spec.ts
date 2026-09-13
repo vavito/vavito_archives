@@ -1,6 +1,5 @@
 import type { ProfileAuthorizationRepository } from '@api/core/auth/repositories/profile-authorization.repository';
 import { ForbiddenAccessException } from '@api/core/auth/errors/forbidden-access.exception';
-import { ApplicationException } from '@api/core/http/exceptions/application.exception';
 import { UserRole } from '@api/generated/prisma/client';
 import type { MediaService } from '@api/modules/media/services/media.service';
 import type { MediaRepository } from '@api/modules/media/repositories/media.repository';
@@ -503,7 +502,7 @@ describe('PostsService', () => {
     },
   );
 
-  it.each([PostStatus.DRAFT, PostStatus.ARCHIVED])(
+  it.each([PostStatus.DRAFT, PostStatus.PUBLISHED, PostStatus.ARCHIVED])(
     'exclui permanentemente um post em %s',
     async (status) => {
       findById.mockResolvedValueOnce(aggregate(post(status)));
@@ -513,15 +512,6 @@ describe('PostsService', () => {
       expect(deletePost).toHaveBeenCalledWith(POST_ID);
     },
   );
-
-  it('não exclui permanentemente um post publicado', async () => {
-    findById.mockResolvedValueOnce(aggregate(post(PostStatus.PUBLISHED)));
-
-    const result = service.delete(AUTHOR_ID, POST_ID);
-    await expect(result).rejects.toBeInstanceOf(ApplicationException);
-    await expect(result).rejects.toMatchObject({ code: 'POST_DELETE_NOT_ALLOWED' });
-    expect(deletePost).not.toHaveBeenCalled();
-  });
 
   it('responde como não encontrado sem chamar persistência', async () => {
     findById.mockResolvedValueOnce(null);
