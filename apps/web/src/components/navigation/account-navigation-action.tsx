@@ -8,7 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 import { ProfileAvatar } from '@web/features/profile';
-import { signOutSession } from '@web/features/auth';
 
 export interface AccountSummary {
   avatarUrl: string | null;
@@ -72,6 +71,7 @@ export function AccountNavigationAction({ account }: Readonly<AccountNavigationA
     setSignOutError(null);
 
     try {
+      const { signOutSession } = await import('@web/features/auth/session');
       await signOutSession();
     } catch {
       setSignOutError('Não foi possível sair agora. Tente novamente.');
@@ -86,7 +86,11 @@ export function AccountNavigationAction({ account }: Readonly<AccountNavigationA
 
   if (!account) {
     return (
-      <Link className={cn(buttonVariants({ size: 'small' }), 'hidden sm:inline-flex')} href="/auth">
+      <Link
+        className={cn(buttonVariants({ size: 'small' }), 'hidden sm:inline-flex')}
+        href="/auth"
+        prefetch={false}
+      >
         Entrar
       </Link>
     );

@@ -38,6 +38,12 @@ fronteiras que realmente possuem estado, eventos do navegador ou integrações i
 pequenos não devem adicionar um provider global: a busca, por exemplo, mantém debounce e
 cancelamento dentro do próprio hook para não enviar uma biblioteca de cache a todas as páginas.
 
+Dependências pesadas acionadas pela navegação global também ficam fora do carregamento inicial. O
+SDK do Supabase usado para consultar a sessão mobile e encerrar uma sessão é importado somente
+quando o usuário inicia a ação. Links globais para a autenticação desabilitam o prefetch automático,
+pois antecipar toda a tela de cadastro na Home aumenta o trabalho da thread principal sem ajudar a
+leitura do conteúdo atual.
+
 ## Auditoria automatizada
 
 Execute na raiz:
