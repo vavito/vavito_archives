@@ -37,7 +37,7 @@ function exactOrigins(value: string, helpers: Joi.CustomHelpers): string | Joi.E
 const environmentSchema = Joi.object<EnvironmentVariables>({
   APP_VERSION: Joi.string()
     .pattern(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
-    .default('0.0.0'),
+    .default('0.1.0-rc.2'),
   CORS_ALLOWED_ORIGINS: Joi.string()
     .custom(exactOrigins)
     .default(Joi.ref('FRONTEND_URL'))
