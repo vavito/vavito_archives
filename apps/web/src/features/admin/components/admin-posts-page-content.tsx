@@ -169,8 +169,10 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
                       Preview
                     </Link>
                     <AdminPostActions
+                      allowDelete
                       initialStatus={post.status}
                       postId={post.id}
+                      slug={post.slug}
                       title={post.title}
                     />
                   </div>

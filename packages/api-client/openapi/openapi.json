@@ -2876,7 +2876,7 @@
             "supabase-jwt": []
           }
         ],
-        "summary": "Exclui permanentemente um post elegível",
+        "summary": "Exclui permanentemente um post e seus dados dependentes",
         "tags": ["Admin Posts"]
       }
     },

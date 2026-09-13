@@ -217,7 +217,7 @@ export interface paths {
     get: operations['adminPosts_getById'];
     put?: never;
     post?: never;
-    /** Exclui permanentemente um post elegível */
+    /** Exclui permanentemente um post e seus dados dependentes */
     delete: operations['adminPosts_delete'];
     options?: never;
     head?: never;

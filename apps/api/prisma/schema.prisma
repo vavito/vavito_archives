@@ -230,9 +230,9 @@ model Comment {
   createdAt        DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime      @updatedAt @db.Timestamptz(3)
 
-  post    Post      @relation(fields: [postId], references: [id], onDelete: Restrict)
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   author  Profile?  @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  parent  Comment?  @relation("CommentReplies", fields: [parentId, postId], references: [id, postId], onDelete: Restrict)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId, postId], references: [id, postId], onDelete: Cascade)
   replies Comment[] @relation("CommentReplies")
 
   @@unique([id, postId])
@@ -306,7 +306,7 @@ model NewsletterSubscriber {
 
 model EmailCampaign {
   id             String         @id @default(uuid()) @db.Uuid
-  postId         String         @db.Uuid
+  postId         String?        @db.Uuid
   createdById    String         @db.Uuid
   subject        String         @db.VarChar(255)
   previewText    String         @db.VarChar(255)
@@ -322,7 +322,7 @@ model EmailCampaign {
   createdAt      DateTime       @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime       @updatedAt @db.Timestamptz(3)
 
-  post       Post            @relation(fields: [postId], references: [id], onDelete: Restrict)
+  post       Post?           @relation(fields: [postId], references: [id], onDelete: SetNull)
   createdBy  Profile         @relation("EmailCampaignCreator", fields: [createdById], references: [id], onDelete: Restrict)
   deliveries EmailDelivery[]
 

@@ -40,3 +40,10 @@ export async function discardAdminPostChanges(
 
   return normalizeAdminPostDetail(response.data);
 }
+
+export async function deleteAdminPost(id: string, client: ApiClient): Promise<void> {
+  await client.DELETE('/api/v1/admin/posts/{id}', {
+    body: { confirm: true },
+    params: { path: { id } },
+  });
+}

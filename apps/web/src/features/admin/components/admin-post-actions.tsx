@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@vavito/ui';
 import { Archive, Globe2, RotateCcw, Trash2, Undo2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState, useTransition } from 'react';
 
 import {
@@ -21,12 +22,14 @@ import {
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
 
 import {
+  deleteAdminPostAction,
   discardAdminPostChangesAction,
   transitionAdminPostAction,
 } from '../actions/admin-post.actions';
 import type { AdminPostStatus, AdminPostTransition } from '../types/admin-post.types';
 
 interface AdminPostActionsProps {
+  allowDelete?: boolean;
   className?: string;
   compact?: boolean;
   disabled?: boolean;
@@ -37,11 +40,12 @@ interface AdminPostActionsProps {
   onPublishedChanges?: () => void;
   onDiscardedChanges?: () => void;
   postId: string;
+  slug?: string | null;
   title: string;
 }
 
 interface TransitionPresentation {
-  action: AdminPostTransition | 'discard';
+  action: AdminPostTransition | 'delete' | 'discard';
   confirmLabel: string;
   description: string;
   label: string;
@@ -55,12 +59,15 @@ interface StatusOverride {
 
 function availableTransitions(
   status: AdminPostStatus,
+  allowDelete: boolean,
   editor: boolean,
   hasPendingChanges: boolean,
 ): TransitionPresentation[] {
+  let transitions: TransitionPresentation[];
+
   switch (status) {
     case 'DRAFT':
-      return [
+      transitions = [
         {
           confirmLabel: 'Publicar agora',
           action: 'publish',
@@ -76,8 +83,9 @@ function availableTransitions(
           variant: 'danger',
         },
       ];
+      break;
     case 'PUBLISHED':
-      return (
+      transitions = (
         [
           ...(editor && hasPendingChanges
             ? [
@@ -115,8 +123,9 @@ function availableTransitions(
           },
         ] satisfies TransitionPresentation[]
       ).filter((item) => !(editor && item.action === 'unpublish'));
+      break;
     case 'ARCHIVED':
-      return [
+      transitions = [
         {
           confirmLabel: 'Restaurar rascunho',
           action: 'restore',
@@ -125,18 +134,37 @@ function availableTransitions(
           variant: 'secondary',
         },
       ];
+      break;
   }
+
+  return allowDelete
+    ? [
+        ...transitions,
+        {
+          action: 'delete',
+          confirmLabel: 'Excluir definitivamente',
+          description:
+            'Esta ação é permanente. O artigo, seus comentários, reações, salvamentos e histórico editorial serão removidos e não poderão ser recuperados.',
+          label: 'Excluir',
+          variant: 'danger',
+        },
+      ]
+    : transitions;
 }
 
-function TransitionIcon({ action }: Readonly<{ action: AdminPostTransition | 'discard' }>) {
+function TransitionIcon({
+  action,
+}: Readonly<{ action: AdminPostTransition | 'delete' | 'discard' }>) {
   if (action === 'publish') return <Globe2 aria-hidden="true" />;
   if (action === 'unpublish') return <Undo2 aria-hidden="true" />;
   if (action === 'restore') return <RotateCcw aria-hidden="true" />;
   if (action === 'discard') return <Trash2 aria-hidden="true" />;
+  if (action === 'delete') return <Trash2 aria-hidden="true" />;
   return <Archive aria-hidden="true" />;
 }
 
 export function AdminPostActions({
+  allowDelete = false,
   className,
   compact = false,
   disabled = false,
@@ -147,8 +175,10 @@ export function AdminPostActions({
   onPublishedChanges,
   onDiscardedChanges,
   postId,
+  slug = null,
   title,
 }: Readonly<AdminPostActionsProps>) {
+  const router = useRouter();
   const [statusOverride, setStatusOverride] = useState<StatusOverride | null>(null);
   const [selected, setSelected] = useState<TransitionPresentation | null>(null);
   const [feedback, setFeedback] = useState<ActionFeedbackMessage | null>(null);
@@ -162,6 +192,19 @@ export function AdminPostActions({
     if (!selected || isPending) return;
 
     startTransition(async () => {
+      if (selected.action === 'delete') {
+        const result = await deleteAdminPostAction(postId, slug);
+        feedbackId.current += 1;
+        setSelected(null);
+        setFeedback({
+          id: feedbackId.current,
+          message: result.message,
+          tone: result.ok ? 'success' : 'error',
+        });
+        if (result.ok) router.refresh();
+        return;
+      }
+
       const result =
         selected.action === 'discard'
           ? await discardAdminPostChangesAction(postId)
@@ -186,7 +229,7 @@ export function AdminPostActions({
   return (
     <>
       <div className={cn('flex flex-wrap items-center gap-2', className)}>
-        {availableTransitions(status, editor, hasPendingChanges).map((item) => (
+        {availableTransitions(status, allowDelete, editor, hasPendingChanges).map((item) => (
           <Button
             aria-label={item.label}
             disabled={disabled || isPending}
