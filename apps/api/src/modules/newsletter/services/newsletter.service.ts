@@ -27,6 +27,8 @@ import {
 } from '@api/modules/newsletter/services/subscriber-token.service';
 import { Injectable, Logger } from '@nestjs/common';
 
+const WELCOME_RETRY_WINDOW_MS = 24 * 60 * 60 * 1_000;
+
 @Injectable()
 export class NewsletterService {
   private readonly logger = new Logger(NewsletterService.name);
@@ -82,7 +84,9 @@ export class NewsletterService {
       if (existing.status === SubscriberStatus.PENDING) {
         this.executeDomainAction(() => existing.confirmVerifiedAccount(now));
         await this.subscribersRepository.save(existing);
-        void this.sendWelcome(existing);
+        await this.sendWelcome(existing);
+      } else if (this.shouldRetryWelcome(existing, now)) {
+        await this.sendWelcome(existing);
       }
       return;
     }
@@ -107,7 +111,7 @@ export class NewsletterService {
     });
 
     const created = await this.subscribersRepository.createIfEmailAvailable(subscriber);
-    if (created) void this.sendWelcome(subscriber);
+    if (created) await this.sendWelcome(subscriber);
   }
 
   async unsubscribe(dto: UnsubscribeDto): Promise<void> {
@@ -223,6 +227,18 @@ export class NewsletterService {
         error instanceof Error ? error.stack : undefined,
       );
     }
+  }
+
+  private shouldRetryWelcome(subscriber: Subscriber, now: Date): boolean {
+    const confirmedAt = subscriber.confirmedAt;
+
+    return (
+      subscriber.status === SubscriberStatus.CONFIRMED &&
+      subscriber.consent.source === SubscriberConsentSource.ACCOUNT &&
+      confirmedAt !== null &&
+      now >= confirmedAt &&
+      now.getTime() - confirmedAt.getTime() <= WELCOME_RETRY_WINDOW_MS
+    );
   }
 
   private confirmationExpiry(now: Date): Date {

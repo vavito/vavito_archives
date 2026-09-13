@@ -154,7 +154,7 @@ export class ResendService implements MailService {
 
     return this.sendWithRetry(
       {
-        from: this.mailConfig.contactFrom,
+        from: this.mailConfig.newsletterFrom,
         html: template.html,
         replyTo: this.mailConfig.replyTo,
         subject: template.subject,
