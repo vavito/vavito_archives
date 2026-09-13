@@ -278,7 +278,6 @@ export class PostsService {
 
   async delete(actorId: string, postId: string): Promise<void> {
     const { post } = await this.findAuthorizedPost(actorId, postId);
-    this.executeDomainAction(() => post.ensureCanDelete());
     await this.postsRepository.delete(post.id);
   }
 
