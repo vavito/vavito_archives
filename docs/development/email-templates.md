@@ -15,7 +15,7 @@ O padrão já cobre:
 - campanha editorial com um ou mais artigos;
 - boas-vindas depois da primeira confirmação da conta.
 
-As boas-vindas são solicitadas somente quando a inscrição vinculada à conta passa pela primeira vez para `CONFIRMED`. A chave `welcome/<subscriberId>` torna novas tentativas idempotentes no Resend. Falha na entrega não invalida a conta nem sua inscrição.
+As boas-vindas são solicitadas quando a inscrição vinculada à conta passa pela primeira vez para `CONFIRMED`. A confirmação aguarda o pedido ao provedor e, durante as 24 horas seguintes, a página final pode repetir o envio para absorver uma falha ou timeout no callback. A chave `welcome/<subscriberId>` torna essas tentativas idempotentes dentro da janela correspondente do Resend. Falha na entrega não invalida a conta nem sua inscrição.
 
 Em desenvolvimento, imagens incorporadas em um email não conseguem carregar de `localhost` no dispositivo destinatário. Elas passam a funcionar quando `FRONTEND_URL` aponta para a aplicação publicada. Como campanhas armazenam um snapshot, uma campanha criada com URL local precisa ser recriada depois da configuração de produção.
 
