@@ -61,7 +61,7 @@ stateDiagram-v2
 - `ARCHIVED` exige `archivedAt`.
 - Slug é normalizado, não vazio e único; a unicidade é confirmada pelo service/repository.
 - Conteúdo possui `schemaVersion` suportada e estrutura Tiptap válida.
-- Exclusão permanente não é permitida para `PUBLISHED`.
+- Exclusão permanente é uma ação administrativa explícita e irreversível, permitida em qualquer estado. Comentários e vínculos dependentes são removidos; snapshots de campanhas permanecem preservados.
 - Visualizações só são incrementadas para `PUBLISHED`.
 
 ### Erros
@@ -74,7 +74,6 @@ stateDiagram-v2
 | `POST_SLUG_INVALID` | Slug vazio ou fora do formato canônico. |
 | `SLUG_ALREADY_EXISTS` | Service encontra outro post com o mesmo slug. |
 | `POST_EDIT_NOT_ALLOWED` | Tentativa de editar post `ARCHIVED`. |
-| `POST_DELETE_NOT_ALLOWED` | Tentativa de excluir permanentemente um post publicado. |
 
 ## Comment
 

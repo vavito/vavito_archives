@@ -419,7 +419,9 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 | `POST` | `/admin/posts/:id/unpublish` | ADMIN | — | `200 PostAdminDetailDto`. |
 | `POST` | `/admin/posts/:id/archive` | ADMIN | — | `200 PostAdminDetailDto`. |
 | `POST` | `/admin/posts/:id/restore` | ADMIN | — | `200 PostAdminDetailDto` em `DRAFT`. |
-| `DELETE` | `/admin/posts/:id` | ADMIN | confirmação explícita | `204` quando a exclusão permanente for permitida. |
+| `DELETE` | `/admin/posts/:id` | ADMIN | `{ confirm: true }` | `204`; remove permanentemente o artigo e seus dados dependentes em qualquer estado. |
+
+Campanhas já criadas preservam o snapshot editorial depois da exclusão do artigo. Sua referência relacional passa a `null`, sem alterar o HTML enviado ou o histórico de entregas.
 
 O preview protegido é montado pelo frontend com `GET /admin/posts/:id`; não exige endpoint público adicional.
 
