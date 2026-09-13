@@ -16,7 +16,7 @@ export function SiteBrand({ priority = false, size = 'default' }: SiteBrandProps
         className={`${isSmall ? 'h-5' : 'h-6'} w-auto transition-transform duration-300 group-hover:scale-105`}
         height={591}
         priority={priority}
-        src="/brand/vavito-symbol.png"
+        src="/brand/vavito-symbol.webp"
         width={1017}
       />
       <span
