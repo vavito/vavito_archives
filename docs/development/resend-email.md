@@ -63,11 +63,15 @@ Mensagens de contato usam `contact-message/<contactMessageId>`. A mensagem é pe
 
 Confirmações de exclusão de conta usam `account-deletion/<profileId>`. O envio acontece depois da remoção da identidade e uma falha de entrega não desfaz nem altera o resultado da exclusão.
 
+Boas-vindas após a primeira confirmação da conta usam `welcome/<subscriberId>`. A conta e a inscrição permanecem válidas se o provedor não aceitar a mensagem.
+
 Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
 
 O processamento assinado de delivered, bounce, complaint e falhas técnicas está documentado em `docs/development/resend-webhooks.md`.
 
 O template inclui somente título do artigo, nome público do leitor, trecho escapado de até 240 caracteres e link para `/admin/comments`. O conteúdo além desse trecho, identificadores internos e dados de autenticação não são enviados.
+
+Todos os templates enviados pela API compõem a moldura compartilhada descrita em `docs/development/email-templates.md`.
 
 ## Ambiente de teste
 
