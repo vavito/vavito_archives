@@ -203,7 +203,7 @@ export function AdminCampaignDetail({
           sandbox=""
           referrerPolicy="no-referrer"
           className="h-[600px] w-full rounded-2xl border border-border bg-white"
-          srcDoc={`<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">${current.htmlSnapshot}`}
+          srcDoc={`<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src http: https: data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">${current.htmlSnapshot}`}
         />
       </section>
       <Dialog

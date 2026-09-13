@@ -82,6 +82,7 @@ export class NewsletterService {
       if (existing.status === SubscriberStatus.PENDING) {
         this.executeDomainAction(() => existing.confirmVerifiedAccount(now));
         await this.subscribersRepository.save(existing);
+        void this.sendWelcome(existing);
       }
       return;
     }
@@ -105,7 +106,8 @@ export class NewsletterService {
       return pending;
     });
 
-    await this.subscribersRepository.createIfEmailAvailable(subscriber);
+    const created = await this.subscribersRepository.createIfEmailAvailable(subscriber);
+    if (created) void this.sendWelcome(subscriber);
   }
 
   async unsubscribe(dto: UnsubscribeDto): Promise<void> {
@@ -204,6 +206,20 @@ export class NewsletterService {
     } catch (error) {
       this.logger.error(
         `Falha ao solicitar confirmação da inscrição ${subscriber.id}.`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+  }
+
+  private async sendWelcome(subscriber: Subscriber): Promise<void> {
+    try {
+      await this.mailService.sendWelcomeNotification({
+        recipient: subscriber.email.value,
+        subscriberId: subscriber.id,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Falha ao enviar boas-vindas ao assinante ${subscriber.id}.`,
         error instanceof Error ? error.stack : undefined,
       );
     }

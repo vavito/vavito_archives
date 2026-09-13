@@ -33,6 +33,7 @@ import {
 } from '@api/modules/newsletter/repositories/campaigns.repository';
 import { SubscribersRepository } from '@api/modules/newsletter/repositories/subscribers.repository';
 import { SubscriberTokenService } from '@api/modules/newsletter/services/subscriber-token.service';
+import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
 import { MediaService } from '@api/modules/media/services/media.service';
 import { Injectable } from '@nestjs/common';
@@ -72,36 +73,50 @@ export class CampaignsService {
 
   async create(actorId: string, dto: CreateCampaignDto): Promise<EmailCampaignAdminDto> {
     await this.ensureAdminActor(actorId);
-    const posts = await Promise.all(dto.postIds.map((postId) => this.requirePublishedPost(postId)));
+    const aggregates = await Promise.all(
+      dto.postIds.map((postId) => this.requireCampaignPost(postId)),
+    );
+    const posts = aggregates.map(({ post }) => post);
     const post = posts[0]!;
 
     const previewText =
       dto.previewText?.trim() ||
-      (posts.length === 1
+      (aggregates.length === 1
         ? `Leia o novo artigo: ${post.title}`
-        : `Confira ${posts.length} leituras selecionadas para você.`);
-    const snapshots = posts.map((item) => ({
-      coverAlt: item.cover?.altText ?? null,
-      coverUrl: item.cover ? this.mediaService.publicUrl(item.cover.storagePath) : null,
-      excerpt: item.excerpt,
+        : `Confira ${aggregates.length} leituras selecionadas para você.`);
+    const snapshots = aggregates.map(({ cover, post: item }) => ({
+      coverAlt: cover?.altText ?? null,
+      coverUrl: cover ? this.mediaService.publicUrl(cover.storagePath) : null,
+      excerpt: item.excerpt!,
       id: item.id,
-      publishedAt: item.publishedAt.toISOString(),
+      publishedAt: item.publishedAt!.toISOString(),
       readingTimeMinutes: item.readingTimeMinutes,
-      slug: item.slug,
+      slug: item.currentSlug!.value,
       title: item.title,
     }));
     const campaign = this.executeDomainAction(() =>
       EmailCampaign.create({
         createdById: actorId,
         htmlSnapshot: newsletterCampaignSnapshot({
-          articles: snapshots.map((snapshot) => ({
-            articleUrl: this.articleUrl(snapshot.slug),
-            coverAlt: snapshot.coverAlt,
-            coverUrl: snapshot.coverUrl,
-            excerpt: snapshot.excerpt,
-            title: snapshot.title,
+          articles: aggregates.map((aggregate, index) => ({
+            articleUrl: this.articleUrl(snapshots[index]!.slug),
+            authorName: aggregate.author.displayName,
+            content: aggregate.post.content.document,
+            coverAlt: snapshots[index]!.coverAlt,
+            ...(aggregate.cover
+              ? {
+                  coverPositionX: aggregate.cover.displayPositionX,
+                  coverPositionY: aggregate.cover.displayPositionY,
+                }
+              : {}),
+            coverUrl: snapshots[index]!.coverUrl,
+            excerpt: snapshots[index]!.excerpt,
+            publishedAt: snapshots[index]!.publishedAt,
+            readingTimeMinutes: snapshots[index]!.readingTimeMinutes,
+            title: snapshots[index]!.title,
           })),
           previewText,
+          siteUrl: this.frontendUrl,
         }),
         id: randomUUID(),
         now: new Date(),
@@ -290,6 +305,24 @@ export class CampaignsService {
     const campaign = await this.campaignsRepository.findById(id);
     if (!campaign) throw new CampaignNotFoundException();
     return campaign;
+  }
+
+  private async requireCampaignPost(id: string) {
+    const aggregate = await this.postsRepository.findById(id);
+    const post = aggregate?.post;
+
+    if (
+      !aggregate ||
+      !post ||
+      post.status !== PostStatus.PUBLISHED ||
+      !post.currentSlug ||
+      !post.excerpt ||
+      !post.publishedAt
+    ) {
+      throwCampaignDomainException(new CampaignPostNotPublishedError());
+    }
+
+    return aggregate;
   }
 
   private async requirePublishedPost(id: string) {
