@@ -1,5 +1,8 @@
 import type { AuthError } from '@supabase/supabase-js';
 
+const accountAlreadyExistsMessage =
+  'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.';
+
 import { createBrowserSupabaseClient } from '@web/lib/auth/supabase/client';
 
 import type { SignInCredentials, SignUpCredentials, SignUpResult } from '../types/auth.types';
@@ -54,6 +57,10 @@ export async function signUp(
 
   if (error) {
     throw new SafeAuthError(toSafeSignUpMessage(error));
+  }
+
+  if (data.user?.identities?.length === 0) {
+    throw new SafeAuthError(accountAlreadyExistsMessage);
   }
 
   return { status: data.session ? 'authenticated' : 'confirmation-required' };
@@ -136,6 +143,10 @@ function toSafeSignUpMessage(error: AuthError): string {
 
   if (error.code === 'weak_password') {
     return 'A senha não atende aos critérios de segurança.';
+  }
+
+  if (error.code === 'user_already_exists') {
+    return accountAlreadyExistsMessage;
   }
 
   return 'Não foi possível criar sua conta agora. Tente novamente em instantes.';
