@@ -6,6 +6,7 @@ describe('accountDeletionEmailTemplate', () => {
 
     expect(template.subject).toBe('Sua conta no Vavito Archives foi excluída');
     expect(template.html).toContain('Sentimos muito em ver você partir.');
+    expect(template.html).toContain('/brand/vavito-symbol.png');
     expect(template.text).toContain('seu acesso foi encerrado');
   });
 });
