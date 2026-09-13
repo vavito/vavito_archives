@@ -73,10 +73,9 @@ Nenhum teste de integração pode usar `DATABASE_URL`, `DIRECT_URL` ou `INTEGRAT
 
 ## Versão candidata
 
-Depois que a regressão completa passar e todos os arquivos da Sprint 8 estiverem commitados, a versão candidata deve apontar para o commit aprovado:
+A tag histórica `v0.1.0-rc.1` identifica a regressão aprovada da API na Sprint 8 e não deve ser
+movida. O congelamento do produto completo, os gates adicionais e a criação da próxima tag estão
+documentados no [runbook da release candidate](release-candidate.md).
 
-```bash
-git tag -a v0.1.0-rc.1 -m "Vavito Archives API v0.1.0-rc.1"
-```
-
-A tag não deve ser criada sobre um worktree sujo nem antes da aprovação dos commits da regressão. O envio ao repositório remoto acontece somente junto da entrega autorizada da branch.
+Nenhuma tag deve ser criada sobre um worktree sujo ou antes da aprovação dos commits e das
+validações da release.

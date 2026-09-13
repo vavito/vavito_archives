@@ -68,3 +68,7 @@ Depois que o workflow executar ao menos uma vez no GitHub, configure uma ruleset
 5. Selecione `Quality / API` e `Quality / Web` como checks obrigatórios.
 
 Essa configuração no GitHub é necessária para impedir o merge de uma pull request quando qualquer um dos dois checks falhar.
+
+Os checks do GitHub são parte do congelamento, mas não substituem os smoke tests dos provedores no
+ambiente de destino. A sequência completa de promoção e rollback está no
+[runbook da release candidate](release-candidate.md).
