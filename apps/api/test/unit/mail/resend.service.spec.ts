@@ -242,6 +242,7 @@ describe('ResendService', () => {
     const [payload, options] = send.mock.calls[0]!;
 
     expect(payload).toMatchObject({
+      from: 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>',
       subject: 'Bem-vindo ao Vavito Archives',
       to: 'leitor@example.com',
     });
