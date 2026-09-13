@@ -6,21 +6,21 @@ import { AccountNavigationAction } from '@web/components/navigation/account-navi
 const navigationMocks = vi.hoisted(() => ({
   refresh: vi.fn(),
   replace: vi.fn(),
-  signOut: vi.fn(),
+  signOutSession: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => navigationMocks,
 }));
 
-vi.mock('@web/lib/auth/supabase/client', () => ({
-  createBrowserSupabaseClient: () => ({ auth: { signOut: navigationMocks.signOut } }),
+vi.mock('@web/features/auth/session', () => ({
+  signOutSession: navigationMocks.signOutSession,
 }));
 
 describe('ação de conta do cabeçalho', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    navigationMocks.signOut.mockResolvedValue({ error: null });
+    navigationMocks.signOutSession.mockResolvedValue(undefined);
   });
 
   it('oferece entrada somente quando não existe uma sessão', () => {
@@ -78,14 +78,16 @@ describe('ação de conta do cabeçalho', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Fazer Logout' }));
 
     await waitFor(() => {
-      expect(navigationMocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
+      expect(navigationMocks.signOutSession).toHaveBeenCalledOnce();
       expect(navigationMocks.replace).toHaveBeenCalledWith('/');
       expect(navigationMocks.refresh).toHaveBeenCalled();
     });
   });
 
   it('permite repetir a saída quando a conexão falha sem expor detalhes', async () => {
-    navigationMocks.signOut.mockRejectedValueOnce(new Error('fetch failed with private details'));
+    navigationMocks.signOutSession.mockRejectedValueOnce(
+      new Error('fetch failed with private details'),
+    );
     render(
       <AccountNavigationAction
         account={{ avatarUrl: null, displayName: 'João Victor', isAdmin: false }}
