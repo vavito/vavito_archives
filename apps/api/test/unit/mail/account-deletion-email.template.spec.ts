@@ -2,7 +2,7 @@ import { accountDeletionEmailTemplate } from '@api/core/mail/templates/account-d
 
 describe('accountDeletionEmailTemplate', () => {
   it('informa a exclusão com uma despedida amigável', () => {
-    const template = accountDeletionEmailTemplate();
+    const template = accountDeletionEmailTemplate('https://vavitoarchives.com.br');
 
     expect(template.subject).toBe('Sua conta no Vavito Archives foi excluída');
     expect(template.html).toContain('Sentimos muito em ver você partir.');

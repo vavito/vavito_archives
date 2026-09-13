@@ -13,6 +13,7 @@ describe('newCommentEmailTemplate', () => {
         postTitle: 'Artigo & segurança',
       },
       'https://vavitoarchives.com.br/admin/comments',
+      'https://vavitoarchives.com.br',
     );
 
     expect(template.html).toContain('&lt;Leitor&gt;');
@@ -34,6 +35,7 @@ describe('newCommentEmailTemplate', () => {
         postTitle: 'Artigo',
       },
       'https://vavitoarchives.com.br/admin/comments',
+      'https://vavitoarchives.com.br',
     );
 
     expect(template.text).toContain(`${'😀'.repeat(NEW_COMMENT_EXCERPT_MAX_LENGTH)}…`);
