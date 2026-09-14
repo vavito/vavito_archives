@@ -2,7 +2,7 @@
 
 Monorepo do Vavito Archives, composto pela API NestJS, pela aplicação web Next.js e por pacotes compartilhados.
 
-Versão candidata atual: `v0.1.0-rc.2`. Consulte o [changelog](CHANGELOG.md) e o
+Versão candidata atual: `v0.1.0-rc.3`. Consulte o [changelog](CHANGELOG.md) e o
 [runbook da release candidate](docs/development/release-candidate.md) antes de promover um ambiente.
 
 ## Requisitos
@@ -184,9 +184,9 @@ registre o commit atualmente em produção e crie um backup verificável do Post
 promoção, os smoke tests, as limitações conhecidas e o plano de rollback estão em
 [`docs/development/release-candidate.md`](docs/development/release-candidate.md).
 
-A tag `v0.1.0-rc.2` só deve ser criada sobre o commit aprovado, com worktree limpo e todas as
-validações obrigatórias concluídas. A tag `v0.1.0-rc.1` permanece imutável como registro da RC da
-API produzida na Sprint 8.
+A tag `v0.1.0-rc.3` só deve ser criada sobre o commit aprovado, com worktree limpo e todas as
+validações obrigatórias concluídas. As tags `v0.1.0-rc.1` e `v0.1.0-rc.2` permanecem imutáveis como
+registros das candidatas anteriores.
 
 ## Qualidade e aliases
 

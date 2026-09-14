@@ -3,6 +3,14 @@
 As mudanças relevantes do Vavito Archives são registradas neste arquivo. O projeto segue
 [Versionamento Semântico](https://semver.org/lang/pt-BR/) durante a preparação da V1.
 
+## [0.1.0-rc.3] - 2026-09-13
+
+### Corrigido
+
+- execução do Lighthouse reconhece tanto a CLI JavaScript quanto o binário nativo do pnpm no
+  Windows e no Linux;
+- suíte pública limita a concorrência no runner da CI para não disputar CPU com o servidor Next.js.
+
 ## [0.1.0-rc.2] - 2026-09-13
 
 ### Adicionado
@@ -60,5 +68,6 @@ do runbook antes do deploy.
   backend;
 - tag preservada como marco histórico da Sprint 8.
 
+[0.1.0-rc.3]: https://github.com/vavito/vavito_archives/compare/v0.1.0-rc.2...v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/vavito/vavito_archives/compare/v0.1.0-rc.1...v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/vavito/vavito_archives/releases/tag/v0.1.0-rc.1

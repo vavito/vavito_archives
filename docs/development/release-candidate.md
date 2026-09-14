@@ -1,14 +1,14 @@
 # Release candidate da V1
 
-Este runbook congela o Vavito Archives `v0.1.0-rc.2` e define a evidência mínima para promover ou
-reverter a aplicação. A tag anterior, `v0.1.0-rc.1`, representa apenas o marco de hardening da API e
-permanece imutável.
+Este runbook congela o Vavito Archives `v0.1.0-rc.3` e define a evidência mínima para promover ou
+reverter a aplicação. As tags anteriores, `v0.1.0-rc.1` e `v0.1.0-rc.2`, registram o hardening da
+API e o primeiro congelamento full stack e permanecem imutáveis.
 
 ## Identificação da versão
 
-- versão do monorepo: `0.1.0-rc.2` em `package.json`;
-- versão exposta pela API: `APP_VERSION=0.1.0-rc.2`;
-- tag planejada: `v0.1.0-rc.2`;
+- versão do monorepo: `0.1.0-rc.3` em `package.json`;
+- versão exposta pela API: `APP_VERSION=0.1.0-rc.3`;
+- tag planejada: `v0.1.0-rc.3`;
 - histórico funcional: [`CHANGELOG.md`](../../CHANGELOG.md).
 
 O ambiente publicado deve definir `APP_VERSION` explicitamente. A resposta de
@@ -43,17 +43,17 @@ o worktree estiver limpo:
 
 ```bash
 git status --short
-git tag -a v0.1.0-rc.2 -m "Vavito Archives v0.1.0-rc.2"
-git show v0.1.0-rc.2 --no-patch
+git tag -a v0.1.0-rc.3 -m "Vavito Archives v0.1.0-rc.3"
+git show v0.1.0-rc.3 --no-patch
 ```
 
 O envio da tag acontece junto da entrega autorizada:
 
 ```bash
-git push origin v0.1.0-rc.2
+git push origin v0.1.0-rc.3
 ```
 
-Uma tag publicada nunca é movida. Uma correção posterior recebe `v0.1.0-rc.3`.
+Uma tag publicada nunca é movida. Uma correção posterior recebe `v0.1.0-rc.4`.
 
 ## Preparação do ambiente
 
@@ -74,7 +74,7 @@ As revisões detalhadas estão em [Segurança e privacidade](security-privacy-go
 ## Ordem de promoção
 
 1. aplique as migrations com `pnpm --filter @vavito/api prisma:migrate:deploy`;
-2. publique a API na Render com `APP_VERSION=0.1.0-rc.2`;
+2. publique a API na Render com `APP_VERSION=0.1.0-rc.3`;
 3. valide `GET /api/v1/health` e `GET /api/v1/health/ready`;
 4. publique a Web na Vercel apontando para a origem validada da API;
 5. execute os smoke tests abaixo antes de liberar a divulgação.
