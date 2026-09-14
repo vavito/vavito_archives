@@ -52,9 +52,9 @@ Execute na raiz:
 pnpm test:performance:web
 ```
 
-O comando cria uma build de produção, inicia uma API pública de fixture e audita duas vezes a home,
-a listagem de artigos e um artigo completo. O Lighthouse aplica diretamente sua limitação móvel de
-CPU e rede; a melhor medição das duas execuções precisa atender:
+O comando cria uma build de produção, inicia uma API pública de fixture e audita três vezes a home,
+a listagem de artigos e um artigo completo. O Lighthouse aplica a limitação móvel diretamente no
+navegador; a melhor medição das três execuções reduz variações entre runners e precisa atender:
 
 | Métrica | Meta |
 | --- | ---: |

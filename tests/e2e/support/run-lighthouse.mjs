@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import lighthouse from 'lighthouse';
 
+import { packageManagerCommand } from './package-manager-command.mjs';
+
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const e2eDirectory = resolve(currentDirectory, '..');
 const workspaceRoot = resolve(currentDirectory, '../../..');
@@ -26,18 +28,6 @@ const performanceEnv = {
   NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
   VAVITO_E2E: 'true',
 };
-
-function packageManagerCommand(args) {
-  if (process.env.npm_execpath) {
-    return { args: [process.env.npm_execpath, ...args], command: process.execPath, shell: false };
-  }
-
-  return {
-    args,
-    command: process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
-    shell: process.platform === 'win32',
-  };
-}
 
 function start(command, args, options = {}) {
   return spawn(command, args, {
@@ -166,7 +156,7 @@ try {
   for (const page of auditedPages) {
     const runs = [];
 
-    for (let runIndex = 1; runIndex <= 2; runIndex += 1) {
+    for (let runIndex = 1; runIndex <= 3; runIndex += 1) {
       const result = await lighthouse(page.url, {
         logLevel: 'error',
         output: ['html', 'json'],

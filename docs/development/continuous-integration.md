@@ -41,6 +41,10 @@ A suíte administrativa (`pnpm test:e2e:admin`) usa Next.js em `3102` e um dubl�
 
 O comando `pnpm test:e2e:full-stack` executa as três suítes em sequência e é a entrada usada pelo job `Quality / Web`. Além das regressões já existentes, ele cobre cadastro até comentário, inscrição e cancelamento da newsletter e envio de contato sem intervenção. Consulte [Jornadas E2E full stack](full-stack-e2e.md) para cobertura, isolamento e limites.
 
+No runner compartilhado da CI, a suíte pública usa um worker para não disputar CPU com o servidor
+Next.js. Localmente ela preserva dois workers. O launcher do Lighthouse distingue uma CLI JavaScript
+de um binário nativo do pnpm, permitindo a mesma execução no Windows e no Linux.
+
 O fixture existe apenas porque o PostgreSQL puro da CI não inclui o schema gerenciado pelo Supabase Auth. Ele contém somente as colunas consumidas pelo trigger de criação de `Profile`, é protegido pela mesma validação de URL local da suíte e nunca é aplicado ao Supabase.
 
 O banco de integração usa apenas `localhost`, possui o nome fixo `vavito_integration` e é descartado com o runner ao final da execução. O teste também remove os registros temporários em um bloco `finally`. Uma proteção no código recusa hosts remotos, inclusive URLs do Supabase, e recusa qualquer outro nome de banco.

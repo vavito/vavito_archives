@@ -57,5 +57,5 @@ export default defineConfig({
       url: webUrl,
     },
   ],
-  workers: 2,
+  workers: process.env.CI ? 1 : 2,
 });
