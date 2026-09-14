@@ -3,11 +3,10 @@ services:
     name: vavito-archives-api
     runtime: node
     region: virginia
-    plan: 0.5c-512mb
+    plan: free
     numInstances: 1
     autoDeployTrigger: off
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @vavito/api build
-    preDeployCommand: pnpm --filter @vavito/api prisma:migrate:deploy
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /api/v1/health
     maxShutdownDelaySeconds: 30

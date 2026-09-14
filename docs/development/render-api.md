@@ -10,7 +10,7 @@ compartilhadas usadas pelo build de `apps/api`.
 | --- | --- | --- |
 | serviço | `vavito-archives-api` | nome estável para o painel e o subdomínio da Render |
 | região | `virginia` | região disponível mais próxima do projeto Supabase em São Paulo |
-| plano | `0.5c-512mb` | menor instância paga; necessária para o pre-deploy da migration |
+| plano | `free` | ambiente inicial sem cobrança, sujeito a suspensão por inatividade |
 | instâncias | `1` | o rate limit atual usa memória local |
 | auto-deploy | `off` | a integração com os checks da CI será habilitada separadamente |
 | domínio | `api.vavitoarchives.com.br` | origem pública da API |
@@ -22,17 +22,24 @@ também `GET /api/v1/health/ready`, que confirma a conexão com o PostgreSQL.
 
 ## Pipeline do serviço
 
-Os comandos são executados pela raiz do repositório:
+Os comandos de build e start são executados pela raiz do repositório:
 
 ```bash
 pnpm install --frozen-lockfile && pnpm --filter @vavito/api build
-pnpm --filter @vavito/api prisma:migrate:deploy
 node apps/api/dist/main.js
 ```
 
-O segundo comando é o pre-deploy. Se a migration falhar, a nova versão não substitui a versão ativa.
-Esse recurso exige uma instância paga da Render; não mova migrations para o build, pois o build não
-é a etapa transacional de promoção do serviço.
+O plano gratuito não oferece o comando de pre-deploy da Render. Antes de publicar uma versão com
+novas migrations, execute manualmente, em uma rede que alcance o pooler de sessão do Supabase:
+
+```bash
+pnpm --filter @vavito/api prisma:migrate:status
+pnpm --filter @vavito/api prisma:migrate:deploy
+```
+
+Somente inicie o deploy depois que ambos terminarem sem erro. Não mova migrations para o build: ele
+não é a etapa transacional de promoção e pode ser repetido sem que a versão seja publicada. O
+auto-deploy permanece desligado para preservar essa ordem.
 
 ## Variáveis protegidas
 
@@ -64,12 +71,13 @@ Swagger desabilitado, CORS restrito a `https://vavitoarchives.com.br` e os remet
 
 1. envie o `render.yaml` para a branch aprovada no GitHub;
 2. na Render, crie um Blueprint conectado ao repositório privado e à branch principal;
-3. revise a instância paga antes de confirmar a criação;
+3. confirme que o plano selecionado é `Free` e não solicita uma forma de pagamento;
 4. informe somente no painel os valores protegidos solicitados;
-5. aguarde build, pre-deploy e start concluírem sem erro;
-6. configure no DNS o registro indicado pela Render para `api.vavitoarchives.com.br`;
-7. aguarde a emissão do certificado TLS;
-8. valide `https://api.vavitoarchives.com.br/api/v1/health` e
+5. confirme manualmente o status das migrations e só então inicie o deploy;
+6. aguarde build e start concluírem sem erro;
+7. configure no DNS o registro indicado pela Render para `api.vavitoarchives.com.br`;
+8. aguarde a emissão do certificado TLS;
+9. valide `https://api.vavitoarchives.com.br/api/v1/health` e
    `https://api.vavitoarchives.com.br/api/v1/health/ready`.
 
 O retorno de health deve informar `status: ok` e `version: 0.1.0-rc.3`. Readiness precisa informar o
@@ -81,3 +89,7 @@ Se build ou migration falhar, mantenha a versão anterior ativa e corrija a caus
 novamente. Para falha após a promoção, use o rollback da Render para o deploy anterior e repita
 health, readiness e os fluxos atingidos. Não execute `prisma migrate reset` nem remova migrations já
 aplicadas em produção.
+
+O serviço gratuito pode suspender após um período sem tráfego e apresentar atraso na primeira
+requisição seguinte. A migração para um plano pago permite restaurar o pre-deploy automático antes
+de habilitar auto-deploys.
