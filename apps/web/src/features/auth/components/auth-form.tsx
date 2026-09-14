@@ -345,6 +345,17 @@ export function AuthForm({
             {isSubmitting ? 'Aguarde…' : isSignUp ? 'Criar conta' : 'Entrar'}
           </span>
         </Button>
+
+        {isSignUp ? (
+          <p className="text-neutral-500 text-center text-xs leading-relaxed">
+            Ao criar sua conta, você também passa a receber a newsletter. É possível cancelar a
+            qualquer momento. Saiba mais na{' '}
+            <Link className="text-accent underline underline-offset-4" href="/privacidade">
+              página de privacidade
+            </Link>
+            .
+          </p>
+        ) : null}
       </form>
 
       {state.status === 'success' ? (

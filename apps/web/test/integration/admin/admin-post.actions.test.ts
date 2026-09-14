@@ -2,12 +2,14 @@ import { ApiClientError, type ApiClient } from '@vavito/api-client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  deleteAdminPostAction,
   discardAdminPostChangesAction,
   transitionAdminPostAction,
 } from '@web/features/admin/actions/admin-post.actions';
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
+  deletePost: vi.fn(),
   discard: vi.fn(),
   requireAdminSession: vi.fn(),
   revalidatePath: vi.fn(),
@@ -23,6 +25,7 @@ vi.mock('@web/features/admin/services/admin-session.service', () => ({
   requireAdminSession: mocks.requireAdminSession,
 }));
 vi.mock('@web/features/admin/services/admin-post-transitions.service', () => ({
+  deleteAdminPost: mocks.deletePost,
   discardAdminPostChanges: mocks.discard,
   transitionAdminPost: mocks.transition,
 }));
@@ -41,6 +44,7 @@ describe('ações de transição de artigos', () => {
     mocks.createClient.mockReturnValue(client);
     mocks.transition.mockResolvedValue(post);
     mocks.discard.mockResolvedValue(post);
+    mocks.deletePost.mockResolvedValue(undefined);
   });
 
   it('publica com a sessão administrativa e revalida as páginas afetadas', async () => {
@@ -97,5 +101,14 @@ describe('ações de transição de artigos', () => {
     });
     expect(mocks.discard).toHaveBeenCalledWith(post.id, client);
     expect(mocks.revalidatePath).toHaveBeenCalledWith(`/admin/posts/${post.id}/preview`);
+  });
+
+  it('exclui definitivamente e revalida o endereço público', async () => {
+    await expect(deleteAdminPostAction(post.id, post.slug)).resolves.toEqual({
+      message: 'Artigo excluído definitivamente.',
+      ok: true,
+    });
+    expect(mocks.deletePost).toHaveBeenCalledWith(post.id, client);
+    expect(mocks.revalidatePath).toHaveBeenCalledWith(`/artigos/${post.slug}`);
   });
 });

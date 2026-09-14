@@ -6,10 +6,15 @@ import EmailConfirmedPage from '@web/app/(auth)/auth/confirmed/page';
 const confirmedPageMocks = vi.hoisted(() => ({
   getAuthenticatedSession: vi.fn(),
   redirect: vi.fn(),
+  subscribeConfirmedAccount: vi.fn(),
 }));
 
 vi.mock('@web/lib/auth/authenticated-session', () => ({
   getAuthenticatedSession: confirmedPageMocks.getAuthenticatedSession,
+}));
+
+vi.mock('@web/features/newsletter/services/subscribe-confirmed-account', () => ({
+  subscribeConfirmedAccount: confirmedPageMocks.subscribeConfirmedAccount,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -23,6 +28,7 @@ describe('página de e-mail confirmado', () => {
       accessToken: 'access-token',
       email: 'leitor@example.com',
     });
+    confirmedPageMocks.subscribeConfirmedAccount.mockResolvedValue(undefined);
     confirmedPageMocks.redirect.mockImplementation(() => {
       throw new Error('NEXT_REDIRECT');
     });
@@ -38,6 +44,17 @@ describe('página de e-mail confirmado', () => {
       'href',
       '/perfil',
     );
+    expect(confirmedPageMocks.subscribeConfirmedAccount).toHaveBeenCalledWith('access-token');
+  });
+
+  it('mantém a confirmação disponível quando a inscrição automática falha', async () => {
+    confirmedPageMocks.subscribeConfirmedAccount.mockRejectedValueOnce(new Error('API offline'));
+
+    render(await EmailConfirmedPage());
+
+    expect(
+      screen.getByRole('heading', { name: 'E-mail confirmado com sucesso!' }),
+    ).toBeInTheDocument();
   });
 
   it('não apresenta sucesso sem uma sessão confirmada', async () => {

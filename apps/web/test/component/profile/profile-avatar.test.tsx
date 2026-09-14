@@ -10,7 +10,7 @@ describe('avatar do perfil', () => {
     );
 
     expect(screen.getByRole('status', { name: 'Carregando foto do perfil' })).toHaveClass(
-      'profile-avatar-loading',
+      'image-loading',
     );
 
     fireEvent.load(screen.getByAltText('Foto de João Victor'));

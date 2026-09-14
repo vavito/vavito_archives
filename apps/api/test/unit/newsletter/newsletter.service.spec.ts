@@ -66,6 +66,24 @@ function subscriberWithStatus(status: SubscriberStatus): Subscriber {
   return subscriber;
 }
 
+function confirmedAccountSubscriber(confirmedAt: Date): Subscriber {
+  const createdAt = new Date(confirmedAt.getTime() - 60_000);
+  const subscriber = Subscriber.subscribe({
+    confirmationExpiresAt: new Date(confirmedAt.getTime() + 60_000),
+    confirmationTokenHash: CONFIRMATION_HASH,
+    consent: SubscriberConsent.create({
+      consentedAt: createdAt,
+      source: SubscriberConsentSource.ACCOUNT,
+    }),
+    email: SubscriberEmail.create('leitor@example.com'),
+    id: ID,
+    now: createdAt,
+    unsubscribeTokenHash: UNSUBSCRIBE_HASH,
+  });
+  subscriber.confirmVerifiedAccount(confirmedAt);
+  return subscriber;
+}
+
 describe('NewsletterService', () => {
   const createIfEmailAvailable = jest.fn<Promise<boolean>, [Subscriber]>();
   const findByConfirmationTokenHash = jest.fn<Promise<Subscriber | null>, [string]>();
@@ -81,6 +99,10 @@ describe('NewsletterService', () => {
     Promise<unknown>,
     [NewsletterConfirmationNotification]
   >();
+  const sendWelcomeNotification = jest.fn<
+    Promise<unknown>,
+    [{ recipient: string; subscriberId: string }]
+  >();
   const repository = {
     createIfEmailAvailable,
     findByConfirmationTokenHash,
@@ -93,7 +115,10 @@ describe('NewsletterService', () => {
     hash,
     unsubscribeFor,
   } as unknown as SubscriberTokenService;
-  const mailService = { sendNewsletterConfirmation } as unknown as MailService;
+  const mailService = {
+    sendNewsletterConfirmation,
+    sendWelcomeNotification,
+  } as unknown as MailService;
   const service = new NewsletterService(repository, tokenService, mailService);
   const subscribeDto = {
     consent: true as const,
@@ -109,6 +134,7 @@ describe('NewsletterService', () => {
     createIfEmailAvailable.mockResolvedValue(true);
     save.mockResolvedValue(undefined);
     sendNewsletterConfirmation.mockResolvedValue(undefined);
+    sendWelcomeNotification.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -218,13 +244,73 @@ describe('NewsletterService', () => {
     expect(save).toHaveBeenCalledWith(subscriber);
   });
 
-  it('inclui uma conta confirmada sem enviar outro email de confirmação', async () => {
+  it('inclui uma conta confirmada e envia boas-vindas uma única vez', async () => {
     await service.subscribeConfirmedAccount('leitor@example.com');
     const created = createIfEmailAvailable.mock.calls[0]?.[0];
 
     expect(created?.status).toBe(SubscriberStatus.CONFIRMED);
     expect(created?.consent.source).toBe(SubscriberConsentSource.ACCOUNT);
     expect(sendNewsletterConfirmation).not.toHaveBeenCalled();
+    expect(sendWelcomeNotification).toHaveBeenCalledWith({
+      recipient: 'leitor@example.com',
+      subscriberId: created?.id,
+    });
+  });
+
+  it('aguarda a solicitação das boas-vindas antes de concluir a inscrição da conta', async () => {
+    let acceptWelcome: (() => void) | undefined;
+    let markWelcomeStarted: (() => void) | undefined;
+    const welcomeStarted = new Promise<void>((resolve) => {
+      markWelcomeStarted = resolve;
+    });
+    sendWelcomeNotification.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          acceptWelcome = resolve;
+          markWelcomeStarted?.();
+        }),
+    );
+    let completed = false;
+    const subscription = service
+      .subscribeConfirmedAccount('leitor@example.com')
+      .then(() => (completed = true));
+
+    await welcomeStarted;
+    expect(sendWelcomeNotification).toHaveBeenCalledTimes(1);
+    expect(completed).toBe(false);
+
+    acceptWelcome?.();
+    await subscription;
+    expect(completed).toBe(true);
+  });
+
+  it('não envia boas-vindas para uma inscrição HOME já confirmada', async () => {
+    findByEmail.mockResolvedValueOnce(subscriberWithStatus(SubscriberStatus.CONFIRMED));
+
+    await service.subscribeConfirmedAccount('leitor@example.com');
+
+    expect(sendWelcomeNotification).not.toHaveBeenCalled();
+  });
+
+  it('repete de forma idempotente as boas-vindas logo após confirmar a conta', async () => {
+    const confirmedAt = new Date(NOW.getTime() - 5 * 60 * 1_000);
+    findByEmail.mockResolvedValueOnce(confirmedAccountSubscriber(confirmedAt));
+
+    await service.subscribeConfirmedAccount('leitor@example.com');
+
+    expect(sendWelcomeNotification).toHaveBeenCalledWith({
+      recipient: 'leitor@example.com',
+      subscriberId: ID,
+    });
+  });
+
+  it('não repete as boas-vindas depois da janela idempotente da confirmação', async () => {
+    const confirmedAt = new Date(NOW.getTime() - 25 * 60 * 60 * 1_000);
+    findByEmail.mockResolvedValueOnce(confirmedAccountSubscriber(confirmedAt));
+
+    await service.subscribeConfirmedAccount('leitor@example.com');
+
+    expect(sendWelcomeNotification).not.toHaveBeenCalled();
   });
 
   it('respeita o cancelamento anterior ao confirmar uma conta', async () => {
@@ -234,6 +320,7 @@ describe('NewsletterService', () => {
 
     expect(save).not.toHaveBeenCalled();
     expect(createIfEmailAvailable).not.toHaveBeenCalled();
+    expect(sendWelcomeNotification).not.toHaveBeenCalled();
   });
 
   it('rejeita token de confirmação desconhecido', async () => {

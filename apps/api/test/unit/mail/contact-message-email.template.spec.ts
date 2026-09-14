@@ -2,13 +2,16 @@ import { contactMessageEmailTemplate } from '@api/core/mail/templates/contact-me
 
 describe('contactMessageEmailTemplate', () => {
   it('escapa dados externos e não inclui o email do visitante no conteúdo', () => {
-    const template = contactMessageEmailTemplate({
-      contactMessageId: '49d6cdaa-a5f5-4716-9b27-39006338557b',
-      message: '<script>alert("x")</script>\nSegunda linha',
-      name: '<Leitor>',
-      replyTo: 'leitor@example.com',
-      subject: 'Sugestão & dúvida',
-    });
+    const template = contactMessageEmailTemplate(
+      {
+        contactMessageId: '49d6cdaa-a5f5-4716-9b27-39006338557b',
+        message: '<script>alert("x")</script>\nSegunda linha',
+        name: '<Leitor>',
+        replyTo: 'leitor@example.com',
+        subject: 'Sugestão & dúvida',
+      },
+      'https://vavitoarchives.com.br',
+    );
 
     expect(template.subject).toBe('Novo contato: Sugestão & dúvida');
     expect(template.html).toContain('&lt;Leitor&gt;');

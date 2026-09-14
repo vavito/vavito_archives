@@ -38,6 +38,11 @@ export interface NewsletterCampaignNotification {
   unsubscribeToken: string;
 }
 
+export interface WelcomeNotification {
+  recipient: string;
+  subscriberId: string;
+}
+
 export interface MailDelivery {
   messageId: string;
   provider: 'resend';
@@ -57,4 +62,5 @@ export abstract class MailService {
   abstract sendNewsletterCampaign(
     notification: NewsletterCampaignNotification,
   ): Promise<MailDelivery>;
+  abstract sendWelcomeNotification(notification: WelcomeNotification): Promise<MailDelivery>;
 }

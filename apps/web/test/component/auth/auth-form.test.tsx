@@ -165,6 +165,11 @@ describe('AuthForm', () => {
     expect(indicator).toHaveClass('translate-x-full');
     expect(fields.firstElementChild).toHaveClass('auth-mode-enter-forward');
     expect(screen.getByRole('heading', { name: 'Crie sua conta' })).toBeInTheDocument();
+    expect(screen.getByText(/também passa a receber a newsletter/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'página de privacidade' })).toHaveAttribute(
+      'href',
+      '/privacidade',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'Selecionar entrada' }));
 
@@ -172,7 +177,7 @@ describe('AuthForm', () => {
     expect(fields.firstElementChild).toHaveClass('auth-mode-enter-backward');
   });
 
-  it('solicita o cadastro com nome público e feedback sem enumeração', async () => {
+  it('solicita o cadastro com nome público e abre a etapa de confirmação', async () => {
     render(<AuthForm />);
     fireEvent.click(screen.getByRole('button', { name: 'Selecionar criação de conta' }));
     fillSignUp();
@@ -193,5 +198,23 @@ describe('AuthForm', () => {
     expect(screen.getByText(/leitor@example.com/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reenviar em 60s' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Criar conta' })).not.toBeInTheDocument();
+  });
+
+  it('mantém o formulário e orienta quando o e-mail já possui conta', async () => {
+    authMocks.signUp.mockRejectedValueOnce(
+      new SafeAuthError(
+        'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.',
+      ),
+    );
+    render(<AuthForm initialMode="sign-up" />);
+    fillSignUp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.',
+    );
+    expect(screen.getByRole('button', { name: 'Criar conta' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Cadastro realizado!' })).not.toBeInTheDocument();
   });
 });

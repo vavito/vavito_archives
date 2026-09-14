@@ -21,7 +21,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => routerMocks,
 }));
 
-vi.mock('@web/features/auth', () => ({ signOutSession: profileMocks.signOutSession }));
+vi.mock('@web/features/auth/session', () => ({ signOutSession: profileMocks.signOutSession }));
 
 vi.mock('@web/features/profile/services/profile.service', () => ({
   SafeProfileActionError: class SafeProfileActionError extends Error {},

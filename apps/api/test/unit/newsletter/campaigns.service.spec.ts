@@ -17,6 +17,7 @@ import type { SubscribersRepository } from '@api/modules/newsletter/repositories
 import { CampaignsService } from '@api/modules/newsletter/services/campaigns.service';
 import type { SubscriberTokenService } from '@api/modules/newsletter/services/subscriber-token.service';
 import type { PostsRepository } from '@api/modules/posts/repositories/posts.repository';
+import type { Post } from '@api/modules/posts/domain/entities/post.entity';
 import { ConfigService } from '@nestjs/config';
 
 const ACTOR_ID = '501b31f5-9918-4614-a38e-fb307406be88';
@@ -39,6 +40,43 @@ function publishedPost() {
     slug: 'artigo-publicado',
     title: 'Artigo publicado',
   } as Awaited<ReturnType<PostsRepository['findPublishedReferenceById']>>;
+}
+
+function publishedCampaignPost(): Awaited<ReturnType<PostsRepository['findById']>> {
+  return {
+    author: { avatarPath: null, displayName: 'João Victor', id: ACTOR_ID },
+    cover: {
+      altText: 'Capa do artigo',
+      displayPositionX: 35,
+      displayPositionY: 65,
+      displayScale: 120,
+      id: '0a2adce3-a99c-46f5-b402-06719ef60502',
+      storagePath: 'posts/capa.webp',
+    },
+    pendingDraft: null,
+    pendingEditedAt: null,
+    post: {
+      content: {
+        document: {
+          content: [
+            {
+              content: [{ text: 'Conteúdo completo da publicação.', type: 'text' }],
+              type: 'paragraph',
+            },
+          ],
+          type: 'doc',
+        },
+      },
+      currentSlug: { value: 'artigo-publicado' },
+      excerpt: 'Resumo do artigo.',
+      id: POST_ID,
+      publishedAt: new Date('2026-08-24T12:00:00.000Z'),
+      readingTimeMinutes: 5,
+      status: 'PUBLISHED',
+      title: 'Artigo publicado',
+    } as unknown as Post,
+    tags: [],
+  };
 }
 
 function confirmedSubscriber(): Subscriber {
@@ -89,7 +127,9 @@ describe('CampaignsService', () => {
   const listEligibleForCampaign = jest.fn();
   const subscribersRepository = { listEligibleForCampaign } as unknown as SubscribersRepository;
   const findPublishedReferenceById = jest.fn();
+  const findPostById = jest.fn();
   const postsRepository = {
+    findById: findPostById,
     findPublishedReferenceById,
   } as unknown as PostsRepository;
   const findActiveRoleByProfileId = jest.fn();
@@ -150,6 +190,7 @@ describe('CampaignsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     findActiveRoleByProfileId.mockResolvedValue(UserRole.ADMIN);
+    findPostById.mockResolvedValue(publishedCampaignPost());
     findPublishedReferenceById.mockResolvedValue(publishedPost());
     create.mockResolvedValue(undefined);
     save.mockResolvedValue(undefined);
@@ -174,6 +215,9 @@ describe('CampaignsService', () => {
     expect(persisted.htmlSnapshot).toContain(NEWSLETTER_UNSUBSCRIBE_PLACEHOLDER);
     expect(persisted.htmlSnapshot).toContain('/artigos/artigo-publicado');
     expect(persisted.htmlSnapshot).toContain('https://cdn.example.com/posts/capa.webp');
+    expect(persisted.htmlSnapshot).toContain('Conteúdo completo da publicação.');
+    expect(persisted.htmlSnapshot).toContain('João Victor');
+    expect(persisted.htmlSnapshot).toContain('/brand/vavito-symbol.png');
   });
 
   it('inicia atomicamente, envia para confirmados e conclui a campanha', async () => {

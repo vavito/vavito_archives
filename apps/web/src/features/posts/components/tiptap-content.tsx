@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 
+import { ProgressiveImage } from '@web/components/feedback/progressive-image';
+
 import type { TiptapMark, TiptapNode } from '../types/posts.types';
 
 interface TiptapContentProps {
@@ -23,6 +25,14 @@ function readDocument(content: Record<string, unknown>): TiptapNode[] {
 function attributeString(attrs: Record<string, unknown> | undefined, key: string): string | null {
   const value = attrs?.[key];
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function attributeDimension(
+  attrs: Record<string, unknown> | undefined,
+  key: string,
+): number | null {
+  const value = attrs?.[key];
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
 }
 
 function safeUrl(value: string | null, protocols: readonly string[]): string | null {
@@ -126,16 +136,23 @@ function renderNode(node: TiptapNode, key: string): ReactNode {
 
       const alt = attributeString(node.attrs, 'alt') ?? '';
       const title = attributeString(node.attrs, 'title') ?? undefined;
+      const width = attributeDimension(node.attrs, 'width') ?? 1200;
+      const height = attributeDimension(node.attrs, 'height') ?? 675;
 
       return (
         <figure key={key}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- URLs editoriais são dinâmicas e já chegam dimensionadas pelo pipeline de mídia. */}
-          <img
+          <ProgressiveImage
             alt={alt}
             className="h-auto w-full rounded-2xl"
+            containerClassName="w-full rounded-2xl"
+            height={height}
             loading="lazy"
+            loadingLabel={alt ? `Carregando ${alt}` : 'Carregando imagem do artigo'}
+            quality={80}
+            sizes="(max-width: 768px) calc(100vw - 2rem), 768px"
             src={src}
             title={title}
+            width={width}
           />
           {title ? <figcaption>{title}</figcaption> : null}
         </figure>

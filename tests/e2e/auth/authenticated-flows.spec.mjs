@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
 const fixtureUrl = 'http://127.0.0.1:4101';
 const articlePath = '/artigos/arquitetura-nestjs';
@@ -11,11 +12,74 @@ async function newReader(request) {
 
 async function login(page, reader, next = '/perfil') {
   await page.goto(`/auth?next=${encodeURIComponent(next)}`);
+  await page.waitForLoadState('networkidle');
   await page.getByLabel('E-mail', { exact: true }).fill(reader.email);
   await page.getByLabel('Senha', { exact: true }).fill(reader.password);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`${next}$`, 'u'));
+  await page.waitForLoadState('networkidle');
 }
+
+async function expandLongComment(card) {
+  await expect(async () => {
+    const expand = card.getByRole('button', { name: 'Ler mais', exact: true });
+    if (await expand.isVisible()) await expand.click();
+    await expect(card.getByRole('button', { name: 'Mostrar menos', exact: true })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+      { timeout: 1_000 },
+    );
+  }).toPass({ timeout: 15_000 });
+}
+
+test('cadastro confirmado cria a sessão, inscreve na newsletter e permite comentar', async ({
+  page,
+  request,
+}) => {
+  const email = `cadastro-${randomUUID()}@example.test`;
+  const password = 'Cadastro@E2E123';
+
+  await page.goto(`/auth?mode=cadastro&next=${encodeURIComponent(articlePath)}`);
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Crie sua conta' })).toBeVisible();
+  await page.getByLabel('Nome', { exact: true }).fill('Novo leitor');
+  await page.getByLabel('E-mail', { exact: true }).fill(email);
+  await page.getByLabel('Senha', { exact: true }).fill(password);
+  await page.getByLabel('Confirme a senha', { exact: true }).fill(password);
+  await page.locator('form').getByRole('button', { name: 'Criar conta', exact: true }).click();
+
+  await expect(page.getByRole('heading', { name: 'Cadastro realizado!' })).toBeVisible();
+  await expect(page.getByText(email, { exact: true })).toBeVisible();
+
+  const confirmationResponse = await request.get(
+    `${fixtureUrl}/__test/signup-confirmation?email=${encodeURIComponent(email)}`,
+  );
+  expect(confirmationResponse.ok()).toBe(true);
+  const { tokenHash } = await confirmationResponse.json();
+
+  await page.goto(
+    `/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=signup&next=/auth/confirmed`,
+  );
+  await expect(page).toHaveURL(/\/auth\/confirmed$/u);
+  await expect(page.getByRole('heading', { name: 'E-mail confirmado com sucesso!' })).toBeVisible();
+
+  const subscription = await request.get(
+    `${fixtureUrl}/__test/newsletter-subscriptions?email=${encodeURIComponent(email)}`,
+  );
+  expect(await subscription.json()).toEqual({ subscribed: true });
+
+  await page.getByRole('link', { name: 'Acessar minha conta' }).click();
+  await expect(page).toHaveURL(/\/perfil$/u);
+  await page.goto(articlePath);
+  await page.waitForLoadState('networkidle');
+
+  const comment = `Primeiro comentário após o cadastro ${randomUUID()}`;
+  const commentInput = page.getByLabel('Deixe seu comentário');
+  await commentInput.pressSequentially(comment);
+  await expect(commentInput).toHaveValue(comment);
+  await page.getByRole('button', { name: 'Comentar', exact: true }).click();
+  await expect(page.getByRole('paragraph').filter({ hasText: comment })).toBeVisible();
+});
 
 test('login, atualização de perfil e logout acessível também no mobile', async ({
   page,
@@ -30,6 +94,7 @@ test('login, atualização de perfil e logout acessível também no mobile', asy
     page.getByRole('status').filter({ hasText: 'Seu nome foi atualizado.' }),
   ).toBeVisible();
   await page.reload();
+  await page.waitForLoadState('networkidle');
   await expect(page.getByLabel('Nome', { exact: true })).toHaveValue('Leitor atualizado');
   const profileLogout = page
     .getByRole('main')
@@ -45,7 +110,7 @@ test('login, atualização de perfil e logout acessível também no mobile', asy
       .click();
     await page.getByRole('menuitem', { name: 'Fazer Logout' }).click();
   }
-  await expect(page).toHaveURL('http://127.0.0.1:3101/');
+  await expect(page).toHaveURL('http://localhost:3101/');
   await page.goto('/perfil');
   await expect(page).toHaveURL(/\/auth\?/u);
   await expect(page.getByRole('heading', { name: 'Que bom ter você aqui' })).toBeVisible();
@@ -138,9 +203,9 @@ test('comentário e resposta crescem com limite, quebram palavras e não alargam
   await expect(page.getByRole('status').filter({ hasText: 'Comentário publicado.' })).toBeVisible();
   const publishedPreview = page.getByRole('paragraph').filter({ hasText: reader.id });
   const card = publishedPreview.locator('xpath=ancestor::article[1]');
-  await card.getByRole('button', { name: 'Ler mais' }).click();
-  const published = card.getByRole('paragraph').filter({ hasText: content });
-  await expect(published).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Responder', exact: true })).toBeEnabled();
+  await expandLongComment(card);
+  await expect(publishedPreview).toHaveText(content);
   await card.getByRole('button', { name: 'Responder', exact: true }).click();
   const reply = card.getByRole('textbox');
   const replyInitial = await reply.evaluate((el) => el.offsetHeight);
@@ -162,19 +227,24 @@ test('comentário e resposta crescem com limite, quebram palavras e não alargam
     ),
   ).toBe(true);
   await card.getByRole('button', { name: 'Responder', exact: true }).last().click();
-  await card.getByRole('button', { name: 'Ler mais' }).click();
-  await expect(card.getByRole('paragraph').filter({ hasText: replyContent })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Resposta publicada.' })).toBeVisible();
+  const replyPreview = card
+    .getByRole('paragraph')
+    .filter({ hasText: `${reader.id} ${'y'.repeat(100)}` });
+  const replyCard = replyPreview.locator('xpath=ancestor::article[1]');
+  await expect(replyCard.getByRole('button', { name: 'Editar', exact: true })).toBeEnabled();
+  await expandLongComment(replyCard);
+  await expect(replyPreview).toHaveText(replyContent);
   expect(
     await page.evaluate(
       () => globalThis.document.documentElement.scrollWidth <= globalThis.innerWidth,
     ),
   ).toBe(true);
-  await card.getByRole('button', { name: 'Excluir', exact: true }).first().click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Excluir', exact: true }).click();
 });
 
 test('visitante recebe orientação para entrar ao salvar ou reagir', async ({ page }) => {
   await page.goto(articlePath);
+  await page.waitForLoadState('networkidle');
   await page.getByRole('button', { name: 'Salvar artigo', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByRole('dialog').getByRole('link').first()).toHaveAttribute('href', /auth/u);
@@ -197,7 +267,8 @@ test('salvos são privados, persistem e podem ser desfeitos', async ({ page, req
     const other = await otherContext.newPage();
     const otherReader = await newReader(request);
     // A separate context has no cookies from the first account.
-    await other.goto('http://127.0.0.1:3101/auth?next=/salvos');
+    await other.goto('http://localhost:3101/auth?next=/salvos');
+    await other.waitForLoadState('networkidle');
     await other.getByLabel('E-mail', { exact: true }).fill(otherReader.email);
     await other.getByLabel('Senha', { exact: true }).fill(otherReader.password);
     await other.getByRole('button', { name: 'Entrar', exact: true }).click();

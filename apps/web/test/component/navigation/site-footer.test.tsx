@@ -9,6 +9,10 @@ describe('SiteFooter', () => {
 
     const navigation = screen.getByRole('navigation', { name: 'Links do rodapé' });
 
+    expect(screen.getByRole('link', { name: 'Vavito Archives — início' })).toHaveAttribute(
+      'href',
+      '/',
+    );
     expect(navigation).toContainElement(screen.getByRole('link', { name: 'Sobre' }));
     expect(screen.getByRole('link', { name: 'Sobre' })).toHaveAttribute('href', '/sobre');
     expect(screen.getByRole('link', { name: 'Privacidade' })).toHaveAttribute(

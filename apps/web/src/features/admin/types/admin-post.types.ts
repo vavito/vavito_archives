@@ -63,3 +63,6 @@ export type AdminPostTransitionResult =
       message: string;
       ok: false;
     };
+
+export type AdminPostDeleteResult =
+  { message: string; ok: true } | { code: string | null; message: string; ok: false };

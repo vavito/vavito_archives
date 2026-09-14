@@ -25,7 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="grid gap-2">
         {label ? (
           <label
-            className="text-neutral-500 text-[11px] font-medium tracking-[0.16em] uppercase"
+            className="text-neutral-400 text-[11px] font-medium tracking-[0.16em] uppercase"
             htmlFor={fieldId}
           >
             {label}

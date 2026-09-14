@@ -24,6 +24,7 @@ const data: ArticlePageData = {
     coverAlt: 'Diagrama de arquitetura',
     coverPositionX: 35,
     coverPositionY: 70,
+    coverScale: 125,
     coverUrl: 'https://storage.test/media/capa.webp',
     excerpt: 'Uma visão prática da arquitetura.',
     id: '019c2d62-6e90-7000-8000-000000000010',
@@ -72,10 +73,13 @@ describe('ArticlePageContent', () => {
       'src',
       data.post.coverUrl,
     );
-    expect(screen.getByRole('img', { name: 'Diagrama de arquitetura' })).toHaveStyle({
+    const cover = screen.getByRole('img', { name: 'Diagrama de arquitetura' });
+    expect(cover).toHaveStyle({
       objectPosition: '35% 70%',
+      transform: 'scale(1.25)',
       transformOrigin: '35% 70%',
     });
+    expect(cover.parentElement).toHaveClass('overflow-hidden', 'rounded-2xl', 'border');
     expect(screen.getByText('Conteúdo renderizado no servidor.')).toBeInTheDocument();
     expect(screen.getByLabelText('Autor do artigo')).toHaveTextContent('João Victor');
     expect(screen.getByLabelText('Iniciais de João Victor')).toHaveTextContent('JV');

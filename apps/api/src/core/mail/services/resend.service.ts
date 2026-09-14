@@ -10,12 +10,14 @@ import {
   type NewCommentNotification,
   type NewsletterCampaignNotification,
   type NewsletterConfirmationNotification,
+  type WelcomeNotification,
 } from '@api/core/mail/services/mail.service';
 import { accountDeletionEmailTemplate } from '@api/core/mail/templates/account-deletion-email.template';
 import { contactMessageEmailTemplate } from '@api/core/mail/templates/contact-message-email.template';
 import { newCommentEmailTemplate } from '@api/core/mail/templates/new-comment-email.template';
 import { newsletterCampaignDeliveryTemplate } from '@api/core/mail/templates/newsletter-campaign-email.template';
 import { newsletterConfirmationEmailTemplate } from '@api/core/mail/templates/newsletter-confirmation-email.template';
+import { welcomeEmailTemplate } from '@api/core/mail/templates/welcome-email.template';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { CreateEmailRequestOptions, ErrorResponse } from 'resend';
@@ -41,7 +43,7 @@ export class ResendService implements MailService {
   async sendAccountDeletionNotification(
     notification: AccountDeletionNotification,
   ): Promise<MailDelivery> {
-    const template = accountDeletionEmailTemplate();
+    const template = accountDeletionEmailTemplate(this.frontendUrl);
 
     return this.sendWithRetry(
       {
@@ -59,7 +61,7 @@ export class ResendService implements MailService {
   async sendContactMessageNotification(
     notification: ContactMessageNotification,
   ): Promise<MailDelivery> {
-    const template = contactMessageEmailTemplate(notification);
+    const template = contactMessageEmailTemplate(notification, this.frontendUrl);
 
     return this.sendWithRetry(
       {
@@ -75,7 +77,7 @@ export class ResendService implements MailService {
   }
 
   async sendNewCommentNotification(notification: NewCommentNotification): Promise<MailDelivery> {
-    const template = newCommentEmailTemplate(notification, this.moderationUrl);
+    const template = newCommentEmailTemplate(notification, this.moderationUrl, this.frontendUrl);
 
     return this.sendWithRetry(
       {
@@ -101,7 +103,11 @@ export class ResendService implements MailService {
       '/newsletter/unsubscribe',
       notification.unsubscribeToken,
     );
-    const template = newsletterConfirmationEmailTemplate(confirmationUrl, unsubscribeUrl);
+    const template = newsletterConfirmationEmailTemplate(
+      confirmationUrl,
+      unsubscribeUrl,
+      this.frontendUrl,
+    );
 
     return this.sendWithRetry(
       {
@@ -140,6 +146,22 @@ export class ResendService implements MailService {
         to: notification.recipient,
       },
       `newsletter-campaign/${notification.campaignId}/${notification.deliveryId}`,
+    );
+  }
+
+  async sendWelcomeNotification(notification: WelcomeNotification): Promise<MailDelivery> {
+    const template = welcomeEmailTemplate(this.frontendUrl);
+
+    return this.sendWithRetry(
+      {
+        from: this.mailConfig.newsletterFrom,
+        html: template.html,
+        replyTo: this.mailConfig.replyTo,
+        subject: template.subject,
+        text: template.text,
+        to: notification.recipient,
+      },
+      `welcome/${notification.subscriberId}`,
     );
   }
 

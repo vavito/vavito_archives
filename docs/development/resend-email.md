@@ -4,11 +4,11 @@ O Resend atende os fluxos de autenticação, contato, notificações administrat
 
 ## Domínios
 
-| Finalidade | Domínio | Região | Estado |
-| --- | --- | --- | --- |
-| Autenticação do Supabase | `auth.vavitoarchives.com.br` | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
-| Contato e notificações administrativas | `contact.vavitoarchives.com.br` | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
-| Newsletter | `newsletter.vavitoarchives.com.br` | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
+| Finalidade                             | Domínio                            | Região                  | Estado                 |
+| -------------------------------------- | ---------------------------------- | ----------------------- | ---------------------- |
+| Autenticação do Supabase               | `auth.vavitoarchives.com.br`       | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
+| Contato e notificações administrativas | `contact.vavitoarchives.com.br`    | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
+| Newsletter                             | `newsletter.vavitoarchives.com.br` | São Paulo (`sa-east-1`) | SPF e DKIM verificados |
 
 O domínio raiz possui DMARC inicialmente em modo de observação:
 
@@ -20,12 +20,12 @@ A política não deve ser promovida para `quarantine` ou `reject` antes de confi
 
 ## Remetentes e Reply-To
 
-| Fluxo | From | Reply-To |
-| --- | --- | --- |
-| Confirmação e recuperação do Supabase Auth | `Vavito Archives <no-reply@auth.vavitoarchives.com.br>` | Não definido |
-| Novo comentário e notificações administrativas | `Vavito Archives <notifications@contact.vavitoarchives.com.br>` | Endereço monitorado definido em `MAIL_REPLY_TO` |
-| Mensagem enviada pelo formulário de contato | `Vavito Archives <notifications@contact.vavitoarchives.com.br>` | Email validado do visitante |
-| Confirmação e campanhas da newsletter | `Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>` | Endereço monitorado definido em `MAIL_REPLY_TO` |
+| Fluxo                                              | From                                                            | Reply-To                                        |
+| -------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| Confirmação e recuperação do Supabase Auth         | `Vavito Archives <no-reply@auth.vavitoarchives.com.br>`         | Não definido                                    |
+| Novo comentário e notificações administrativas     | `Vavito Archives <notifications@contact.vavitoarchives.com.br>` | Endereço monitorado definido em `MAIL_REPLY_TO` |
+| Mensagem enviada pelo formulário de contato        | `Vavito Archives <notifications@contact.vavitoarchives.com.br>` | Email validado do visitante                     |
+| Confirmação, boas-vindas e campanhas da newsletter | `Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>` | Endereço monitorado definido em `MAIL_REPLY_TO` |
 
 O endereço informado pelo visitante nunca deve ser usado como `From`, pois ele não pertence a um domínio autenticado pela aplicação. No formulário de contato, esse endereço é usado somente como `Reply-To` depois da validação do DTO.
 
@@ -63,11 +63,15 @@ Mensagens de contato usam `contact-message/<contactMessageId>`. A mensagem é pe
 
 Confirmações de exclusão de conta usam `account-deletion/<profileId>`. O envio acontece depois da remoção da identidade e uma falha de entrega não desfaz nem altera o resultado da exclusão.
 
+Boas-vindas após a primeira confirmação da conta usam `welcome/<subscriberId>`. Durante as 24 horas seguintes, o callback e a página de confirmação podem repetir a solicitação com essa mesma chave para recuperar uma falha inicial sem duplicar o email dentro da janela de idempotência do Resend. A conta e a inscrição permanecem válidas se o provedor não aceitar a mensagem.
+
 Campanhas usam uma chave por entrega no formato `newsletter-campaign/<campaignId>/<deliveryId>`. O início da campanha e a criação das entregas são persistidos antes da chamada ao Resend; por isso, repetir a requisição administrativa não gera um novo disparo. O fluxo completo está documentado em `docs/development/newsletter-campaigns.md`.
 
 O processamento assinado de delivered, bounce, complaint e falhas técnicas está documentado em `docs/development/resend-webhooks.md`.
 
 O template inclui somente título do artigo, nome público do leitor, trecho escapado de até 240 caracteres e link para `/admin/comments`. O conteúdo além desse trecho, identificadores internos e dados de autenticação não são enviados.
+
+Todos os templates enviados pela API compõem a moldura compartilhada descrita em `docs/development/email-templates.md`.
 
 ## Ambiente de teste
 

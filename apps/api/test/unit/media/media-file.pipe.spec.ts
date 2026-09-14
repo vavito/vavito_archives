@@ -34,12 +34,29 @@ describe('MediaFilePipe', () => {
       .toBuffer();
   });
 
-  it('extrai MIME, extensão e dimensões dos bytes da imagem', async () => {
-    await expect(pipe.transform(uploadedFile(png))).resolves.toMatchObject({
-      extension: 'png',
+  it('converte a imagem validada para WebP antes do armazenamento', async () => {
+    const result = await pipe.transform(uploadedFile(png));
+    const metadata = await sharp(result.buffer).metadata();
+
+    expect(result).toMatchObject({
+      extension: 'webp',
       height: 3,
-      mimeType: 'image/png',
+      mimeType: 'image/webp',
       width: 4,
+    });
+    expect(metadata.format).toBe('webp');
+  });
+
+  it('reduz imagens editoriais maiores que o limite sem distorcer a proporção', async () => {
+    const largePng = await sharp({
+      create: { background: '#123456', channels: 3, height: 1600, width: 3200 },
+    })
+      .png()
+      .toBuffer();
+
+    await expect(pipe.transform(uploadedFile(largePng))).resolves.toMatchObject({
+      height: 1200,
+      width: 2400,
     });
   });
 

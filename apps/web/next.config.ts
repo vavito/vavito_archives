@@ -7,6 +7,21 @@ const configuredDevOrigins =
 
 const LOCAL_API_URL = 'http://localhost:3001';
 
+function storageRemotePattern(rawUrl: string | undefined): URL | null {
+  if (!rawUrl) return null;
+
+  try {
+    const pattern = new URL(rawUrl);
+    pattern.pathname = '/storage/v1/object/public/**';
+    pattern.search = '';
+    return pattern;
+  } catch {
+    return null;
+  }
+}
+
+const storagePattern = storageRemotePattern(process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 const nextConfig: NextConfig = {
   distDir: process.env.VAVITO_E2E === 'true' ? '.next-e2e' : '.next',
   allowedDevOrigins: ['192.168.*.*', ...configuredDevOrigins],
@@ -14,6 +29,13 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '3mb',
     },
+  },
+  images: {
+    formats: ['image/webp'],
+    minimumCacheTTL: 86_400,
+    qualities: [75, 80],
+    remotePatterns: storagePattern ? [storagePattern] : [],
+    unoptimized: process.env.VAVITO_E2E === 'true',
   },
   poweredByHeader: false,
   reactStrictMode: true,

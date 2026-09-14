@@ -121,7 +121,7 @@ Os emails do Supabase Auth são enviados pelo Resend por meio da integração SM
 - o domínio de envio é `auth.vavitoarchives.com.br`;
 - o remetente é `Vavito Archives <no-reply@auth.vavitoarchives.com.br>`;
 - os registros SPF e DKIM do domínio estão verificados;
-- os templates básicos de confirmação de cadastro e recuperação de senha estão personalizados no Supabase;
+- os templates de confirmação de cadastro e recuperação de senha seguem os HTMLs versionados em `docs/development/supabase-email-templates` e são publicados na área **Authentication → Email Templates** do Supabase;
 - a credencial SMTP é administrada pela integração entre Resend e Supabase e não deve ser versionada no repositório.
 
 ## Teste manual de desenvolvimento
@@ -136,6 +136,8 @@ Para validar a configuração antes da implementação completa do fluxo de aute
 6. entrar com email e senha e confirmar a criação da sessão.
 
 A configuração foi validada em desenvolvimento com os fluxos de confirmação de cadastro e recuperação de senha. Nos dois casos, o Resend entregou o email autenticado pelo domínio e o Supabase redirecionou o navegador para uma URL local autorizada.
+
+Depois da primeira confirmação, a inclusão idempotente da conta na newsletter também solicita um email de boas-vindas pelo MailModule. Esse envio não bloqueia nem reverte a confirmação se o provedor estiver indisponível.
 
 ## Dados sensíveis
 
@@ -173,7 +175,7 @@ O parâmetro opcional `next` aceita somente caminhos internos. Respostas que gra
 
 A rota `/auth` reúne cadastro e entrada em um formulário acessível e responsivo. O cadastro envia `display_name` como metadata para a criação segura do `Profile`, valida a política de senha antes da requisição e direciona a confirmação para `/auth/callback`, onde o código PKCE é trocado pela sessão. Em seguida, o navegador abre `/auth/confirmed` para comunicar claramente que o email foi confirmado e permitir que o leitor acesse a conta.
 
-Depois de um cadastro que exige confirmação, o formulário é substituído por um estado dedicado que identifica o endereço informado e orienta a abertura do email. O reenvio do link é liberado após 60 segundos e mantém uma resposta segura, sem revelar se o email já pertence a outra conta. Falhas de entrada também são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos do provedor. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
+Depois de um cadastro que exige confirmação, o formulário é substituído por um estado dedicado que identifica o endereço informado e orienta a abertura do email. O reenvio do link é liberado após 60 segundos. Quando o Supabase devolve o sinal confiável de identidade vazia ou o erro `user_already_exists`, o formulário permanece aberto e informa que o email já possui conta, orientando entrada ou recuperação de senha; essa decisão de produto torna o cadastro enumerável e deve permanecer protegido pelo rate limit do provedor. Falhas restantes são convertidas em mensagens estáveis e amigáveis, sem repassar textos técnicos. Após a autenticação, somente um caminho interno validado pode ser usado como destino.
 
 ## Recuperação e alteração de senha no frontend
 

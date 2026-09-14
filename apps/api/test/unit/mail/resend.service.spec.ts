@@ -11,6 +11,7 @@ import type {
   NewCommentNotification,
   NewsletterCampaignNotification,
   NewsletterConfirmationNotification,
+  WelcomeNotification,
 } from '@api/core/mail/services/mail.service';
 import { ResendService } from '@api/core/mail/services/resend.service';
 
@@ -52,6 +53,11 @@ const campaignNotification: NewsletterCampaignNotification = {
   recipient: 'leitor@example.com',
   subject: 'Novo artigo',
   unsubscribeToken: 'B'.repeat(43),
+};
+
+const welcomeNotification: WelcomeNotification = {
+  recipient: 'leitor@example.com',
+  subscriberId: '2813645a-8b74-4d1f-96c3-72cf3c594ad3',
 };
 
 function successfulResponse(id = 'email-id'): CreateEmailResponse {
@@ -223,6 +229,25 @@ describe('ResendService', () => {
     expect(options?.idempotencyKey).toBe(
       `newsletter-campaign/${campaignNotification.campaignId}/${campaignNotification.deliveryId}`,
     );
+  });
+
+  it('envia boas-vindas com o template compartilhado', async () => {
+    send.mockResolvedValueOnce(successfulResponse('welcome-message-id'));
+    const service = new ResendService(client, config());
+
+    await expect(service.sendWelcomeNotification(welcomeNotification)).resolves.toEqual({
+      messageId: 'welcome-message-id',
+      provider: 'resend',
+    });
+    const [payload, options] = send.mock.calls[0]!;
+
+    expect(payload).toMatchObject({
+      from: 'Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>',
+      subject: 'Bem-vindo ao Vavito Archives',
+      to: 'leitor@example.com',
+    });
+    expect(payload.html).toContain('/brand/vavito-symbol.png');
+    expect(options?.idempotencyKey).toBe(`welcome/${welcomeNotification.subscriberId}`);
   });
 
   it('não repete erro de validação do provedor', async () => {

@@ -78,7 +78,7 @@ describe('serviço de autenticação', () => {
     });
   });
 
-  it('mantém sucesso indistinguível quando o cadastro exige confirmação', async () => {
+  it('informa quando o Supabase sinaliza que a conta já existe', async () => {
     supabaseMocks.signUp.mockResolvedValueOnce({
       data: { session: null, user: { identities: [] } },
       error: null,
@@ -93,7 +93,11 @@ describe('serviço de autenticação', () => {
         },
         'https://vavitoarchives.com.br/auth/confirm',
       ),
-    ).resolves.toEqual({ status: 'confirmation-required' });
+    ).rejects.toEqual(
+      new SafeAuthError(
+        'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.',
+      ),
+    );
   });
 
   it('reenvia a confirmação de cadastro para o mesmo endereço', async () => {
@@ -109,7 +113,7 @@ describe('serviço de autenticação', () => {
     });
   });
 
-  it('substitui detalhes do provedor por uma falha segura no cadastro', async () => {
+  it('traduz o erro explícito de conta já cadastrada', async () => {
     supabaseMocks.signUp.mockResolvedValueOnce({
       data: { session: null },
       error: { code: 'user_already_exists', message: 'User already registered', status: 422 },
@@ -125,7 +129,9 @@ describe('serviço de autenticação', () => {
         'https://vavitoarchives.com.br/auth/callback',
       ),
     ).rejects.toEqual(
-      new SafeAuthError('Não foi possível criar sua conta agora. Tente novamente em instantes.'),
+      new SafeAuthError(
+        'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.',
+      ),
     );
   });
 

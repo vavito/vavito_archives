@@ -52,14 +52,16 @@ incluindo progresso, cancelamento em caso de falha e texto alternativo obrigató
 
 O botão de imagem abre um formulário no próprio editor. Antes do envio, o frontend exige um arquivo
 JPEG, PNG ou WebP de até 10 MB e uma descrição acessível não vazia. A API repete todas as validações
-como fonte de verdade.
+como fonte de verdade e normaliza o arquivo aprovado para WebP, com dimensões máximas de 2400 px e
+qualidade 82, antes de enviá-lo ao Storage.
 
 O navegador envia o `multipart/form-data` diretamente ao endpoint administrativo autenticado para
 acompanhar o progresso real da transferência. A interface mantém percentual, estado ocupado e
 mensagem segura de falha; cancelar o formulário interrompe a requisição em andamento.
 
 Depois da resposta `READY`, o editor insere no JSON um node `image` com URL pública, descrição,
-largura e altura disponíveis. A leitura pública usa os mesmos atributos. Selecionar a imagem no
+largura e altura já otimizadas. A leitura pública usa `next/image` para gerar tamanhos responsivos,
+negociar WebP e reservar o espaço da mídia antes do download. Selecionar a imagem no
 editor permite alterar sua descrição, ajustar sua largura ou removê-la do documento. Essa remoção não apaga imediatamente o objeto do
 Storage: enquanto não houver uma associação persistida com um post, o ciclo de limpeza de mídia
 órfã permanece responsável por sua remoção segura.

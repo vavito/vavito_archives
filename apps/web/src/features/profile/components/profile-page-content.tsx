@@ -24,7 +24,7 @@ import {
   type ActionFeedbackMessage,
 } from '@web/components/feedback/action-feedback';
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
-import { signOutSession } from '@web/features/auth';
+import { signOutSession } from '@web/features/auth/session';
 
 import {
   normalizeDisplayName,

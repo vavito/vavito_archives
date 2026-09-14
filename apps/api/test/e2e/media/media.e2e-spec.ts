@@ -17,7 +17,7 @@ import { AdminMediaController } from '@api/modules/media/controllers/admin-media
 import { MediaAssetStatus } from '@api/modules/media/domain/enums/media-asset-status.enum';
 import { MAX_MEDIA_SIZE_BYTES } from '@api/modules/media/domain/value-objects/media-metadata.value-object';
 import { MediaFilePipe } from '@api/modules/media/pipes/media-file.pipe';
-import { MediaService } from '@api/modules/media/services/media.service';
+import { MediaService, type UploadMediaInput } from '@api/modules/media/services/media.service';
 
 const USER: AuthenticatedUser = {
   email: 'admin@vavitoarchives.com.br',
@@ -32,7 +32,7 @@ describe('AdminMediaController (e2e)', () => {
   let moduleRef: TestingModule;
   let png: Buffer;
 
-  const upload = jest.fn();
+  const upload = jest.fn<Promise<unknown>, [UploadMediaInput]>();
   const verify = jest.fn<Promise<AuthenticatedUser>, [string]>();
   const findActiveRoleByProfileId = jest.fn<Promise<UserRole | null>, [string]>();
 
@@ -68,20 +68,22 @@ describe('AdminMediaController (e2e)', () => {
     jest.clearAllMocks();
     verify.mockResolvedValue(USER);
     findActiveRoleByProfileId.mockResolvedValue(UserRole.ADMIN);
-    upload.mockResolvedValue({
-      mediaAsset: {
-        altText: 'Diagrama da arquitetura',
-        createdAt: CREATED_AT,
-        height: 630,
-        id: MEDIA_ID,
-        mimeType: 'image/png',
-        sizeBytes: png.byteLength,
-        status: MediaAssetStatus.READY,
-        storagePath: `2026/08/${MEDIA_ID}.png`,
-        width: 1200,
-      },
-      publicUrl: 'https://cdn.example/media.png',
-    });
+    upload.mockImplementation((input) =>
+      Promise.resolve({
+        mediaAsset: {
+          altText: input.altText,
+          createdAt: CREATED_AT,
+          height: input.height,
+          id: MEDIA_ID,
+          mimeType: input.mimeType,
+          sizeBytes: input.buffer.byteLength,
+          status: MediaAssetStatus.READY,
+          storagePath: `2026/08/${MEDIA_ID}.${input.extension}`,
+          width: input.width,
+        },
+        publicUrl: 'https://cdn.example/media.webp',
+      }),
+    );
   });
 
   afterAll(async () => {
@@ -120,27 +122,33 @@ describe('AdminMediaController (e2e)', () => {
       .attach('file', png, { contentType: 'image/png', filename: 'article.png' })
       .expect(201);
 
+    const uploadedInput = upload.mock.calls[0]?.[0];
+    expect(uploadedInput).toBeDefined();
+    if (!uploadedInput) throw new Error('O upload validado não foi encaminhado ao serviço.');
+
     expect(response.body).toEqual({
       altText: 'Diagrama da arquitetura',
       createdAt: CREATED_AT.toISOString(),
       height: 630,
       id: MEDIA_ID,
-      mimeType: 'image/png',
-      path: `2026/08/${MEDIA_ID}.png`,
-      sizeBytes: png.byteLength,
+      mimeType: 'image/webp',
+      path: `2026/08/${MEDIA_ID}.webp`,
+      sizeBytes: uploadedInput.buffer.byteLength,
       status: MediaAssetStatus.READY,
-      url: 'https://cdn.example/media.png',
+      url: 'https://cdn.example/media.webp',
       width: 1200,
     });
-    expect(upload).toHaveBeenCalledWith({
+    expect(uploadedInput).toMatchObject({
       altText: 'Diagrama da arquitetura',
-      buffer: png,
       createdById: USER.id,
-      extension: 'png',
+      extension: 'webp',
       height: 630,
-      mimeType: 'image/png',
+      mimeType: 'image/webp',
       width: 1200,
     });
+    expect(Buffer.isBuffer(uploadedInput.buffer)).toBe(true);
+
+    await expect(sharp(uploadedInput.buffer).metadata()).resolves.toMatchObject({ format: 'webp' });
   });
 
   it('retorna 400 quando o texto alternativo está vazio', async () => {

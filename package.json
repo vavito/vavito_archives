@@ -1,6 +1,6 @@
 {
   "name": "vavito-archives",
-  "version": "0.0.0",
+  "version": "0.1.0-rc.3",
   "private": true,
   "packageManager": "pnpm@11.20.0",
   "engines": {
@@ -22,12 +22,17 @@
     "lint:fix": "turbo run lint -- --fix",
     "lint:web": "pnpm --filter @vavito/web lint",
     "openapi:export": "pnpm --filter @vavito/api openapi:export",
+    "security:check": "node scripts/security/check-repository-secrets.mjs && pnpm audit --prod --audit-level high",
     "start:web": "pnpm --filter @vavito/web start",
     "test": "turbo run test",
     "test:e2e:public": "pnpm --filter @vavito/e2e test:public",
     "test:e2e:auth": "pnpm --filter @vavito/e2e test:auth",
     "test:e2e:admin": "pnpm --filter @vavito/e2e test:admin",
+    "test:e2e:a11y": "pnpm --filter @vavito/e2e test:a11y",
+    "test:e2e:full-stack": "pnpm --filter @vavito/e2e test:full-stack",
+    "test:performance:web": "pnpm --filter @vavito/e2e test:performance",
     "test:regression:api": "pnpm --filter @vavito/api test:regression",
+    "test:security:api": "pnpm --filter @vavito/api exec jest --runInBand --runTestsByPath test/unit/config/env.validation.spec.ts test/e2e/auth/supabase-auth.guard.e2e-spec.ts test/e2e/http/security.e2e-spec.ts test/e2e/media/media.e2e-spec.ts test/e2e/profiles/profiles.e2e-spec.ts test/e2e/newsletter/newsletter.e2e-spec.ts test/e2e/contact/contact.e2e-spec.ts test/e2e/comments/comments-authorization.e2e-spec.ts",
     "test:web": "pnpm --filter @vavito/web test",
     "typecheck": "turbo run typecheck",
     "typecheck:web": "pnpm --filter @vavito/web typecheck"

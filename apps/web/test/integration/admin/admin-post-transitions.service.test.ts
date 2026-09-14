@@ -2,6 +2,7 @@ import type { ApiClient } from '@vavito/api-client';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  deleteAdminPost,
   discardAdminPostChanges,
   transitionAdminPost,
 } from '@web/features/admin/services/admin-post-transitions.service';
@@ -56,6 +57,16 @@ describe('transições administrativas de artigos', () => {
 
     await expect(discardAdminPostChanges(post.id, client)).resolves.toMatchObject(post);
     expect(client.POST).toHaveBeenCalledWith('/api/v1/admin/posts/{id}/discard-changes', {
+      params: { path: { id: post.id } },
+    });
+  });
+
+  it('exclui o artigo com confirmação explícita', async () => {
+    const client = { DELETE: vi.fn().mockResolvedValue({}) } as unknown as ApiClient;
+
+    await expect(deleteAdminPost(post.id, client)).resolves.toBeUndefined();
+    expect(client.DELETE).toHaveBeenCalledWith('/api/v1/admin/posts/{id}', {
+      body: { confirm: true },
       params: { path: { id: post.id } },
     });
   });

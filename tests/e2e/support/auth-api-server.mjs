@@ -4,8 +4,10 @@ import { createServer } from 'node:http';
 
 const users = new Map();
 const sessions = new Map();
+const confirmationTokens = new Map();
+const newsletterSubscribers = new Set();
 const comments = [];
-const origin = 'http://127.0.0.1:3101';
+const origin = 'http://localhost:3101';
 const publicApi = 'http://127.0.0.1:4100';
 const now = () => new Date().toISOString();
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -54,6 +56,40 @@ function page(items) {
   };
 }
 
+function createUser({ confirmed, displayName, email, password }) {
+  const id = randomUUID();
+  const profile = {
+    id,
+    displayName,
+    avatarUrl: null,
+    role: 'USER',
+    createdAt: now(),
+    updatedAt: now(),
+  };
+  const identity = {
+    id,
+    email,
+    aud: 'authenticated',
+    role: 'authenticated',
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: { display_name: profile.displayName },
+    created_at: now(),
+    email_confirmed_at: confirmed ? now() : null,
+  };
+  const user = {
+    id,
+    email,
+    password,
+    profile,
+    identity,
+    bookmarks: new Set(),
+    reactions: new Map(),
+    failLogout: false,
+  };
+  users.set(id, user);
+  return user;
+}
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://127.0.0.1:4101');
@@ -68,44 +104,54 @@ const server = createServer(async (req, res) => {
 
     if (path === '/health') return json(res, 200, { status: 'ok' });
     if (path === '/__test/users' && req.method === 'POST') {
-      const id = randomUUID();
-      const email = `reader-${id}@example.test`;
+      const email = `reader-${randomUUID()}@example.test`;
       const password = 'Teste@Senha123';
-      const profile = {
-        id,
+      const account = createUser({
+        confirmed: true,
         displayName: 'Leitor de teste',
-        avatarUrl: null,
-        role: 'USER',
-        createdAt: now(),
-        updatedAt: now(),
-      };
-      const identity = {
-        id,
-        email,
-        aud: 'authenticated',
-        role: 'authenticated',
-        app_metadata: { provider: 'email', providers: ['email'] },
-        user_metadata: { display_name: profile.displayName },
-        created_at: now(),
-        email_confirmed_at: now(),
-      };
-      users.set(id, {
-        id,
         email,
         password,
-        profile,
-        identity,
-        bookmarks: new Set(),
-        reactions: new Map(),
-        failLogout: false,
       });
-      return json(res, 201, { id, email, password });
+      return json(res, 201, { id: account.id, email, password });
+    }
+    if (path === '/__test/signup-confirmation' && req.method === 'GET') {
+      const email = url.searchParams.get('email');
+      const entry = [...confirmationTokens.entries()].find(([, userId]) => {
+        return users.get(userId)?.email === email;
+      });
+      if (!entry) return json(res, 404, {});
+      return json(res, 200, { tokenHash: entry[0] });
+    }
+    if (path === '/__test/newsletter-subscriptions' && req.method === 'GET') {
+      const email = url.searchParams.get('email');
+      return json(res, 200, { subscribed: newsletterSubscribers.has(email) });
     }
     if (path.startsWith('/__test/fail-logout/') && req.method === 'POST') {
       const target = users.get(path.split('/').at(-1));
       if (!target) return json(res, 404, {});
       target.failLogout = true;
       return json(res, 204);
+    }
+    if (path === '/auth/v1/signup' && req.method === 'POST') {
+      const account = createUser({
+        confirmed: false,
+        displayName: body.data?.display_name ?? 'Leitor',
+        email: body.email,
+        password: body.password,
+      });
+      const tokenHash = randomUUID();
+      confirmationTokens.set(tokenHash, account.id);
+      return json(res, 200, { user: account.identity, session: null });
+    }
+    if (path === '/auth/v1/verify' && req.method === 'POST') {
+      const userId = confirmationTokens.get(body.token_hash);
+      const account = userId ? users.get(userId) : null;
+      if (!account || body.type !== 'signup') {
+        return json(res, 400, { code: 'otp_expired', msg: 'Invalid confirmation token' });
+      }
+      account.identity.email_confirmed_at = now();
+      confirmationTokens.delete(body.token_hash);
+      return json(res, 200, sessionFor(account));
     }
     if (path === '/auth/v1/token') {
       const target =
@@ -153,6 +199,11 @@ const server = createServer(async (req, res) => {
       if (!user) return json(res, 401, { message: 'Unauthorized' });
       if (req.method === 'PATCH') user.profile.displayName = body.displayName;
       return json(res, 200, user.profile);
+    }
+    if (path === '/api/v1/newsletter/subscriptions/account' && req.method === 'POST') {
+      if (!user) return json(res, 401, { message: 'Unauthorized' });
+      newsletterSubscribers.add(user.email);
+      return json(res, 204);
     }
     const engagement = path.match(/^\/api\/v1\/posts\/([^/]+)\/(bookmark|reaction)$/u);
     if (engagement) {

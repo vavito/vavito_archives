@@ -171,7 +171,7 @@ export class AdminPostsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Exclui permanentemente um post elegível' })
+  @ApiOperation({ summary: 'Exclui permanentemente um post e seus dados dependentes' })
   @ApiNoContentResponse()
   delete(
     @CurrentUser() user: AuthenticatedUser,

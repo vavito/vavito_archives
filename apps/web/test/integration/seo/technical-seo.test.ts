@@ -6,9 +6,41 @@ vi.mock('@web/features/posts', () => ({ getPostSitemapData }));
 
 import robots from '@web/app/robots';
 import sitemap from '@web/app/sitemap';
+import manifest from '@web/app/manifest';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
 describe('SEO técnico', () => {
+  it('expõe a identidade visual e os ícones instaláveis no manifesto', () => {
+    expect(manifest()).toEqual({
+      background_color: '#18191b',
+      description:
+        'Artigos sobre desenvolvimento de software, arquitetura, produto e os aprendizados por trás de cada projeto.',
+      display: 'standalone',
+      icons: [
+        { sizes: '192x192', src: '/brand/icon-192.png', type: 'image/png' },
+        { sizes: '512x512', src: '/brand/icon-512.png', type: 'image/png' },
+        {
+          purpose: 'maskable',
+          sizes: '192x192',
+          src: '/brand/icon-maskable-192.png',
+          type: 'image/png',
+        },
+        {
+          purpose: 'maskable',
+          sizes: '512x512',
+          src: '/brand/icon-maskable-512.png',
+          type: 'image/png',
+        },
+      ],
+      lang: 'pt-BR',
+      name: 'Vavito Archives',
+      orientation: 'portrait-primary',
+      short_name: 'Vavito',
+      start_url: '/',
+      theme_color: '#18191b',
+    });
+  });
+
   it('cria metadata pública com URL canônica absoluta', () => {
     expect(
       createPublicPageMetadata({

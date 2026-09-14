@@ -2,6 +2,9 @@
 
 Monorepo do Vavito Archives, composto pela API NestJS, pela aplicação web Next.js e por pacotes compartilhados.
 
+Versão candidata atual: `v0.1.0-rc.3`. Consulte o [changelog](CHANGELOG.md) e o
+[runbook da release candidate](docs/development/release-candidate.md) antes de promover um ambiente.
+
 ## Requisitos
 
 - Node.js 24 LTS (a versão recomendada está em `.nvmrc` e `.node-version`)
@@ -57,6 +60,8 @@ pnpm format:check # valida a formatação sem alterar arquivos
 pnpm typecheck  # valida os tipos TypeScript
 pnpm test       # executa os testes
 pnpm test:regression:api # executa cobertura e integração da API
+pnpm security:check      # verifica segredos versionados e vulnerabilidades high/critical
+pnpm test:security:api   # executa a matriz focada de segurança e privacidade da API
 pnpm test:web   # executa os testes de componente e integração do frontend
 pnpm api-client:generate # gera os tipos e o cliente a partir do OpenAPI versionado
 pnpm api-client:check # verifica se os tipos gerados estão sincronizados
@@ -168,6 +173,20 @@ As instruções de migrations e do seed administrativo estão em `docs/developme
 A configuração de providers, URLs, sessões e política de senha do Supabase Auth está em `docs/development/supabase-auth.md`.
 
 O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/development/profiles.md`.
+
+## Release e deploy
+
+A V1 usa Vercel para a aplicação Next.js, Render para a API NestJS e Supabase para Auth,
+PostgreSQL e Storage. O Resend entrega os emails transacionais e editoriais.
+
+Antes de um deploy, execute os gates automatizados, confira as variáveis protegidas do ambiente,
+registre o commit atualmente em produção e crie um backup verificável do PostgreSQL. A ordem de
+promoção, os smoke tests, as limitações conhecidas e o plano de rollback estão em
+[`docs/development/release-candidate.md`](docs/development/release-candidate.md).
+
+A tag `v0.1.0-rc.3` só deve ser criada sobre o commit aprovado, com worktree limpo e todas as
+validações obrigatórias concluídas. As tags `v0.1.0-rc.1` e `v0.1.0-rc.2` permanecem imutáveis como
+registros das candidatas anteriores.
 
 ## Qualidade e aliases
 

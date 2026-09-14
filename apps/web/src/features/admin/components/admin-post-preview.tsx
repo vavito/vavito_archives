@@ -3,7 +3,7 @@ import { ArrowLeft, Clock3, Eye, FilePenLine, LockKeyhole } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 
-import { TiptapContent } from '@web/features/posts';
+import { ArticleCoverImage, TiptapContent } from '@web/features/posts';
 
 import type { AdminPostDetail, AdminPostStatus } from '../types/admin-post.types';
 import { AdminPostActions } from './admin-post-actions';
@@ -87,19 +87,18 @@ export function AdminPostPreview({ post }: Readonly<{ post: AdminPostDetail }>) 
         </header>
 
         {post.coverUrl ? (
-          <figure className="mx-auto w-full max-w-5xl overflow-hidden px-4 pb-8 sm:px-6">
-            {/* eslint-disable-next-line @next/next/no-img-element -- a URL editorial validada pode vir de Storage configurado em runtime. */}
-            <img
-              alt={post.coverAlt ?? ''}
-              className="max-h-[34rem] w-full rounded-2xl object-cover"
+          <div className="mx-auto w-full max-w-5xl px-4 pb-8 sm:px-6">
+            <ArticleCoverImage
+              alt={post.coverAlt}
+              className="max-h-[34rem]"
+              positionX={post.coverPositionX}
+              positionY={post.coverPositionY}
+              scale={post.coverScale}
               src={post.coverUrl}
-              style={{
-                objectPosition: `${post.coverPositionX ?? 50}% ${post.coverPositionY ?? 50}%`,
-                transform: `scale(${(post.coverScale ?? 100) / 100})`,
-                transformOrigin: `${post.coverPositionX ?? 50}% ${post.coverPositionY ?? 50}%`,
-              }}
+              title={post.title}
+              variant="hero"
             />
-          </figure>
+          </div>
         ) : null}
 
         <div className="article-prose mx-auto min-w-0 w-full max-w-reading px-4 sm:px-6 lg:px-0">

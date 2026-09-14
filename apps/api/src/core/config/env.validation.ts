@@ -37,7 +37,7 @@ function exactOrigins(value: string, helpers: Joi.CustomHelpers): string | Joi.E
 const environmentSchema = Joi.object<EnvironmentVariables>({
   APP_VERSION: Joi.string()
     .pattern(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
-    .default('0.0.0'),
+    .default('0.1.0-rc.3'),
   CORS_ALLOWED_ORIGINS: Joi.string()
     .custom(exactOrigins)
     .default(Joi.ref('FRONTEND_URL'))
@@ -102,6 +102,27 @@ const secretVariableNames = [
   'SUPABASE_SERVICE_ROLE_KEY',
 ] as const;
 
+const applicationSecretVariableNames = [
+  'NEWSLETTER_TOKEN_SECRET',
+  'REVALIDATION_SECRET',
+  'VIEW_FINGERPRINT_SECRET',
+] as const;
+
+function productionUrlErrors(environment: EnvironmentVariables): string[] {
+  const errors: string[] = [];
+
+  for (const name of ['FRONTEND_URL', 'SUPABASE_URL'] as const) {
+    if (new URL(environment[name]).protocol !== 'https:') errors.push(name);
+  }
+
+  const hasInsecureCorsOrigin = environment.CORS_ALLOWED_ORIGINS.split(',').some(
+    (origin) => new URL(origin).protocol !== 'https:',
+  );
+  if (hasInsecureCorsOrigin) errors.push('CORS_ALLOWED_ORIGINS');
+
+  return errors;
+}
+
 export function validateEnvironment(environment: Record<string, unknown>): EnvironmentVariables {
   const result = environmentSchema.validate(environment, {
     abortEarly: false,
@@ -117,12 +138,26 @@ export function validateEnvironment(environment: Record<string, unknown>): Envir
 
   if (result.value.NODE_ENV === 'production') {
     const placeholderVariables = secretVariableNames.filter((name) =>
-      /placeholder|replace/i.test(result.value[name]),
+      /change(?:me)?|example|placeholder|replace|test|your[_-]/i.test(result.value[name]),
     );
 
     if (placeholderVariables.length > 0) {
       throw new Error(
         `Invalid production environment configuration: placeholder values are not allowed for ${placeholderVariables.join(', ')}.`,
+      );
+    }
+
+    const applicationSecrets = applicationSecretVariableNames.map((name) => result.value[name]);
+    if (new Set(applicationSecrets).size !== applicationSecrets.length) {
+      throw new Error(
+        `Invalid production environment configuration: ${applicationSecretVariableNames.join(', ')} must use distinct values.`,
+      );
+    }
+
+    const insecureUrlVariables = productionUrlErrors(result.value);
+    if (insecureUrlVariables.length > 0) {
+      throw new Error(
+        `Invalid production environment configuration: HTTPS is required for ${insecureUrlVariables.join(', ')}.`,
       );
     }
   }

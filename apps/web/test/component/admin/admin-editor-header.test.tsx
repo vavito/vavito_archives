@@ -12,8 +12,13 @@ import type {
 } from '@web/features/admin/types/admin-draft.types';
 
 vi.mock('@web/features/admin/actions/admin-post.actions', () => ({
+  deleteAdminPostAction: vi.fn(),
   discardAdminPostChangesAction: vi.fn(),
   transitionAdminPostAction: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 const savedDraft: AdminPostDraft = {

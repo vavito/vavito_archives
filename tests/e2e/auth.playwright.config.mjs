@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 1,
   timeout: 60_000,
   expect: { timeout: 15_000 },
-  use: { ...publicConfig.use, baseURL: 'http://127.0.0.1:3101' },
+  use: { ...publicConfig.use, baseURL: 'http://localhost:3101' },
   webServer: [
     publicConfig.webServer[0],
     {
@@ -17,7 +17,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm --filter @vavito/web exec next dev --hostname 127.0.0.1 --port 3101',
-      url: 'http://127.0.0.1:3101',
+      url: 'http://localhost:3101',
       reuseExistingServer: false,
       timeout: 120_000,
       env: {

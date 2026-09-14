@@ -23,7 +23,7 @@ export class EmailCampaignMapper {
       htmlSnapshot: record.htmlSnapshot,
       id: record.id,
       idempotencyKey: record.idempotencyKey,
-      postId: record.postId,
+      postId: record.postId ?? (structuredClone(record.postSnapshot) as CampaignPostSnapshot).id,
       postSnapshot: structuredClone(record.postSnapshot) as CampaignPostSnapshot,
       previewText: record.previewText,
       resendId: record.resendId,

@@ -17,7 +17,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, type MouseEvent } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
-import { createBrowserSupabaseClient } from '@web/lib/auth/supabase/client';
 
 const navigationItems = [
   { href: '/', icon: Home, label: 'Início' },
@@ -42,6 +41,7 @@ export function MobileNavigation() {
     setIsCheckingSavedAccess(true);
 
     try {
+      const { createBrowserSupabaseClient } = await import('@web/lib/auth/supabase/client');
       const supabase = createBrowserSupabaseClient();
       const { data, error } = await supabase.auth.getSession();
 
@@ -79,7 +79,7 @@ export function MobileNavigation() {
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     'group flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg text-[11px] transition-colors duration-300 active:scale-95',
-                    isActive ? 'text-accent' : 'text-neutral-500 hover:text-neutral-200',
+                    isActive ? 'text-accent' : 'text-neutral-300 hover:text-neutral-100',
                   )}
                   href={href}
                   onClick={(event) => {
@@ -120,6 +120,7 @@ export function MobileNavigation() {
               className={buttonVariants({ variant: 'primary' })}
               href="/auth?next=/salvos"
               onClick={() => setIsSavedAccessOpen(false)}
+              prefetch={false}
             >
               <LogIn aria-hidden="true" />
               Ir para o login

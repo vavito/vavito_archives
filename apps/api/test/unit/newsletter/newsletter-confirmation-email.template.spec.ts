@@ -5,7 +5,11 @@ describe('newsletterConfirmationEmailTemplate', () => {
     const confirmationUrl = 'https://vavitoarchives.com.br/newsletter/confirm?token=confirmation';
     const unsubscribeUrl = 'https://vavitoarchives.com.br/newsletter/unsubscribe?token=unsubscribe';
 
-    const template = newsletterConfirmationEmailTemplate(confirmationUrl, unsubscribeUrl);
+    const template = newsletterConfirmationEmailTemplate(
+      confirmationUrl,
+      unsubscribeUrl,
+      'https://vavitoarchives.com.br',
+    );
 
     expect(template.subject).toBe('Confirme sua inscrição no Vavito Archives');
     expect(template.html).toContain('Confirmar inscrição');
@@ -19,6 +23,7 @@ describe('newsletterConfirmationEmailTemplate', () => {
     const template = newsletterConfirmationEmailTemplate(
       'https://example.com/confirm?token=a&source=<email>',
       'https://example.com/unsubscribe?token=b&source=<email>',
+      'https://vavitoarchives.com.br',
     );
 
     expect(template.html).not.toContain('<email>');

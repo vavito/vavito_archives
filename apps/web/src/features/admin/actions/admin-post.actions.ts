@@ -6,11 +6,16 @@ import { revalidatePath } from 'next/cache';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 
 import {
+  deleteAdminPost,
   discardAdminPostChanges,
   transitionAdminPost,
 } from '../services/admin-post-transitions.service';
 import { requireAdminSession } from '../services/admin-session.service';
-import type { AdminPostTransition, AdminPostTransitionResult } from '../types/admin-post.types';
+import type {
+  AdminPostDeleteResult,
+  AdminPostTransition,
+  AdminPostTransitionResult,
+} from '../types/admin-post.types';
 
 const transitions = new Set<AdminPostTransition>(['archive', 'publish', 'restore', 'unpublish']);
 const successMessages: Readonly<Record<AdminPostTransition, string>> = {
@@ -136,5 +141,29 @@ export async function discardAdminPostChangesAction(
   } catch (error) {
     revalidatePostPaths(id, null);
     return friendlyTransitionError(error);
+  }
+}
+
+export async function deleteAdminPostAction(
+  id: string,
+  slug: string | null,
+): Promise<AdminPostDeleteResult> {
+  if (!isUuid(id)) {
+    return { code: 'INVALID_POST_REQUEST', message: 'Artigo inválido.', ok: false };
+  }
+
+  const session = await requireAdminSession();
+
+  try {
+    await deleteAdminPost(
+      id,
+      createWebAuthenticatedApiClient(() => session.accessToken),
+    );
+    revalidatePostPaths(id, slug);
+    return { message: 'Artigo excluído definitivamente.', ok: true };
+  } catch (error) {
+    revalidatePostPaths(id, slug);
+    const failure = friendlyTransitionError(error);
+    return { code: failure.code, message: failure.message, ok: false };
   }
 }

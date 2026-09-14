@@ -110,7 +110,7 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
             <h2 className="text-neutral-100 text-xl font-semibold" id="admin-post-list">
               Conteúdo editorial
             </h2>
-            <p className="text-neutral-500 mt-1 text-sm">
+            <p className="text-neutral-400 mt-1 text-sm">
               {data.meta.total === 1
                 ? '1 artigo encontrado'
                 : `${data.meta.total} artigos encontrados`}
@@ -169,8 +169,10 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
                       Preview
                     </Link>
                     <AdminPostActions
+                      allowDelete
                       initialStatus={post.status}
                       postId={post.id}
+                      slug={post.slug}
                       title={post.title}
                     />
                   </div>
@@ -181,7 +183,7 @@ export function AdminPostsPageContent({ data }: Readonly<{ data: AdminPostsPage 
         ) : (
           <div className="grid justify-items-center gap-3 rounded-2xl border border-dashed border-border px-6 py-14 text-center">
             <p className="text-neutral-100 text-lg font-semibold">Nenhum artigo encontrado</p>
-            <p className="text-neutral-500 max-w-md text-sm">
+            <p className="text-neutral-400 max-w-md text-sm">
               Ajuste a busca ou escolha outro status para continuar.
             </p>
             <Link className="text-accent text-sm font-medium hover:underline" href="/admin/posts">

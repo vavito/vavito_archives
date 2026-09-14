@@ -376,7 +376,7 @@ Avatar não reutiliza `MediaAsset`: pertence ao próprio Profile, usa limite e a
 | Campo | Tipo | Regra |
 | --- | --- | --- |
 | `id` | UUID | PK. |
-| `postId` | UUID | FK `Post`; restrict. |
+| `postId` | UUID | FK `Post`; cascade somente na exclusão permanente e explícita do artigo. |
 | `authorId` | UUID nullable | FK `Profile`; pode virar nulo após anonimização definitiva. |
 | `parentId` | UUID nullable | FK para comentário principal do mesmo post. |
 | `content` | text nullable | obrigatório exceto em `DELETED`. |
@@ -544,12 +544,12 @@ Alguns checks condicionais e índices parciais serão adicionados na migration S
 | `Profile -> Comment` | `SetNull` em purge físico | preservar thread já anonimizada. |
 | `Profile -> Reaction/Bookmark` | `Cascade` | vínculos privados somem com a conta. |
 | `Post -> PostSlug/PostRevision/PostTag/PostMediaAsset/PostView` | `Cascade` | filhos sem significado independente. |
-| `Post -> Comment` | `Restrict` | post que recebeu comentários não é apagado fisicamente. |
-| `Post -> Reaction/Bookmark` | `Cascade` | permitido apenas no raro purge físico elegível. |
-| `Post -> EmailCampaign` | `Restrict` | campanha enviada preserva referência histórica. |
+| `Post -> Comment` | `Cascade` | a conversa não existe sem o artigo excluído permanentemente. |
+| `Post -> Reaction/Bookmark` | `Cascade` | vínculos pessoais somem com o artigo. |
+| `Post -> EmailCampaign` | `SetNull` | a campanha preserva seu snapshot mesmo depois da exclusão do artigo. |
 | `Tag -> PostTag` | `Cascade` | associação sem vida própria. |
 | `MediaAsset -> PostMediaAsset` | `Restrict` | asset referenciado não pode ser removido. |
-| `Comment -> replies` | `Restrict` | usa soft delete e preserva conversa. |
+| `Comment -> replies` | `Cascade` | permite remover toda a conversa junto da exclusão permanente do artigo; a moderação comum continua usando soft delete. |
 | `EmailCampaign -> EmailDelivery` | `Cascade` em `DRAFT` ou `FAILED` | campanhas em andamento ou enviadas não são apagadas pela aplicação. |
 | `Subscriber -> EmailDelivery` | `Restrict` | histórico de consentimento e entrega. |
 | `EmailDelivery -> WebhookEvent` | `SetNull` | evento técnico pode sobreviver à limpeza da entrega. |
@@ -559,7 +559,7 @@ Alguns checks condicionais e índices parciais serão adicionados na migration S
 | Recurso | Estratégia V1 |
 | --- | --- |
 | `Profile` | `deletedAt` + anonimização; não apagar autoria editorial. |
-| `Post` | `ARCHIVED`; purge físico apenas de `DRAFT` sem dependências protegidas. |
+| `Post` | `ARCHIVED` para retirada reversível; exclusão física administrativa, explícita e irreversível em qualquer estado. |
 | `Comment` | `DELETED`, `deletedAt` e placeholder; nunca apagar durante moderação comum. |
 | `MediaAsset` | `ORPHANED` antes do purge; revalidar associações imediatamente antes de remover. |
 | `Subscriber` | estados de consentimento/supressão; retenção conforme privacidade, sem apagar histórico necessário silenciosamente. |
@@ -650,7 +650,7 @@ model Bookmark {
 - Cardinalidades suportam o contrato da API sem relações implícitas.
 - Uniques protegem concorrência em slug, reaction, bookmark, inscrição e envio.
 - Slug antigo, revisão publicada e webhook idempotente possuem persistência explícita.
-- Exclusões não apagam conteúdo editorial ou threads acidentalmente.
+- A exclusão permanente de artigo apaga sua conversa apenas após confirmação administrativa explícita.
 - Mídia órfã pode ser identificada por ausência real de associações.
 - O rascunho é suficiente para a Task 2.3 produzir um schema compilável e uma migration revisável.
 

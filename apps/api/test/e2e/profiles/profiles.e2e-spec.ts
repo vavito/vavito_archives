@@ -4,6 +4,7 @@ import type { INestApplication } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import sharp from 'sharp';
 
 import { SupabaseAuthGuard } from '@api/core/auth/guards/supabase-auth.guard';
 import type { AuthenticatedUser } from '@api/core/auth/interfaces/authenticated-user.interface';
@@ -119,7 +120,11 @@ describe('ProfilesController (e2e)', () => {
       ...PROFILE_RESPONSE,
       avatarUrl: 'https://cdn.example/avatar.png',
     });
-    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+    const png = await sharp({
+      create: { background: '#123456', channels: 3, height: 96, width: 96 },
+    })
+      .png()
+      .toBuffer();
 
     const response = await request(app.getHttpServer() as Server)
       .put('/profiles/me/avatar')
@@ -130,7 +135,7 @@ describe('ProfilesController (e2e)', () => {
     expect(response.body).toMatchObject({ avatarUrl: 'https://cdn.example/avatar.png' });
     expect(uploadAvatar).toHaveBeenCalledWith(
       USER.id,
-      expect.objectContaining({ contentType: 'image/png', extension: 'png' }),
+      expect.objectContaining({ contentType: 'image/webp', extension: 'webp' }),
     );
   });
 

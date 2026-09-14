@@ -65,6 +65,9 @@ jobs:
       - name: Instalar dependências do monorepo
         run: pnpm install --frozen-lockfile
 
+      - name: Validar segredos e dependências de produção
+        run: pnpm security:check
+
       - name: Validar formatação
         run: pnpm format:check
 
@@ -83,7 +86,7 @@ jobs:
   web:
     name: Quality / Web
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -123,14 +126,11 @@ jobs:
       - name: Instalar navegador dos testes públicos
         run: pnpm --filter @vavito/e2e exec playwright install --with-deps chromium webkit
 
-      - name: Executar fluxos públicos no navegador
-        run: pnpm test:e2e:public
-
-      - name: Executar fluxos autenticados com contas isoladas
-        run: pnpm test:e2e:auth
-
-      - name: Executar fluxo editorial administrativo isolado
-        run: pnpm test:e2e:admin
+      - name: Executar jornadas E2E full stack isoladas
+        run: pnpm test:e2e:full-stack
 
       - name: Validar lint, tipos e build Vercel
         run: pnpm turbo run lint typecheck build --filter=@vavito/web...
+
+      - name: Validar metas de performance das páginas públicas
+        run: pnpm test:performance:web

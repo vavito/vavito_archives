@@ -1,7 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { components } from '@vavito/api-client';
-import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SearchOverlay } from '@web/features/posts/components/search-overlay';
@@ -33,15 +31,7 @@ const post: components['schemas']['PostSummaryDto'] = {
 };
 
 function renderSearchOverlay() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-
-  return render(<SearchOverlay />, {
-    wrapper: ({ children }: Readonly<{ children: ReactNode }>) => (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    ),
-  });
+  return render(<SearchOverlay />);
 }
 
 describe('SearchOverlay', () => {

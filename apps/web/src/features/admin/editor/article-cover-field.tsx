@@ -4,6 +4,8 @@ import { Button, Input } from '@vavito/ui';
 import { Check, ImagePlus, Move, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { ProgressiveImage } from '@web/components/feedback/progressive-image';
+
 import { uploadArticleImage } from '../services/admin-media.service';
 import type { AdminDraftCover } from '../types/admin-draft.types';
 import type { UploadArticleImage } from '../types/admin-media.types';
@@ -72,7 +74,7 @@ export function ArticleCoverField({
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
         <div className="grid gap-1">
           <h2 className="text-sm font-semibold text-neutral-100">Capa do artigo</h2>
-          <p className="text-xs leading-relaxed text-neutral-500">
+          <p className="text-xs leading-relaxed text-neutral-400">
             Aparece nas listagens, no artigo e nos compartilhamentos.
           </p>
         </div>
@@ -176,17 +178,23 @@ export function ArticleCoverField({
               }}
               type="button"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- URL pública resolvida em runtime pelo Storage. */}
-              <img
+              <ProgressiveImage
                 alt={altText ?? 'Capa do artigo'}
-                className="motion-media aspect-[16/9] max-h-[26rem] w-full select-none object-cover"
+                className="motion-media select-none object-cover"
+                containerClassName="aspect-[16/9] max-h-[26rem] w-full"
                 draggable={false}
+                fill
+                loadingLabel="Carregando capa do artigo"
+                quality={80}
+                sizes="(max-width: 1024px) calc(100vw - 2rem), 960px"
                 src={url}
+                onDragStart={(event) => event.preventDefault()}
                 style={{
                   objectPosition: `${positionX}% ${positionY}%`,
                   transform: `scale(${scale / 100})`,
                   transformOrigin: `${positionX}% ${positionY}%`,
                 }}
+                unoptimized={url.startsWith('blob:')}
               />
             </button>
             <div
@@ -229,7 +237,7 @@ export function ArticleCoverField({
             }
             value={altText ?? ''}
           />
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-400">
             <p>
               {isAdjusting
                 ? 'Arraste para reposicionar e use os controles, a roda ou +/− para ajustar o zoom.'

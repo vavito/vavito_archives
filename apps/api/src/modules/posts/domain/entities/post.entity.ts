@@ -1,7 +1,6 @@
 import { PostStatus } from '@api/modules/posts/domain/enums/post-status.enum';
 import { InvalidPostStatusTransitionError } from '@api/modules/posts/domain/errors/invalid-post-status-transition.error';
 import { PostContentInvalidError } from '@api/modules/posts/domain/errors/post-content-invalid.error';
-import { PostDeleteNotAllowedError } from '@api/modules/posts/domain/errors/post-delete-not-allowed.error';
 import { PostEditNotAllowedError } from '@api/modules/posts/domain/errors/post-edit-not-allowed.error';
 import {
   PostNotReadyForPublicationError,
@@ -249,12 +248,6 @@ export class Post {
 
     if (this.props.status === PostStatus.PUBLISHED) {
       this.props.editedAt = cloneDate(props.now);
-    }
-  }
-
-  ensureCanDelete(): void {
-    if (this.props.status === PostStatus.PUBLISHED) {
-      throw new PostDeleteNotAllowedError();
     }
   }
 
