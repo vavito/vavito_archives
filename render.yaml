@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: vavito-archives-api
+    runtime: node
+    region: virginia
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: off
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @vavito/api build
+    preDeployCommand: pnpm --filter @vavito/api prisma:migrate:deploy
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api/v1/health
+    maxShutdownDelaySeconds: 30
+    domains:
+      - api.vavitoarchives.com.br
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_VERSION
+        value: 0.1.0-rc.3
+      - key: SWAGGER_ENABLED
+        value: 'false'
+      - key: LOG_LEVEL
+        value: info
+      - key: FRONTEND_URL
+        value: https://vavitoarchives.com.br
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://vavitoarchives.com.br
+      - key: DATABASE_CONNECT_ON_START
+        value: 'true'
+      - key: SUPABASE_AVATARS_BUCKET
+        value: avatars
+      - key: SUPABASE_MEDIA_BUCKET
+        value: media
+      - key: RESEND_TIMEOUT_MS
+        value: '5000'
+      - key: RESEND_MAX_ATTEMPTS
+        value: '3'
+      - key: MAIL_CONTACT_FROM
+        value: Vavito Archives <notifications@contact.vavitoarchives.com.br>
+      - key: MAIL_NEWSLETTER_FROM
+        value: Vavito Archives <newsletter@newsletter.vavitoarchives.com.br>
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: MAIL_ADMIN_RECIPIENT
+        sync: false
+      - key: MAIL_REPLY_TO
+        sync: false
+      - key: NEWSLETTER_TOKEN_SECRET
+        sync: false
+      - key: REVALIDATION_SECRET
+        sync: false
+      - key: VIEW_FINGERPRINT_SECRET
+        sync: false

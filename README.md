@@ -179,6 +179,9 @@ O fluxo autenticado de perfil, avatar e exclusão de conta está em `docs/develo
 A V1 usa Vercel para a aplicação Next.js, Render para a API NestJS e Supabase para Auth,
 PostgreSQL e Storage. O Resend entrega os emails transacionais e editoriais.
 
+A configuração versionada do Web Service e o preenchimento seguro das variáveis estão no
+[`render.yaml`](render.yaml) e no [guia de deploy da API](docs/development/render-api.md).
+
 Antes de um deploy, execute os gates automatizados, confira as variáveis protegidas do ambiente,
 registre o commit atualmente em produção e crie um backup verificável do PostgreSQL. A ordem de
 promoção, os smoke tests, as limitações conhecidas e o plano de rollback estão em
