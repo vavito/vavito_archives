@@ -40,7 +40,7 @@ describe('validateEnvironment', () => {
     const environment = validateEnvironment(validEnvironment());
 
     expect(environment).toMatchObject({
-      APP_VERSION: '0.1.0-rc.2',
+      APP_VERSION: '0.1.0-rc.3',
       CORS_ALLOWED_ORIGINS: 'http://localhost:3000',
       DATABASE_CONNECT_ON_START: true,
       LOG_LEVEL: 'info',
