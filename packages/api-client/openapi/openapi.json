@@ -7416,7 +7416,7 @@
   "info": {
     "title": "Vavito Archives API",
     "description": "Contrato HTTP da API do Vavito Archives. Corpos JSON e URL-encoded aceitam no máximo 1 MiB; uploads multipart possuem limites próprios por rota.",
-    "version": "0.1.0-rc.2",
+    "version": "0.1.0-rc.3",
     "contact": {}
   },
   "tags": [
