@@ -9,7 +9,6 @@ services:
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @vavito/api build
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /api/v1/health
-    maxShutdownDelaySeconds: 30
     domains:
       - api.vavitoarchives.com.br
     envVars:

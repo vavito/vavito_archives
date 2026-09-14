@@ -15,7 +15,7 @@ compartilhadas usadas pelo build de `apps/api`.
 | auto-deploy | `off` | a integração com os checks da CI será habilitada separadamente |
 | domínio | `api.vavitoarchives.com.br` | origem pública da API |
 | health check | `/api/v1/health` | verifica que o processo NestJS está respondendo |
-| encerramento | 30 segundos | permite ao NestJS tratar `SIGTERM` pelos shutdown hooks |
+| encerramento | padrão da Render | o NestJS trata `SIGTERM` pelos shutdown hooks disponíveis no plano gratuito |
 
 A Render fornece `PORT` ao processo. A aplicação já escuta esse valor, confia em um proxy e expõe
 também `GET /api/v1/health/ready`, que confirma a conexão com o PostgreSQL.
