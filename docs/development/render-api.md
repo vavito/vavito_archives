@@ -25,9 +25,13 @@ também `GET /api/v1/health/ready`, que confirma a conexão com o PostgreSQL.
 Os comandos de build e start são executados pela raiz do repositório:
 
 ```bash
-pnpm install --frozen-lockfile && pnpm --filter @vavito/api build
+pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build
 node apps/api/dist/main.js
 ```
+
+A geração explícita do Prisma Client garante que os arquivos ignorados em
+`apps/api/src/generated/prisma` existam antes da compilação, sem depender apenas do `postinstall`.
+Essa etapa não acessa nem modifica o banco de dados.
 
 O plano gratuito não oferece o comando de pre-deploy da Render. Antes de publicar uma versão com
 novas migrations, execute manualmente, em uma rede que alcance o pooler de sessão do Supabase:
