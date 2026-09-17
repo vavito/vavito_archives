@@ -12,6 +12,13 @@ O job da API também exporta o OpenAPI a partir dos controllers e DTOs compilado
 o artefato versionado e verifica os tipos do api-client contra esse contrato. Assim, a sincronização
 não depende apenas de gerar tipos a partir de um JSON que pode estar desatualizado.
 
+A etapa de exportação declara um ambiente `test` com valores fictícios para as variáveis
+obrigatórias de Supabase, email e segurança, sem depender de `.env` local ou secrets de produção.
+As URLs de serviços são locais e a conexão inicial ao banco fica desativada. A exportação não
+inicializa a aplicação nem envia emails; mantém a validação de ambiente e usa a versão real do
+`package.json` para comparar o contrato. O teste `workflow-environment.spec.ts` verifica esse
+ambiente diretamente a partir do workflow versionado.
+
 Os dois workspaces são sempre verificados, sem filtros de caminhos. Essa escolha conservadora cobre
 mudanças nos packages compartilhados, lockfile, ferramentas e contratos sem omitir dependências.
 

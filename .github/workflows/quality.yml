@@ -87,6 +87,23 @@ jobs:
         run: pnpm turbo run lint typecheck build --filter=@vavito/api...
 
       - name: Verificar exportação do contrato OpenAPI
+        env:
+          NODE_ENV: 'test'
+          DATABASE_CONNECT_ON_START: 'false'
+          FRONTEND_URL: 'http://localhost:3000'
+          CORS_ALLOWED_ORIGINS: 'http://localhost:3000'
+          LOG_LEVEL: 'silent'
+          SUPABASE_URL: 'http://127.0.0.1:54321'
+          SUPABASE_SERVICE_ROLE_KEY: 'test_service_role_key_value'
+          RESEND_API_KEY: 're_test_api_key'
+          RESEND_WEBHOOK_SECRET: 'whsec_test_webhook_signing_secret'
+          MAIL_CONTACT_FROM: 'Vavito Archives <notifications@contact.example.com>'
+          MAIL_NEWSLETTER_FROM: 'Vavito Archives <newsletter@newsletter.example.com>'
+          MAIL_ADMIN_RECIPIENT: 'admin@example.com'
+          MAIL_REPLY_TO: 'contato@example.com'
+          NEWSLETTER_TOKEN_SECRET: 'test_newsletter_token_secret_at_least_32_characters'
+          REVALIDATION_SECRET: 'test_revalidation_secret_at_least_32_characters'
+          VIEW_FINGERPRINT_SECRET: 'test_view_fingerprint_secret_at_least_32_characters'
         run: |
           APP_VERSION="$(node -p "require('./package.json').version")" pnpm openapi:export
           git diff --exit-code -- packages/api-client/openapi/openapi.json
