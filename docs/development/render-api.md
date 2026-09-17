@@ -25,9 +25,14 @@ também `GET /api/v1/health/ready`, que confirma a conexão com o PostgreSQL.
 Os comandos de build e start são executados pela raiz do repositório:
 
 ```bash
-pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build
+node scripts/deploy/require-quality.mjs --provider render && pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build
 node apps/api/dist/main.js
 ```
+
+O gate consulta `Quality` para o SHA exato da `main` e bloqueia o build sem API, Web e Deploy Gate
+aprovados. Ele exige os metadados de Git fornecidos pela Render e não acessa o banco. Confirme o
+comando efetivo após sincronizar o Blueprint; até essa configuração ser publicada e validada, não
+declare o bloqueio como ativo no serviço. Consulte [Integração contínua](continuous-integration.md).
 
 A geração explícita do Prisma Client garante que os arquivos ignorados em
 `apps/api/src/generated/prisma` existam antes da compilação, sem depender apenas do `postinstall`.

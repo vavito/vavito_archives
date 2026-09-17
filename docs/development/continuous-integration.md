@@ -6,6 +6,14 @@ O workflow `.github/workflows/quality.yml` executa a qualidade do monorepo em pu
 
 - `Quality / API`: segredos e dependências de produção, formatação, regressão com cobertura, lint, typecheck e build da API e de suas dependências internas.
 - `Quality / Web`: formatação, sincronização do cliente OpenAPI, testes de componente e integração, fluxos públicos, autenticados e administrativos no Playwright, lint, typecheck e build do frontend e de suas dependências internas.
+- `Quality / Deploy Gate`: consolida os dois jobs e aprova somente quando ambos terminam com `success`; falha se algum workspace falhar, for cancelado ou ignorado.
+
+O job da API também exporta o OpenAPI a partir dos controllers e DTOs compilados, compara o JSON com
+o artefato versionado e verifica os tipos do api-client contra esse contrato. Assim, a sincronização
+não depende apenas de gerar tipos a partir de um JSON que pode estar desatualizado.
+
+Os dois workspaces são sempre verificados, sem filtros de caminhos. Essa escolha conservadora cobre
+mudanças nos packages compartilhados, lockfile, ferramentas e contratos sem omitir dependências.
 
 Cada job usa Node.js 24.18.0 e a versão do pnpm declarada em `packageManager`, instala o monorepo pela raiz com `pnpm install --frozen-lockfile` e mantém caches separados do pnpm e do Turborepo.
 
@@ -69,9 +77,107 @@ Depois que o workflow executar ao menos uma vez no GitHub, configure uma ruleset
 2. Crie ou edite a ruleset da branch `main`.
 3. Exija pull request antes do merge.
 4. Ative a exigência de status checks.
-5. Selecione `Quality / API` e `Quality / Web` como checks obrigatórios.
+5. Selecione `Quality / API`, `Quality / Web` e `Quality / Deploy Gate` como checks obrigatórios.
+6. Exija a branch atualizada antes do merge, aplique as regras também aos administradores e não
+   permita bypass, force push ou exclusão da `main`.
 
 Essa configuração no GitHub é necessária para impedir o merge de uma pull request quando qualquer um dos dois checks falhar.
+
+Em 16/09/2026, após o proprietário tornar o repositório público, foi verificada e atualizada a ruleset
+**Proteção da main** (ID `20473014`). Ela está ativa na branch padrão, exige PR, os três checks do
+GitHub Actions e branch atualizada, proíbe force push e exclusão e não possui atores com bypass.
+O novo Deploy Gate só terá resultado publicado após a primeira execução do workflow atualizado.
+
+Repositórios privados em uma conta GitHub Free não oferecem proteção de branch. Nesse caso, manter
+o repo privado exige GitHub Pro (ou um plano equivalente para organizações), ou uma decisão explícita
+de tornar o repo público. Um check no workflow, sozinho, não bloqueia merge nem deploy.
+
+## Gate dos builds de produção
+
+A configuração dos provedores complementa a CI. O script `scripts/deploy/require-quality.mjs`
+consulta a API do GitHub antes dos builds de produção e exige a execução de `Quality` originada por
+push na `main` para o SHA exato fornecido pelo provedor. A aprovação do PR não substitui a execução
+do commit de merge. O script não inicia deploys, não aplica migrations e não altera dados.
+
+Somente a execução mais recente do workflow versionado e os jobs da tentativa atual são aceitos.
+API, Web e Deploy Gate precisam estar presentes, concluídos e com `success`. Falha, cancelamento,
+`skipped`, `neutral`, check ausente, branch/repositório incorretos ou indisponibilidade da consulta
+bloqueiam o build. O script aguarda até 25 minutos, consultando a cada 45 segundos; se a CI demorar
+mais, corrija a causa e repita o deploy depois da aprovação, sem remover o gate.
+
+Como o repositório está público, a consulta não requer token. Se voltar a privado, configure
+`DEPLOY_GITHUB_READ_TOKEN` somente nos builds de produção dos provedores, com acesso mínimo de
+leitura de Actions ao repositório. Nunca use variável `NEXT_PUBLIC_*` nem compartilhe esse token
+com previews. Rate limit ou erro HTTP bloqueiam o build, não são tratados como aprovação.
+
+A infraestrutura transversal fica em `scripts/deploy`; os testes Node.js isolados ficam em
+`tests/deploy`, fora dos módulos de negócio e do workspace de navegador. Eles não dependem de
+credenciais, banco ou provedores e são executados pelo job da API:
+
+```bash
+pnpm test:deploy
+```
+
+### Render
+
+No plano Free, preserve `autoDeployTrigger: off` no Blueprint e no painel para manter as migrations
+manuais na ordem correta. O `buildCommand` do Blueprint agora começa com:
+
+```bash
+node scripts/deploy/require-quality.mjs --provider render
+```
+
+A verificação usa `RENDER_GIT_REPO_SLUG`, `RENDER_GIT_BRANCH` e `RENDER_GIT_COMMIT`. Antes do deploy:
+
+1. confirme a execução de `Quality` na `main` com API, Web e Deploy Gate aprovados para o SHA alvo;
+2. confirme as migrations desse mesmo commit, conforme o [guia da API na Render](render-api.md);
+3. publique usando **Deploy a specific commit**, informando esse SHA, e não **Deploy latest commit**;
+4. valide health e readiness e registre o commit publicado.
+
+Depois de fazer merge desta configuração, sincronize o Blueprint e confirme que o Build Command
+efetivo no serviço começa com o script. Só então o botão de deploy manual também passa pelo gate.
+As migrations continuam dependendo do operador. Não habilite auto-deploy antes de resolver essa
+etapa. O modo nativo **After CI Checks Pass** aceita `neutral` e `skipped`; portanto, sozinho, não
+substitui a verificação mais estrita do script.
+
+### Vercel
+
+Confirme `main` como **Production Branch**, acesso às System Environment Variables e inclusão dos
+arquivos externos ao Root Directory `apps/web`. O arquivo `apps/web/vercel.json` define:
+
+```bash
+node ../../scripts/deploy/require-quality.mjs --provider vercel && pnpm build
+```
+
+Em Production, o gate usa `VERCEL_ENV`, os metadados do repositório, `VERCEL_GIT_COMMIT_REF` e
+`VERCEL_GIT_COMMIT_SHA`. A atribuição automática de domínios pode permanecer ativa: o build só segue
+após a aprovação do SHA na `main`. Isso evita depender de uma promoção manual para aguardar a CI.
+Os comandos locais de build e os builds executados pelo GitHub não chamam esse preflight, evitando
+que a CI espere sua própria conclusão.
+
+Previews explicitamente identificados por `VERCEL_ENV=preview` continuam liberados para revisão,
+sem gate de produção. Não use **Promote to Production** em builds de Preview: essa promoção reutiliza
+um artefato que não passou pelo gate de Production. Para publicar, faça merge na main protegida e
+use seu build de Production. A implementação não remove poderes administrativos de alterar
+configurações, promover previews manualmente ou reativar artefatos antigos.
+
+### Validação de aceitação
+
+Em um PR de teste, confirme que uma falha de API ou Web produz Deploy Gate vermelho e impede o
+merge quando a proteção estiver ativa. Confirme também que nenhum domínio de produção muda antes
+da aprovação do SHA na `main`. Teste cancelamento e job ignorado: nenhum deles libera o gate.
+
+Até publicar o workflow e as configurações, confirmar os comandos efetivos e validar o bloqueio
+nos provedores, a Task 14.4 permanece em andamento. Não use previews para mutações reais se suas
+variáveis ainda apontarem para API e Supabase de produção. Um administrador pode remover o gate;
+a proteção se aplica ao fluxo configurado, não a operações que o contornem deliberadamente.
+
+Referências: [proteção de branches no GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches),
+[deploys na Render](https://render.com/docs/deploys) e
+[ambientes e promoção na Vercel](https://vercel.com/docs/deployments/environments),
+[variáveis da Render](https://render.com/docs/environment-variables),
+[variáveis da Vercel](https://vercel.com/docs/environment-variables/system-environment-variables) e
+[comando de build da Vercel](https://vercel.com/docs/project-configuration#buildcommand).
 
 Os checks do GitHub são parte do congelamento, mas não substituem os smoke tests dos provedores no
 ambiente de destino. A sequência completa de promoção e rollback está no
