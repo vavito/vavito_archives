@@ -33,7 +33,7 @@ No projeto hospedado, copie cada HTML em **Authentication → Email Templates** 
 - Confirm signup: `Confirme seu email no Vavito Archives`;
 - Reset password: `Redefina sua senha no Vavito Archives`.
 
-Os arquivos preservam `{{ .ConfirmationURL }}` para os callbacks atuais e `{{ .SiteURL }}` para o endereço configurado no Supabase. O domínio público precisa servir `/brand/vavito-symbol.png`. Ao habilitar futuramente convite, magic link, troca de email, reautenticação ou notificações de segurança, o novo template deve repetir esta moldura e usar as variáveis específicas documentadas pelo Supabase.
+Os arquivos usam `{{ .TokenHash }}` com os callbacks `/auth/confirm` para confirmação e recuperação, evitando depender do verificador PKCE armazenado no navegador que iniciou o fluxo. `{{ .SiteURL }}` aponta para o endereço configurado no Supabase. O domínio público precisa servir `/brand/vavito-symbol.png`. Ao habilitar futuramente convite, magic link, troca de email, reautenticação ou notificações de segurança, o novo template deve repetir esta moldura e usar as variáveis específicas documentadas pelo Supabase.
 
 Alterar os arquivos no repositório não atualiza sozinho um projeto Supabase hospedado. A publicação é feita pelo Dashboard ou pela Management API com um token de acesso da conta; a `service_role` da aplicação não possui essa autoridade.
 

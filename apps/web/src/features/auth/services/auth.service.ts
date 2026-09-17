@@ -4,6 +4,7 @@ const accountAlreadyExistsMessage =
   'Este e-mail já possui uma conta. Entre com sua senha ou use a recuperação de senha.';
 
 import { createBrowserSupabaseClient } from '@web/lib/auth/supabase/client';
+import { subscribeConfirmedAccount } from '@web/features/newsletter/services/subscribe-confirmed-account';
 
 import type { SignInCredentials, SignUpCredentials, SignUpResult } from '../types/auth.types';
 import { signOutSession } from './session.service';
@@ -38,6 +39,11 @@ export async function signIn(credentials: SignInCredentials): Promise<void> {
 
   if (error) {
     throw new SafeAuthError(toSafeSignInMessage(error));
+  }
+
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.access_token) {
+    await subscribeConfirmedAccount(data.session.access_token).catch(() => undefined);
   }
 }
 
