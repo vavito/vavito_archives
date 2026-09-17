@@ -14,11 +14,13 @@ import {
 const supabaseMocks = vi.hoisted(() => ({
   resend: vi.fn(),
   signInWithPassword: vi.fn(),
+  getSession: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   signOut: vi.fn(),
   signUp: vi.fn(),
   updateUser: vi.fn(),
 }));
+const newsletterMocks = vi.hoisted(() => ({ subscribeConfirmedAccount: vi.fn() }));
 
 vi.mock('client-only', () => ({}));
 
@@ -26,11 +28,15 @@ vi.mock('@web/lib/auth/supabase/client', () => ({
   createBrowserSupabaseClient: () => ({ auth: supabaseMocks }),
 }));
 
+vi.mock('@web/features/newsletter/services/subscribe-confirmed-account', () => newsletterMocks);
+
 describe('serviço de autenticação', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     supabaseMocks.resend.mockResolvedValue({ error: null });
     supabaseMocks.signInWithPassword.mockResolvedValue({ error: null });
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
+    newsletterMocks.subscribeConfirmedAccount.mockResolvedValue(undefined);
     supabaseMocks.resetPasswordForEmail.mockResolvedValue({ error: null });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
     supabaseMocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
@@ -44,6 +50,16 @@ describe('serviço de autenticação', () => {
       email: 'leitor@example.com',
       password: 'Senha@123',
     });
+  });
+
+  it('tenta sincronizar a newsletter depois de um login confirmado', async () => {
+    supabaseMocks.getSession.mockResolvedValueOnce({
+      data: { session: { access_token: 'access-token' } },
+    });
+
+    await signIn({ email: 'leitor@example.com', password: 'Senha@123' });
+
+    expect(newsletterMocks.subscribeConfirmedAccount).toHaveBeenCalledWith('access-token');
   });
 
   it('não repassa detalhes técnicos ou enumeração do provedor no login', async () => {
