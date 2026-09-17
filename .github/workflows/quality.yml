@@ -83,6 +83,14 @@ jobs:
       - name: Validar API e dependências internas
         run: pnpm turbo run lint typecheck build --filter=@vavito/api...
 
+      - name: Verificar exportação do contrato OpenAPI
+        run: |
+          APP_VERSION="$(node -p "require('./package.json').version")" pnpm openapi:export
+          git diff --exit-code -- packages/api-client/openapi/openapi.json
+
+      - name: Verificar cliente gerado pelo contrato da API
+        run: pnpm api-client:check
+
   web:
     name: Quality / Web
     runs-on: ubuntu-latest
@@ -134,3 +142,22 @@ jobs:
 
       - name: Validar metas de performance das páginas públicas
         run: pnpm test:performance:web
+
+  deploy-gate:
+    name: Quality / Deploy Gate
+    if: ${{ always() }}
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      API_RESULT: ${{ needs.api.result }}
+      WEB_RESULT: ${{ needs.web.result }}
+    steps:
+      - name: Exigir aprovação dos dois workspaces
+        shell: bash
+        run: |
+          if [ "$API_RESULT" != "success" ] || [ "$WEB_RESULT" != "success" ]; then
+            echo "::error::Deploy não liberado: API=$API_RESULT; Web=$WEB_RESULT."
+            exit 1
+          fi
+          echo "API, Web e contratos aprovados para este commit."
