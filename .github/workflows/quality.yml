@@ -68,6 +68,9 @@ jobs:
       - name: Validar segredos e dependências de produção
         run: pnpm security:check
 
+      - name: Validar bloqueio dos builds de produção
+        run: pnpm test:deploy
+
       - name: Validar formatação
         run: pnpm format:check
 
