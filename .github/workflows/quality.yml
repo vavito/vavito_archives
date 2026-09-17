@@ -68,6 +68,9 @@ jobs:
       - name: Validar segredos e dependências de produção
         run: pnpm security:check
 
+      - name: Validar bloqueio dos builds de produção
+        run: pnpm test:deploy
+
       - name: Validar formatação
         run: pnpm format:check
 
@@ -82,6 +85,31 @@ jobs:
 
       - name: Validar API e dependências internas
         run: pnpm turbo run lint typecheck build --filter=@vavito/api...
+
+      - name: Verificar exportação do contrato OpenAPI
+        env:
+          NODE_ENV: 'test'
+          DATABASE_CONNECT_ON_START: 'false'
+          FRONTEND_URL: 'http://localhost:3000'
+          CORS_ALLOWED_ORIGINS: 'http://localhost:3000'
+          LOG_LEVEL: 'silent'
+          SUPABASE_URL: 'http://127.0.0.1:54321'
+          SUPABASE_SERVICE_ROLE_KEY: 'test_service_role_key_value'
+          RESEND_API_KEY: 're_test_api_key'
+          RESEND_WEBHOOK_SECRET: 'whsec_test_webhook_signing_secret'
+          MAIL_CONTACT_FROM: 'Vavito Archives <notifications@contact.example.com>'
+          MAIL_NEWSLETTER_FROM: 'Vavito Archives <newsletter@newsletter.example.com>'
+          MAIL_ADMIN_RECIPIENT: 'admin@example.com'
+          MAIL_REPLY_TO: 'contato@example.com'
+          NEWSLETTER_TOKEN_SECRET: 'test_newsletter_token_secret_at_least_32_characters'
+          REVALIDATION_SECRET: 'test_revalidation_secret_at_least_32_characters'
+          VIEW_FINGERPRINT_SECRET: 'test_view_fingerprint_secret_at_least_32_characters'
+        run: |
+          APP_VERSION="$(node -p "require('./package.json').version")" pnpm openapi:export
+          git diff --exit-code -- packages/api-client/openapi/openapi.json
+
+      - name: Verificar cliente gerado pelo contrato da API
+        run: pnpm api-client:check
 
   web:
     name: Quality / Web
@@ -134,3 +162,22 @@ jobs:
 
       - name: Validar metas de performance das páginas públicas
         run: pnpm test:performance:web
+
+  deploy-gate:
+    name: Quality / Deploy Gate
+    if: ${{ always() }}
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      API_RESULT: ${{ needs.api.result }}
+      WEB_RESULT: ${{ needs.web.result }}
+    steps:
+      - name: Exigir aprovação dos dois workspaces
+        shell: bash
+        run: |
+          if [ "$API_RESULT" != "success" ] || [ "$WEB_RESULT" != "success" ]; then
+            echo "::error::Deploy não liberado: API=$API_RESULT; Web=$WEB_RESULT."
+            exit 1
+          fi
+          echo "API, Web e contratos aprovados para este commit."
