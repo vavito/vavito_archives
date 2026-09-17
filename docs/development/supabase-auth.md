@@ -121,7 +121,7 @@ Os emails do Supabase Auth são enviados pelo Resend por meio da integração SM
 - o domínio de envio é `auth.vavitoarchives.com.br`;
 - o remetente é `Vavito Archives <no-reply@auth.vavitoarchives.com.br>`;
 - os registros SPF e DKIM do domínio estão verificados;
-- os templates de confirmação de cadastro e recuperação de senha seguem os HTMLs versionados em `docs/development/supabase-email-templates` e são publicados na área **Authentication → Email Templates** do Supabase;
+- os templates de confirmação de cadastro e recuperação de senha seguem os HTMLs versionados em `docs/development/supabase-email-templates` e são publicados na área **Authentication → Email Templates** do Supabase; os links usam `TokenHash` e os callbacks próprios para não depender do verificador PKCE armazenado em outro navegador;
 - a credencial SMTP é administrada pela integração entre Resend e Supabase e não deve ser versionada no repositório.
 
 ## Teste manual de desenvolvimento
