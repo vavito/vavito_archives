@@ -246,6 +246,11 @@ test('Render e Vercel chamam o gate antes do build, sem alterar o build local da
     render,
     /buildCommand: node scripts\/deploy\/require-quality\.mjs --provider render && pnpm install/,
   );
+  assert.match(render, /autoDeployTrigger: checksPass/);
+  assert.match(
+    render,
+    /prisma:generate && pnpm --filter @vavito\/api build && pnpm --filter @vavito\/api prisma:migrate:deploy/,
+  );
   assert.equal(
     vercel.buildCommand,
     'node ../../scripts/deploy/require-quality.mjs --provider vercel && pnpm build',
