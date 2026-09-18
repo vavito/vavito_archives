@@ -3850,6 +3850,317 @@
         "tags": ["Admin Posts"]
       }
     },
+    "/api/v1/admin/tags": {
+      "get": {
+        "operationId": "adminTags_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminTagResponseDto"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticação necessária.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso exclusivo de administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tópico não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/admin/tags",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "supabase-jwt": []
+          }
+        ],
+        "summary": "Lista tópicos e sua visibilidade pública",
+        "tags": ["Admin Tags"]
+      }
+    },
+    "/api/v1/admin/tags/{id}/visibility": {
+      "patch": {
+        "operationId": "adminTags_updateVisibility",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "example": "019c2d62-6e90-7000-8000-000000000010"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagVisibilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTagResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticação necessária.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso exclusivo de administrador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tópico não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "INTERNAL_ERROR",
+                  "details": null,
+                  "message": "Erro interno do servidor.",
+                  "path": "/api/v1/admin/tags/{id}/visibility",
+                  "requestId": "019c2d62-6e90-7000-8000-000000000000",
+                  "statusCode": 500,
+                  "timestamp": "2026-08-27T20:15:00.000Z"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Falha interna inesperada.",
+            "headers": {
+              "X-Request-Id": {
+                "description": "Identificador usado para correlacionar a requisição nos logs.",
+                "schema": {
+                  "example": "019c2d62-6e90-7000-8000-000000000000",
+                  "format": "uuid",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "supabase-jwt": []
+          }
+        ],
+        "summary": "Atualiza a visibilidade pública de um tópico",
+        "tags": ["Admin Tags"]
+      }
+    },
     "/api/v1/admin/media": {
       "post": {
         "operationId": "adminMedia_upload",
@@ -7416,7 +7727,7 @@
   "info": {
     "title": "Vavito Archives API",
     "description": "Contrato HTTP da API do Vavito Archives. Corpos JSON e URL-encoded aceitam no máximo 1 MiB; uploads multipart possuem limites próprios por rota.",
-    "version": "0.1.0-rc.3",
+    "version": "0.0.0",
     "contact": {}
   },
   "tags": [
@@ -7443,6 +7754,10 @@
     {
       "name": "Tags",
       "description": "Consulta pública de tags."
+    },
+    {
+      "name": "Admin Tags",
+      "description": "Visibilidade pública dos tópicos."
     },
     {
       "name": "Admin Media",
@@ -8582,6 +8897,44 @@
           }
         },
         "required": ["confirm"]
+      },
+      "AdminTagResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "019c2d62-6e90-7000-8000-000000000011",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "TypeScript"
+          },
+          "slug": {
+            "type": "string",
+            "example": "typescript"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "example": true
+          },
+          "publishedPostCount": {
+            "type": "number",
+            "example": 12,
+            "minimum": 0
+          }
+        },
+        "required": ["id", "name", "slug", "isPublic", "publishedPostCount"]
+      },
+      "UpdateTagVisibilityDto": {
+        "type": "object",
+        "properties": {
+          "isPublic": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": ["isPublic"]
       },
       "MediaAssetStatus": {
         "type": "string",

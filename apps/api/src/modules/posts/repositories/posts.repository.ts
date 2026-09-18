@@ -146,6 +146,10 @@ export interface TagWithPublishedCountRecord extends PostTagRecord {
   publishedPostCount: number;
 }
 
+export interface AdminTagRecord extends TagWithPublishedCountRecord {
+  isPublic: boolean;
+}
+
 export interface SlugOwnerRecord {
   isCurrent: boolean;
   postId: string;
@@ -181,6 +185,8 @@ export abstract class PostsRepository {
     filters: Pick<AdminPostsFilters, 'limit' | 'page'>,
   ): Promise<PaginatedRecords<PostRevisionRecord>>;
   abstract listTags(): Promise<TagWithPublishedCountRecord[]>;
+  abstract listAdminTags(): Promise<AdminTagRecord[]>;
+  abstract updateTagVisibility(id: string, isPublic: boolean): Promise<AdminTagRecord | null>;
   abstract replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void>;
   abstract registerView(
     slug: string,

@@ -16,6 +16,7 @@ import {
 } from '@api/modules/posts/repositories/post-search.query';
 import {
   type AdminPostSummaryRecord,
+  type AdminTagRecord,
   type AdminPostsFilters,
   type PaginatedRecords,
   type PostAggregateRecord,
@@ -508,6 +509,10 @@ export class PrismaPostsRepository implements PostsRepository {
   async listTags(): Promise<TagWithPublishedCountRecord[]> {
     const tags = await this.prisma.tag.findMany({
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      where: {
+        isPublic: true,
+        posts: { some: { post: { status: PrismaPostStatus.PUBLISHED } } },
+      },
       select: {
         _count: {
           select: {
@@ -524,6 +529,52 @@ export class PrismaPostsRepository implements PostsRepository {
       ...tag,
       publishedPostCount: _count.posts,
     }));
+  }
+
+  async listAdminTags(): Promise<AdminTagRecord[]> {
+    const tags = await this.prisma.tag.findMany({
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      select: {
+        _count: {
+          select: {
+            posts: { where: { post: { status: PrismaPostStatus.PUBLISHED } } },
+          },
+        },
+        id: true,
+        isPublic: true,
+        name: true,
+        slug: true,
+      },
+    });
+
+    return tags.map(({ _count, ...tag }) => ({
+      ...tag,
+      publishedPostCount: _count.posts,
+    }));
+  }
+
+  async updateTagVisibility(id: string, isPublic: boolean): Promise<AdminTagRecord | null> {
+    const tag = await this.prisma.tag.updateMany({ where: { id }, data: { isPublic } });
+    if (tag.count === 0) return null;
+
+    const tags = await this.prisma.tag.findUnique({
+      select: {
+        _count: {
+          select: {
+            posts: { where: { post: { status: PrismaPostStatus.PUBLISHED } } },
+          },
+        },
+        id: true,
+        isPublic: true,
+        name: true,
+        slug: true,
+      },
+      where: { id },
+    });
+    if (!tags) return null;
+
+    const { _count, ...record } = tags;
+    return { ...record, publishedPostCount: _count.posts };
   }
 
   async replaceTags(postId: string, tags: readonly TagWriteRecord[]): Promise<void> {
