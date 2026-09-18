@@ -74,6 +74,8 @@ describe('PostsService', () => {
   const listPublic = jest.fn();
   const listRevisions = jest.fn();
   const listTags = jest.fn();
+  const listAdminTags = jest.fn();
+  const updateTagVisibility = jest.fn();
   const searchPublic = jest.fn();
   const registerView = jest.fn<
     ReturnType<PostsRepository['registerView']>,
@@ -94,6 +96,8 @@ describe('PostsService', () => {
     listPublic,
     listRevisions,
     listTags,
+    listAdminTags,
+    updateTagVisibility,
     searchPublic,
     registerView,
     savePendingDraft,
@@ -176,6 +180,34 @@ describe('PostsService', () => {
       items: [expect.objectContaining({ id: POST_ID, slug: 'post-original', viewCount: 12 })],
       meta: { limit: 12, page: 2, total: 25, totalPages: 3 },
     });
+  });
+
+  it('permite ao administrador controlar a visibilidade dos tópicos sem removê-los', async () => {
+    listAdminTags.mockResolvedValueOnce([
+      {
+        id: OTHER_ID,
+        isPublic: false,
+        name: 'Arquitetura',
+        publishedPostCount: 2,
+        slug: 'arquitetura',
+      },
+    ]);
+    updateTagVisibility.mockResolvedValueOnce({
+      id: OTHER_ID,
+      isPublic: true,
+      name: 'Arquitetura',
+      publishedPostCount: 2,
+      slug: 'arquitetura',
+    });
+    findActiveRoleByProfileId.mockResolvedValue(UserRole.ADMIN);
+
+    await expect(service.listAdminTags(ADMIN_ID)).resolves.toEqual([
+      expect.objectContaining({ id: OTHER_ID, isPublic: false }),
+    ]);
+    await expect(service.updateTagVisibility(ADMIN_ID, OTHER_ID, true)).resolves.toEqual(
+      expect.objectContaining({ id: OTHER_ID, isPublic: true }),
+    );
+    expect(updateTagVisibility).toHaveBeenCalledWith(OTHER_ID, true);
   });
 
   it('retorna detalhe público e sinaliza redirecionamento de slug histórico', async () => {
