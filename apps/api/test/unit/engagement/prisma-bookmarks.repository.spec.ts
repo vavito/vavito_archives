@@ -124,11 +124,13 @@ describe('PrismaBookmarksRepository', () => {
   });
 
   it('repete a transação serializável após conflito', async () => {
-    transaction.mockRejectedValueOnce({ code: 'P2034' });
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      transaction.mockRejectedValueOnce({ code: 'P2034' });
+    }
     findUnique.mockResolvedValue(bookmarkRecord());
 
     await expect(repository.save(bookmark())).resolves.toMatchObject({ postExists: true });
-    expect(transaction).toHaveBeenCalledTimes(2);
+    expect(transaction).toHaveBeenCalledTimes(5);
   });
 
   it('remove o bookmark de forma idempotente', async () => {

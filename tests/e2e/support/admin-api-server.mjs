@@ -203,6 +203,22 @@ const server = createServer(async (request, response) => {
 
     if (!isAuthenticated(request)) return json(response, 401, { message: 'Unauthorized' });
 
+    if (path === '/api/v1/admin/tags' && request.method === 'GET') {
+      const tags = new Map();
+      for (const post of posts.values()) {
+        for (const tag of post.tags) {
+          const existing = tags.get(tag.slug);
+          tags.set(tag.slug, {
+            ...tag,
+            isPublic: true,
+            publishedPostCount:
+              (existing?.publishedPostCount ?? 0) + (post.status === 'PUBLISHED' ? 1 : 0),
+          });
+        }
+      }
+      return json(response, 200, [...tags.values()]);
+    }
+
     if (path === '/api/v1/admin/posts' && request.method === 'GET') {
       const query = (url.searchParams.get('q') ?? '').toLowerCase();
       const status = url.searchParams.get('status');

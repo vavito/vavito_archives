@@ -142,10 +142,12 @@ describe('PrismaReactionsRepository', () => {
   });
 
   it('repete a transação serializável quando o PostgreSQL informa conflito', async () => {
-    transaction.mockRejectedValueOnce({ code: 'P2034' });
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      transaction.mockRejectedValueOnce({ code: 'P2034' });
+    }
     findUnique.mockResolvedValue(reactionRecord());
 
     await expect(repository.set(reaction())).resolves.toMatchObject({ postExists: true });
-    expect(transaction).toHaveBeenCalledTimes(2);
+    expect(transaction).toHaveBeenCalledTimes(5);
   });
 });
