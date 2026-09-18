@@ -127,25 +127,27 @@ pnpm test:deploy
 
 ### Render
 
-No plano Free, preserve `autoDeployTrigger: off` no Blueprint e no painel para manter as migrations
-manuais na ordem correta. O `buildCommand` do Blueprint agora começa com:
+No plano Free, o Blueprint usa `autoDeployTrigger: checksPass` e aplica migrations ao final do
+build, após a compilação. Essa adaptação permite automatizar a publicação sem o comando pago
+de pre-deploy. O `buildCommand` começa com:
 
 ```bash
 node scripts/deploy/require-quality.mjs --provider render
 ```
 
-A verificação usa `RENDER_GIT_REPO_SLUG`, `RENDER_GIT_BRANCH` e `RENDER_GIT_COMMIT`. Antes do deploy:
+A verificação usa `RENDER_GIT_REPO_SLUG`, `RENDER_GIT_BRANCH` e `RENDER_GIT_COMMIT`. Antes do merge:
 
-1. confirme a execução de `Quality` na `main` com API, Web e Deploy Gate aprovados para o SHA alvo;
-2. confirme as migrations desse mesmo commit, conforme o [guia da API na Render](render-api.md);
-3. publique usando **Deploy a specific commit**, informando esse SHA, e não **Deploy latest commit**;
-4. valide health e readiness e registre o commit publicado.
+1. revise as migrations e sua compatibilidade com a API ainda em produção;
+2. confirme as validações do PR e faça merge na `main`;
+3. aguarde o CI da `main`, o deploy automático e a aplicação das migrations;
+4. valide health, readiness e os fluxos atingidos.
 
 Depois de fazer merge desta configuração, sincronize o Blueprint e confirme que o Build Command
-efetivo no serviço começa com o script. Só então o botão de deploy manual também passa pelo gate.
-As migrations continuam dependendo do operador. Não habilite auto-deploy antes de resolver essa
-etapa. O modo nativo **After CI Checks Pass** aceita `neutral` e `skipped`; portanto, sozinho, não
-substitui a verificação mais estrita do script.
+efetivo começa com o script e termina com `pnpm --filter @vavito/api prisma:migrate:deploy`.
+Confirme também **After CI Checks Pass** no serviço. O modo nativo aceita `neutral` e `skipped`;
+por isso mantemos a verificação mais estrita do script. Deploy manual também passa pelo gate.
+Migrations aplicadas não são revertidas por falhas posteriores de deploy ou rollback de código;
+consulte o [guia da API na Render](render-api.md) para a estratégia de compatibilidade.
 
 ### Vercel
 

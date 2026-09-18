@@ -12,7 +12,7 @@ compartilhadas usadas pelo build de `apps/api`.
 | região | `virginia` | região disponível mais próxima do projeto Supabase em São Paulo |
 | plano | `free` | ambiente inicial sem cobrança, sujeito a suspensão por inatividade |
 | instâncias | `1` | o rate limit atual usa memória local |
-| auto-deploy | `off` | a integração com os checks da CI será habilitada separadamente |
+| auto-deploy | `checksPass` | inicia o deploy da main após os checks passarem; o gate exige sucesso dos jobs obrigatórios |
 | domínio | `api.vavitoarchives.com.br` | origem pública da API |
 | health check | `/api/v1/health` | verifica que o processo NestJS está respondendo |
 | encerramento | padrão da Render | o NestJS trata `SIGTERM` pelos shutdown hooks disponíveis no plano gratuito |
@@ -25,7 +25,7 @@ também `GET /api/v1/health/ready`, que confirma a conexão com o PostgreSQL.
 Os comandos de build e start são executados pela raiz do repositório:
 
 ```bash
-node scripts/deploy/require-quality.mjs --provider render && pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build
+node scripts/deploy/require-quality.mjs --provider render && pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build && pnpm --filter @vavito/api prisma:migrate:deploy
 node apps/api/dist/main.js
 ```
 
@@ -38,17 +38,25 @@ A geração explícita do Prisma Client garante que os arquivos ignorados em
 `apps/api/src/generated/prisma` existam antes da compilação, sem depender apenas do `postinstall`.
 Essa etapa não acessa nem modifica o banco de dados.
 
-O plano gratuito não oferece o comando de pre-deploy da Render. Antes de publicar uma versão com
-novas migrations, execute manualmente, em uma rede que alcance o pooler de sessão do Supabase:
+O plano gratuito não oferece o comando de pre-deploy da Render. Por decisão aprovada, as migrations
+passam a ser aplicadas automaticamente ao final do build, após a aprovação do CI e a compilação.
+O Prisma usa a `DIRECT_URL` de produção, com o pooler de sessão do Supabase. `migrate deploy`
+aplica somente migrations pendentes e bloqueia o deploy se houver erro. Nunca usar `migrate dev`
+ou `migrate reset` no pipeline de produção.
+
+Para uma verificação ou aplicação manual excepcional, use:
 
 ```bash
 pnpm --filter @vavito/api prisma:migrate:status
 pnpm --filter @vavito/api prisma:migrate:deploy
 ```
 
-Somente inicie o deploy depois que ambos terminarem sem erro. Não mova migrations para o build: ele
-não é a etapa transacional de promoção e pode ser repetido sem que a versão seja publicada. O
-auto-deploy permanece desligado para preservar essa ordem.
+Build e promoção não formam uma transação com o banco: uma migration aplicada permanece mesmo
+se a implantação falhar depois. Portanto, revisar migrations no PR e manter compatibilidade com
+a API anterior enquanto ela estiver ativa. Adicionar campos antes de usá-los; remover campos em
+uma entrega posterior à retirada de seu uso. Transformações destrutivas exigem backup e um plano
+de recuperação antes do merge. Em um plano pago, preferir mover a aplicação de migrations para
+o comando dedicado de pre-deploy.
 
 ## Variáveis protegidas
 
@@ -82,7 +90,7 @@ Swagger desabilitado, CORS restrito a `https://vavitoarchives.com.br` e os remet
 2. na Render, crie um Blueprint conectado ao repositório privado e à branch principal;
 3. confirme que o plano selecionado é `Free` e não solicita uma forma de pagamento;
 4. informe somente no painel os valores protegidos solicitados;
-5. confirme manualmente o status das migrations e só então inicie o deploy;
+5. sincronize o Blueprint e confirme `After CI Checks Pass` e o comando de migrations ao final do build;
 6. aguarde build e start concluírem sem erro;
 7. configure no DNS o registro indicado pela Render para `api.vavitoarchives.com.br`;
 8. aguarde a emissão do certificado TLS;
@@ -99,6 +107,8 @@ novamente. Para falha após a promoção, use o rollback da Render para o deploy
 health, readiness e os fluxos atingidos. Não execute `prisma migrate reset` nem remova migrations já
 aplicadas em produção.
 
+Rollback de código não desfaz migrations. Se a Render desligar auto-deploy após um rollback,
+reabilite-o somente depois de corrigir a causa e confirmar a compatibilidade com o banco.
+
 O serviço gratuito pode suspender após um período sem tráfego e apresentar atraso na primeira
-requisição seguinte. A migração para um plano pago permite restaurar o pre-deploy automático antes
-de habilitar auto-deploys.
+requisição seguinte.
