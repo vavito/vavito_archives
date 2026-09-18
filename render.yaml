@@ -5,8 +5,8 @@ services:
     region: virginia
     plan: free
     numInstances: 1
-    autoDeployTrigger: off
-    buildCommand: node scripts/deploy/require-quality.mjs --provider render && pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build
+    autoDeployTrigger: checksPass
+    buildCommand: node scripts/deploy/require-quality.mjs --provider render && pnpm install --frozen-lockfile && pnpm --filter @vavito/api prisma:generate && pnpm --filter @vavito/api build && pnpm --filter @vavito/api prisma:migrate:deploy
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /api/v1/health
     domains:
