@@ -4,6 +4,7 @@ export { AdminEditorHeader } from './components/admin-editor-header';
 export { AdminPostActions } from './components/admin-post-actions';
 export { AdminPostPreview } from './components/admin-post-preview';
 export { AdminPostsPageContent } from './components/admin-posts-page-content';
+export { AdminTopicsManager } from './components/admin-topics-manager';
 export { ArticleEditor } from './editor/article-editor';
 export {
   ARTICLE_CONTENT_SCHEMA_VERSION,
@@ -11,6 +12,7 @@ export {
   EMPTY_ARTICLE_DOCUMENT,
 } from './editor/article-editor.config';
 export { getAdminPostDetail, listAdminPosts } from './services/admin-posts-query.service';
+export { listAdminTags } from './services/admin-tags.service';
 export { transitionAdminPost } from './services/admin-post-transitions.service';
 export type {
   AdminPostDetail,

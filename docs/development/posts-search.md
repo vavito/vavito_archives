@@ -2,6 +2,10 @@
 
 O endpoint `GET /api/v1/posts/search?q=termo` busca somente posts publicados em título, resumo e nome das tags. A resposta usa `PostSummaryDto`, não possui paginação e retorna no máximo oito resultados.
 
+`GET /api/v1/tags` retorna os tópicos marcados como públicos e com pelo menos um artigo publicado.
+Tópicos sem artigos ou ocultados pela administração continuam preservados no banco para reutilização
+futura e não aparecem como filtros públicos.
+
 ## Normalização e segurança
 
 O termo recebido é normalizado em NFC, tem espaços consecutivos reduzidos, extremidades removidas e caixa convertida para minúsculas com locale `pt-BR`. Os caracteres `%`, `_` e `\` são escapados antes do `LIKE`, portanto são tratados como texto do leitor e não como curingas SQL. Todos os valores continuam parametrizados pelo Prisma.

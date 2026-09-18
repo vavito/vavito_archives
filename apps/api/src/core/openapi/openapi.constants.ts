@@ -9,6 +9,7 @@ export const OPENAPI_TAGS = [
   { description: 'Consulta pública de artigos.', name: 'Posts' },
   { description: 'Administração editorial de artigos.', name: 'Admin Posts' },
   { description: 'Consulta pública de tags.', name: 'Tags' },
+  { description: 'Visibilidade pública dos tópicos.', name: 'Admin Tags' },
   { description: 'Upload administrativo de mídia editorial.', name: 'Admin Media' },
   { description: 'Comentários públicos e ações do autor.', name: 'Comments' },
   { description: 'Moderação administrativa de comentários.', name: 'Admin Comments' },

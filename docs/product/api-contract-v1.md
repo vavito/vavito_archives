@@ -243,7 +243,10 @@ com a reação e o bookmark do leitor; sem autenticação, retorna `viewer: null
 
 O autor público expõe somente nome e URL pública do avatar, sem email, ID ou caminho interno de armazenamento. `PostAdminDetailDto` inclui `status`, identificação administrativa do autor, datas administrativas, dados do editor e a indicação de alterações pendentes. Editar um post publicado não muda a versão pública; publicar as alterações cria a revisão com snapshot anterior, autor e data. Esse histórico não aparece em `PostDetailResponseDto`.
 
-Tags são normalizadas e associadas a partir de `tagNames`. A V1 não exige CRUD administrativo separado para tags.
+Tags são normalizadas e associadas a partir de `tagNames`. A visibilidade pública é administrável
+separadamente: a administração pode ocultar ou reexibir um tópico sem remover a entidade `Tag` nem
+suas associações históricas. A listagem pública retorna somente tópicos visíveis com ao menos um post
+publicado.
 
 ### Comment
 
@@ -403,7 +406,7 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 | `GET` | `/posts/search` | Público limitado | `q` | `200 PostSummaryDto[]` com até 8 itens. |
 | `GET` | `/posts/:slug` | Público | slug | `200 PostDetailResponseDto`. |
 | `POST` | `/posts/:slug/views` | Público limitado | sinal técnico não identificador | `202`; não bloqueia a leitura. |
-| `GET` | `/tags` | Público | — | `200 TagResponseDto[]`. |
+| `GET` | `/tags` | Público | — | `200 TagResponseDto[]` somente com tópicos públicos que têm artigos publicados. |
 
 ### Posts — administração
 
@@ -420,6 +423,8 @@ Todos os caminhos abaixo recebem automaticamente o prefixo `/api/v1`.
 | `POST` | `/admin/posts/:id/archive` | ADMIN | — | `200 PostAdminDetailDto`. |
 | `POST` | `/admin/posts/:id/restore` | ADMIN | — | `200 PostAdminDetailDto` em `DRAFT`. |
 | `DELETE` | `/admin/posts/:id` | ADMIN | `{ confirm: true }` | `204`; remove permanentemente o artigo e seus dados dependentes em qualquer estado. |
+| `GET` | `/admin/tags` | ADMIN | — | `200 AdminTagResponseDto[]` com contagem publicada e visibilidade. |
+| `PATCH` | `/admin/tags/:id/visibility` | ADMIN | `{ isPublic: boolean }` | `200 AdminTagResponseDto`; altera apenas a exibição pública. |
 
 Campanhas já criadas preservam o snapshot editorial depois da exclusão do artigo. Sua referência relacional passa a `null`, sem alterar o HTML enviado ou o histórico de entregas.
 
@@ -536,7 +541,8 @@ Eventos da V1:
 ## Decisões aprovadas
 
 1. Paginação usa limites por contexto: artigos e bookmarks `12/24`, comentários `20/50`, administração `20/100`; busca retorna no máximo `8` sem parâmetro `limit`.
-2. Tags são informadas como `tagNames` no post e criadas/reutilizadas pela API; não há CRUD separado de tags na V1.
+2. Tags são informadas como `tagNames` no post e criadas/reutilizadas pela API. A administração pode
+   controlar sua visibilidade pública sem excluir a tag ou suas associações.
 3. Avatar possui endpoints autenticados próprios e não reutiliza mídia editorial administrativa.
 4. Preview usa o DTO administrativo do post e é renderizado em rota protegida no frontend.
 5. Campanhas recebem endpoints de listagem, detalhe e edição antes do envio.

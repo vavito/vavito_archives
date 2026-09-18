@@ -14,7 +14,7 @@ import {
   ReactionsRepository,
 } from '@api/modules/engagement/repositories/reactions.repository';
 
-const MAX_TRANSACTION_ATTEMPTS = 3;
+const MAX_TRANSACTION_ATTEMPTS = 5;
 
 function isTransactionConflict(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2034';
@@ -129,6 +129,8 @@ export class PrismaReactionsRepository implements ReactionsRepository {
         if (!isTransactionConflict(error) || attempt === MAX_TRANSACTION_ATTEMPTS) {
           throw error;
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 25 * 2 ** (attempt - 1)));
       }
     }
 

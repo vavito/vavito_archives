@@ -33,6 +33,8 @@ import type { PostAdminDetailDto } from '@api/modules/posts/dto/response/post-ad
 import type { PostDetailResponseDto } from '@api/modules/posts/dto/response/post-detail-response.dto';
 import type { PostSummaryDto } from '@api/modules/posts/dto/response/post-summary.dto';
 import type { TagResponseDto } from '@api/modules/posts/dto/response/tag-response.dto';
+import type { AdminTagResponseDto } from '@api/modules/posts/dto/response/admin-tag-response.dto';
+import { TagNotFoundException } from '@api/modules/posts/errors/tag-not-found.exception';
 import { throwPostDomainException } from '@api/modules/posts/errors/post-domain.exception';
 import { PostNotFoundException } from '@api/modules/posts/errors/post-not-found.exception';
 import { SlugAlreadyExistsException } from '@api/modules/posts/errors/slug-already-exists.exception';
@@ -247,6 +249,22 @@ export class PostsService {
     const tags = await this.postsRepository.listTags();
 
     return tags.map((tag) => ({ ...tag }));
+  }
+
+  async listAdminTags(actorId: string): Promise<AdminTagResponseDto[]> {
+    await this.ensureAdminActor(actorId);
+    return this.postsRepository.listAdminTags();
+  }
+
+  async updateTagVisibility(
+    actorId: string,
+    tagId: string,
+    isPublic: boolean,
+  ): Promise<AdminTagResponseDto> {
+    await this.ensureAdminActor(actorId);
+    const tag = await this.postsRepository.updateTagVisibility(tagId, isPublic);
+    if (!tag) throw new TagNotFoundException();
+    return tag;
   }
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {

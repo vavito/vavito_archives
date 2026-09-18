@@ -2,7 +2,13 @@ import type { Metadata } from 'next';
 
 import { PageError } from '@web/components/feedback/page-error';
 import { AdminNavigation } from '@web/features/admin/components/admin-navigation';
-import { AdminPostsPageContent, listAdminPosts, type AdminPostStatus } from '@web/features/admin';
+import {
+  AdminPostsPageContent,
+  AdminTopicsManager,
+  listAdminPosts,
+  listAdminTags,
+  type AdminPostStatus,
+} from '@web/features/admin';
 import { requireAdminSession } from '@web/features/admin/services/admin-session.service';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 
@@ -35,16 +41,23 @@ function parseStatus(value: string | undefined): AdminPostStatus | null {
 export default async function AdminPostsPage({ searchParams }: Readonly<AdminPostsPageProps>) {
   const [parameters, session] = await Promise.all([searchParams, requireAdminSession()]);
   let data: Awaited<ReturnType<typeof listAdminPosts>>;
+  let tags: Awaited<ReturnType<typeof listAdminTags>>;
 
   try {
-    data = await listAdminPosts(
-      {
-        page: parsePage(firstParameter(parameters.page)),
-        query: firstParameter(parameters.q) ?? '',
-        status: parseStatus(firstParameter(parameters.status)),
-      },
-      createWebAuthenticatedApiClient(() => session.accessToken),
-    );
+    const client = createWebAuthenticatedApiClient(() => session.accessToken);
+    const [posts, adminTags] = await Promise.all([
+      listAdminPosts(
+        {
+          page: parsePage(firstParameter(parameters.page)),
+          query: firstParameter(parameters.q) ?? '',
+          status: parseStatus(firstParameter(parameters.status)),
+        },
+        client,
+      ),
+      listAdminTags(client),
+    ]);
+    data = posts;
+    tags = adminTags;
   } catch {
     return (
       <>
@@ -61,6 +74,9 @@ export default async function AdminPostsPage({ searchParams }: Readonly<AdminPos
     <>
       <AdminNavigation />
       <AdminPostsPageContent data={data} />
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-12 sm:px-6 lg:px-8">
+        <AdminTopicsManager initialTags={tags} />
+      </div>
     </>
   );
 }

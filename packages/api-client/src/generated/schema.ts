@@ -310,6 +310,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/tags': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista tópicos e sua visibilidade pública */
+    get: operations['adminTags_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/tags/{id}/visibility': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Atualiza a visibilidade pública de um tópico */
+    patch: operations['adminTags_updateVisibility'];
+    trace?: never;
+  };
   '/api/v1/admin/media': {
     parameters: {
       query?: never;
@@ -1127,6 +1161,25 @@ export interface components {
        * @example true
        */
       confirm: boolean;
+    };
+    AdminTagResponseDto: {
+      /**
+       * Format: uuid
+       * @example 019c2d62-6e90-7000-8000-000000000011
+       */
+      id: string;
+      /** @example TypeScript */
+      name: string;
+      /** @example typescript */
+      slug: string;
+      /** @example true */
+      isPublic: boolean;
+      /** @example 12 */
+      publishedPostCount: number;
+    };
+    UpdateTagVisibilityDto: {
+      /** @example true */
+      isPublic: boolean;
     };
     /** @enum {string} */
     MediaAssetStatus: 'FAILED' | 'ORPHANED' | 'READY' | 'UPLOADING';
@@ -3645,6 +3698,187 @@ export interface operations {
            *       "details": null,
            *       "message": "Erro interno do servidor.",
            *       "path": "/api/v1/admin/posts/{id}/restore",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
+  adminTags_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminTagResponseDto'][];
+        };
+      };
+      /** @description Dados inválidos. */
+      400: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Autenticação necessária. */
+      401: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Acesso exclusivo de administrador. */
+      403: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Tópico não encontrado. */
+      404: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/admin/tags",
+           *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
+           *       "statusCode": 500,
+           *       "timestamp": "2026-08-27T20:15:00.000Z"
+           *     }
+           */
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+    };
+  };
+  adminTags_updateVisibility: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @example 019c2d62-6e90-7000-8000-000000000010 */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateTagVisibilityDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminTagResponseDto'];
+        };
+      };
+      /** @description Dados inválidos. */
+      400: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Autenticação necessária. */
+      401: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Acesso exclusivo de administrador. */
+      403: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Tópico não encontrado. */
+      404: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponseDto'];
+        };
+      };
+      /** @description Falha interna inesperada. */
+      500: {
+        headers: {
+          /** @description Identificador usado para correlacionar a requisição nos logs. */
+          'X-Request-Id'?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "code": "INTERNAL_ERROR",
+           *       "details": null,
+           *       "message": "Erro interno do servidor.",
+           *       "path": "/api/v1/admin/tags/{id}/visibility",
            *       "requestId": "019c2d62-6e90-7000-8000-000000000000",
            *       "statusCode": 500,
            *       "timestamp": "2026-08-27T20:15:00.000Z"

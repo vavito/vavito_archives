@@ -28,6 +28,25 @@ describe('ordenação pública no repositório', () => {
   });
 });
 
+describe('tópicos públicos no repositório', () => {
+  it('considera apenas tópicos públicos com artigo publicado', async () => {
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = { tag: { findMany } } as unknown as PrismaService;
+    const repository = new PrismaPostsRepository(prisma);
+
+    await repository.listTags();
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          isPublic: true,
+          posts: { some: { post: { status: 'PUBLISHED' } } },
+        },
+      }),
+    );
+  });
+});
+
 describe('capa do post no repositório', () => {
   function editablePost(): Post {
     return {

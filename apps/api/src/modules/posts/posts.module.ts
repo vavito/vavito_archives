@@ -4,6 +4,7 @@ import { AuthModule } from '@api/core/auth/auth.module';
 import { StorageModule } from '@api/core/storage/storage.module';
 import { MediaModule } from '@api/modules/media/media.module';
 import { AdminPostsController } from '@api/modules/posts/controllers/admin-posts.controller';
+import { AdminTagsController } from '@api/modules/posts/controllers/admin-tags.controller';
 import { PostsController } from '@api/modules/posts/controllers/posts.controller';
 import { TagsController } from '@api/modules/posts/controllers/tags.controller';
 import { PrismaPostsRepository } from '@api/modules/posts/repositories/prisma-posts.repository';
@@ -12,7 +13,7 @@ import { PostViewFingerprintService } from '@api/modules/posts/services/post-vie
 import { PostsService } from '@api/modules/posts/services/posts.service';
 
 @Module({
-  controllers: [PostsController, TagsController, AdminPostsController],
+  controllers: [PostsController, TagsController, AdminPostsController, AdminTagsController],
   exports: [PostsRepository, PostsService],
   imports: [AuthModule, MediaModule, StorageModule],
   providers: [

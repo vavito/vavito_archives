@@ -19,7 +19,7 @@ import type {
   PublicPostSummaryRecord,
 } from '@api/modules/posts/repositories/posts.repository';
 
-const MAX_TRANSACTION_ATTEMPTS = 3;
+const MAX_TRANSACTION_ATTEMPTS = 5;
 
 const BOOKMARKED_POST_SELECT = {
   excerpt: true,
@@ -185,6 +185,8 @@ export class PrismaBookmarksRepository implements BookmarksRepository {
         if (!isTransactionConflict(error) || attempt === MAX_TRANSACTION_ATTEMPTS) {
           throw error;
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 25 * 2 ** (attempt - 1)));
       }
     }
 
