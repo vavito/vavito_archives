@@ -335,7 +335,9 @@ Rascunhos não exigem uma revisão a cada autosave. Alterações posteriores à 
 
 ### Tag e PostTag
 
-`Tag` possui `id`, `name`, `slug`, `createdAt` e `updatedAt`. `name` normalizado e `slug` são únicos.
+`Tag` possui `id`, `name`, `slug`, `isPublic`, `createdAt` e `updatedAt`. `name` normalizado e `slug`
+são únicos. `isPublic` controla apenas a presença do tópico nos filtros públicos; ocultar um tópico
+não remove seus dados nem as associações `PostTag`.
 
 `PostTag` usa PK composta `(postId, tagId)`. Ambas as FKs usam cascade porque a linha representa somente associação.
 
