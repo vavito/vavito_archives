@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { cache } from 'react';
+import { cache, Suspense } from 'react';
 
 import { PageError } from '@web/components/feedback/page-error';
 import {
@@ -15,6 +15,8 @@ import {
   createArticleMetadata,
   createArticleStructuredData,
   getArticlePageData,
+  getArticleRelatedPosts,
+  RelatedPostsSection,
 } from '@web/features/posts';
 import { getProfile } from '@web/features/profile';
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
@@ -27,7 +29,7 @@ import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 import { serializeStructuredData } from '@web/lib/seo/structured-data';
 
 const getArticlePageDataForRoute = cache((slug: string) =>
-  withPageDataTimeout(() => getArticlePageData({ slug })),
+  withPageDataTimeout(() => getArticlePageData({ includeRelatedPosts: false, slug })),
 );
 
 export async function generateMetadata({
@@ -66,6 +68,7 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
       ? await withPageDataTimeout(() =>
           getArticlePageData({
             client: createWebAuthenticatedApiClient(() => session.accessToken),
+            includeRelatedPosts: false,
             slug,
           }),
         )
@@ -86,11 +89,6 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
   if (data.post.slug !== slug) {
     permanentRedirect(`/artigos/${data.post.slug}`);
   }
-
-  const [comments, viewer] = await Promise.all([
-    getInitialComments(data.post.slug),
-    getCommentViewer(session),
-  ]);
 
   const structuredData = createArticleStructuredData(data.post);
 
@@ -121,15 +119,66 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
         }
         data={data}
         engagement={
-          <CommentsSection
-            initialData={comments}
-            postId={data.post.id}
-            slug={data.post.slug}
-            viewer={viewer}
-          />
+          <Suspense fallback={<ArticleSectionLoading label="Carregando comentários" />}>
+            <ArticleComments postId={data.post.id} session={session} slug={data.post.slug} />
+          </Suspense>
+        }
+        relatedContent={
+          <Suspense fallback={<ArticleSectionLoading label="Carregando artigos relacionados" />}>
+            <ArticleRelatedPosts post={data.post} />
+          </Suspense>
         }
       />
     </>
+  );
+}
+
+async function ArticleComments({
+  postId,
+  session,
+  slug,
+}: {
+  postId: string;
+  session: AuthenticatedSession | null;
+  slug: string;
+}) {
+  const [comments, viewer] = await Promise.all([
+    getInitialComments(slug),
+    getCommentViewer(session),
+  ]);
+  return <CommentsSection initialData={comments} postId={postId} slug={slug} viewer={viewer} />;
+}
+
+async function ArticleRelatedPosts({
+  post,
+}: {
+  post: NonNullable<Awaited<ReturnType<typeof getArticlePageData>>>['post'];
+}) {
+  let posts;
+  try {
+    posts = await withPageDataTimeout(() => getArticleRelatedPosts(post));
+  } catch {
+    return (
+      <p className="mx-auto max-w-6xl px-4 py-8 text-sm text-neutral-400" role="status">
+        Não foi possível carregar os artigos relacionados agora.
+      </p>
+    );
+  }
+  return <RelatedPostsSection posts={posts} />;
+}
+
+function ArticleSectionLoading({ label }: { label: string }) {
+  return (
+    <div
+      aria-busy="true"
+      aria-label={label}
+      className="mx-auto grid w-full max-w-3xl animate-pulse gap-4 px-4 py-8 sm:px-6 lg:px-8"
+      role="status"
+    >
+      <div className="bg-surface-raised h-6 w-48 rounded-full" />
+      <div className="bg-surface-raised h-24 rounded-xl" />
+      <span className="sr-only">{label}…</span>
+    </div>
   );
 }
 
