@@ -9,11 +9,13 @@ const RELATED_POSTS_VISIBLE = 3;
 
 interface GetArticlePageDataOptions {
   client?: ApiClient;
+  includeRelatedPosts?: boolean;
   slug: string;
 }
 
 export async function getArticlePageData({
   client = createWebPublicApiClient(),
+  includeRelatedPosts = true,
   slug,
 }: GetArticlePageDataOptions): Promise<ArticlePageData | null> {
   let detailResponse;
@@ -36,6 +38,16 @@ export async function getArticlePageData({
     throw new Error('Não foi possível carregar este artigo.');
   }
 
+  return {
+    post,
+    relatedPosts: includeRelatedPosts ? await getArticleRelatedPosts(post, client) : [],
+  };
+}
+
+export async function getArticleRelatedPosts(
+  post: ArticlePageData['post'],
+  client: ApiClient = createWebPublicApiClient(),
+): Promise<ArticlePageData['relatedPosts']> {
   const primaryTag = post.tags[0]?.slug;
   const relatedResponse = await client.GET('/api/v1/posts', {
     params: {
@@ -52,10 +64,7 @@ export async function getArticlePageData({
     throw new Error('Não foi possível carregar os artigos relacionados.');
   }
 
-  return {
-    post,
-    relatedPosts: relatedResponse.data.items
-      .filter((relatedPost) => relatedPost.id !== post.id)
-      .slice(0, RELATED_POSTS_VISIBLE),
-  };
+  return relatedResponse.data.items
+    .filter((relatedPost) => relatedPost.id !== post.id)
+    .slice(0, RELATED_POSTS_VISIBLE);
 }

@@ -47,6 +47,18 @@ const relatedPost: components['schemas']['PostSummaryDto'] = {
 };
 
 describe('getArticlePageData', () => {
+  it('entrega o artigo sem consultar relacionados quando o carregamento é separado', async () => {
+    const get = vi.fn().mockResolvedValue({ data: post });
+    const client = { GET: get } as unknown as ApiClient;
+
+    await expect(
+      getArticlePageData({ client, includeRelatedPosts: false, slug: post.slug }),
+    ).resolves.toEqual({ post, relatedPosts: [] });
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(get).toHaveBeenCalledWith('/api/v1/posts/{slug}', {
+      params: { path: { slug: post.slug } },
+    });
+  });
   it('carrega o detalhe e seleciona relacionados pela primeira tag sem repetir o artigo', async () => {
     const get = vi.fn((path: string) =>
       Promise.resolve({
