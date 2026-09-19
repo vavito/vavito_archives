@@ -20,30 +20,53 @@ interface SearchViewport {
   offsetTop: number;
 }
 
-export function SearchOverlay() {
+interface SearchOverlayProps {
+  hideTrigger?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
+}
+
+export function SearchOverlay({
+  hideTrigger = false,
+  onOpenChange,
+  open: controlledOpen,
+}: Readonly<SearchOverlayProps> = {}) {
   const router = useRouter();
   const resultsId = useId();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searchViewport, setSearchViewport] = useState<SearchViewport | null>(null);
   const { data, error, isDebouncing, isFetching, normalizedQuery } = usePostSearch(query);
   const results = data ?? EMPTY_RESULTS;
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   const resolvedActiveIndex =
     results.length === 0 ? -1 : Math.min(Math.max(activeIndex, 0), results.length - 1);
 
+  const setOpen = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
+
   useEffect(() => {
+    if (isControlled) {
+      return;
+    }
+
     const openSearch = (event: globalThis.KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setOpen(true);
+        setInternalOpen(true);
       }
     };
 
     window.addEventListener('keydown', openSearch);
     return () => window.removeEventListener('keydown', openSearch);
-  }, []);
+  }, [isControlled]);
 
   useEffect(() => {
     if (!open || !window.visualViewport) {
@@ -125,19 +148,21 @@ export function SearchOverlay() {
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogTrigger asChild>
-        <button
-          aria-label="Buscar artigos"
-          className="motion-control text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm md:min-w-44 md:justify-between"
-          type="button"
-        >
-          <span className="flex items-center gap-2">
-            <Search aria-hidden="true" className="size-4" />
-            <span className="hidden md:inline">Buscar</span>
-          </span>
-          <kbd className="text-neutral-600 hidden font-mono text-[10px] md:inline">⌘/Ctrl K</kbd>
-        </button>
-      </DialogTrigger>
+      {!hideTrigger ? (
+        <DialogTrigger asChild>
+          <button
+            aria-label="Buscar artigos"
+            className="motion-control text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm md:min-w-44 md:justify-between"
+            type="button"
+          >
+            <span className="flex items-center gap-2">
+              <Search aria-hidden="true" className="size-4" />
+              <span className="hidden md:inline">Buscar</span>
+            </span>
+            <kbd className="text-neutral-600 hidden font-mono text-[10px] md:inline">⌘/Ctrl K</kbd>
+          </button>
+        </DialogTrigger>
+      ) : null}
 
       <DialogContent
         className="bg-overlay max-w-md gap-0 overflow-hidden p-0"
