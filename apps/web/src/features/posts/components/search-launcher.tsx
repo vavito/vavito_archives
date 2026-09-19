@@ -1,7 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 const SearchOverlayDialog = lazy(() =>
   import('./search-overlay').then(({ SearchOverlay }) => ({ default: SearchOverlay })),
@@ -9,6 +9,15 @@ const SearchOverlayDialog = lazy(() =>
 
 export function SearchLauncher() {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
+    }
+  };
 
   useEffect(() => {
     const openSearch = (event: globalThis.KeyboardEvent) => {
@@ -25,6 +34,7 @@ export function SearchLauncher() {
   return (
     <>
       <button
+        ref={triggerRef}
         aria-label="Buscar artigos"
         className="motion-control text-neutral-400 hover:bg-surface-raised hover:text-neutral-100 flex min-h-10 items-center gap-2 rounded-full border border-border px-3 text-sm md:min-w-44 md:justify-between"
         onClick={() => setOpen(true)}
@@ -39,7 +49,7 @@ export function SearchLauncher() {
 
       {open ? (
         <Suspense fallback={null}>
-          <SearchOverlayDialog hideTrigger onOpenChange={setOpen} open />
+          <SearchOverlayDialog hideTrigger onOpenChange={handleOpenChange} open />
         </Suspense>
       ) : null}
     </>

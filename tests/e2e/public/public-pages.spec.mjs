@@ -147,12 +147,12 @@ test.describe('páginas públicas', () => {
     await page.goto('/artigos?tag=erro');
 
     await expect(
-      page.getByRole('heading', { name: 'Não foi possível carregar os artigos.' }),
+      page.getByText('Não foi possível carregar a listagem de artigos agora.'),
     ).toBeVisible();
+    await expect(page.getByText('Tente novamente em alguns instantes.')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Artigos' })).toBeVisible();
     await expect(
-      page.getByText(
-        'Não conseguimos buscar os artigos agora. Tente novamente em alguns instantes.',
-      ),
+      page.getByRole('navigation', { name: 'Filtros da listagem de artigos' }),
     ).toBeVisible();
     await expect(page.getByText(/API|stack|503/u)).toHaveCount(0);
   });
