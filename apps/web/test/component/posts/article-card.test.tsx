@@ -1,5 +1,14 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { createElement, type ImgHTMLAttributes } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('next/image', () => ({
+  default: (props: Record<string, unknown>) =>
+    createElement('img', {
+      ...props,
+      alt: typeof props.alt === 'string' ? props.alt : '',
+    } as ImgHTMLAttributes<HTMLImageElement>),
+}));
 
 import { ArticleCard } from '@web/features/posts/components/article-card';
 import type { PostSummary } from '@web/features/posts/types/posts.types';
@@ -46,5 +55,21 @@ describe('ArticleCard', () => {
     expect(appearsBefore(title, excerpt)).toBe(true);
     expect(appearsBefore(excerpt, tags)).toBe(true);
     expect(appearsBefore(tags, metadata)).toBe(true);
+  });
+
+  it('prioriza somente a capa marcada como principal', () => {
+    const { rerender } = render(<ArticleCard post={post} priority />);
+
+    expect(screen.getByRole('img', { name: post.coverAlt as string })).toHaveAttribute(
+      'fetchpriority',
+      'high',
+    );
+
+    rerender(<ArticleCard post={post} />);
+
+    expect(screen.getByRole('img', { name: post.coverAlt as string })).not.toHaveAttribute(
+      'fetchpriority',
+      'high',
+    );
   });
 });
