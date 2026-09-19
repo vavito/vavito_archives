@@ -11,7 +11,6 @@ import {
   getHomeRecentPosts,
   getHomeTags,
 } from '../services/get-home-data';
-import type { TagSummary } from '@web/features/posts';
 import { ArticleCard } from '@web/features/posts/components/article-card';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
 
@@ -112,11 +111,8 @@ function TopicsSkeleton() {
   );
 }
 
-async function TopicsSection({
-  selectedTag,
-  tagsPromise,
-}: Readonly<{ selectedTag: string | null; tagsPromise: Promise<TagSummary[]> }>) {
-  const tags = await resolveSectionData(tagsPromise);
+async function TopicsSection({ selectedTag }: Readonly<{ selectedTag: string | null }>) {
+  const tags = await resolveSectionData(getHomeTags(createWebCachedPublicApiClient()));
 
   if (!tags) {
     return <SectionError label="os tópicos" />;
@@ -172,13 +168,13 @@ function PostsSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
 }
 
 async function RecentSection({
-  postsPromise,
   selectedTag,
 }: Readonly<{
-  postsPromise: Promise<Awaited<ReturnType<typeof getHomeRecentPosts>>>;
   selectedTag: string | null;
 }>) {
-  const posts = await resolveSectionData(postsPromise);
+  const posts = await resolveSectionData(
+    getHomeRecentPosts({ client: createWebCachedPublicApiClient(), selectedTag }),
+  );
 
   if (!posts) {
     return <SectionError label="os artigos recentes" />;
@@ -208,10 +204,10 @@ async function RecentSection({
   );
 }
 
-async function PopularSection({
-  postsPromise,
-}: Readonly<{ postsPromise: Promise<Awaited<ReturnType<typeof getHomePopularPosts>>> }>) {
-  const posts = await resolveSectionData(postsPromise);
+async function PopularSection({ selectedTag }: Readonly<{ selectedTag: string | null }>) {
+  const posts = await resolveSectionData(
+    getHomePopularPosts({ client: createWebCachedPublicApiClient(), selectedTag }),
+  );
 
   if (!posts) {
     return <SectionError label="os artigos mais acessados" />;
@@ -254,16 +250,17 @@ function MetricsSkeleton() {
 }
 
 async function MetricsSection({
-  countPromise,
-  popularPostsPromise,
-  tagsPromise,
+  selectedTag,
 }: Readonly<{
-  countPromise: Promise<number>;
-  popularPostsPromise: Promise<Awaited<ReturnType<typeof getHomePopularPosts>>>;
-  tagsPromise: Promise<TagSummary[]>;
+  selectedTag: string | null;
 }>) {
+  const client = createWebCachedPublicApiClient();
+  const recentPostsPromise = getHomeRecentPosts({ client, selectedTag });
+  const countPromise = selectedTag
+    ? getHomePublishedPostsCount(client)
+    : recentPostsPromise.then((posts) => posts.meta.total);
   const metrics = await resolveSectionData(
-    Promise.all([countPromise, tagsPromise, popularPostsPromise]),
+    Promise.all([countPromise, getHomeTags(client), getHomePopularPosts({ client, selectedTag })]),
   );
 
   if (!metrics) {
@@ -294,32 +291,20 @@ async function MetricsSection({
 }
 
 export function HomePageStream({ selectedTag }: Readonly<HomePageStreamProps>) {
-  const client = createWebCachedPublicApiClient();
-  const tagsPromise = getHomeTags(client);
-  const recentPostsPromise = getHomeRecentPosts({ client, selectedTag });
-  const popularPostsPromise = getHomePopularPosts({ client, selectedTag });
-  const countPromise = selectedTag
-    ? getHomePublishedPostsCount(client)
-    : recentPostsPromise.then((posts) => posts.meta.total);
-
   return (
     <div className="mx-auto grid w-full max-w-3xl gap-16 px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
       <Hero />
       <Suspense fallback={<TopicsSkeleton />}>
-        <TopicsSection selectedTag={selectedTag} tagsPromise={tagsPromise} />
+        <TopicsSection selectedTag={selectedTag} />
       </Suspense>
       <Suspense fallback={<PostsSkeleton count={4} />}>
-        <RecentSection postsPromise={recentPostsPromise} selectedTag={selectedTag} />
+        <RecentSection selectedTag={selectedTag} />
       </Suspense>
       <Suspense fallback={<PostsSkeleton count={3} />}>
-        <PopularSection postsPromise={popularPostsPromise} />
+        <PopularSection selectedTag={selectedTag} />
       </Suspense>
       <Suspense fallback={<MetricsSkeleton />}>
-        <MetricsSection
-          countPromise={countPromise}
-          popularPostsPromise={popularPostsPromise}
-          tagsPromise={tagsPromise}
-        />
+        <MetricsSection selectedTag={selectedTag} />
       </Suspense>
       <NewsletterSignup />
     </div>
