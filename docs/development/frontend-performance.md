@@ -42,6 +42,18 @@ A capa mantém `preload` e não espera hidratação para ficar visível. A redu�
 confirmada após o deploy com medições reais; latência da API e download da imagem ainda participam
 do carregamento principal.
 
+## Carregamento da Home e da listagem
+
+Home e `/artigos` entregam primeiro o cabeçalho e a estrutura principal. Tópicos, cards, métricas e
+paginação são Server Components separados por `Suspense`, com skeletons que preservam o espaço
+visual e erros isolados por região. Assim, a latência do Render em uma consulta secundária não
+impede o navegador de pintar o título e os controles acima da dobra.
+
+As consultas públicas dessas duas rotas usam o cache do `fetch` do Next.js por 30 segundos, com a
+tag `public-content`. Ações administrativas que publicam, arquivam, excluem artigos ou alteram a
+visibilidade de tópicos invalidam essa tag e as rotas públicas. Dados autenticados, comentários e
+rascunhos continuam fora desse cache.
+
 ## Limites de componentes no cliente
 
 `page.tsx` e `layout.tsx` permanecem Server Components. A diretiva `use client` fica restrita às
