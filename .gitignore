@@ -1,4 +1,6 @@
-docs_personal/
+docs_personal/*
+!docs_personal/README-technical.md
+!docs_personal/site-preview.png
 
 node_modules/
 .pnpm-store/
