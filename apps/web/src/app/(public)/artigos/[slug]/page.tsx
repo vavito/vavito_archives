@@ -19,7 +19,10 @@ import {
   RelatedPostsSection,
 } from '@web/features/posts';
 import { getProfile } from '@web/features/profile';
-import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
+import {
+  createWebAuthenticatedApiClient,
+  createWebCachedPublicApiClient,
+} from '@web/lib/api/api-client';
 import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
 import {
   type AuthenticatedSession,
@@ -29,7 +32,13 @@ import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 import { serializeStructuredData } from '@web/lib/seo/structured-data';
 
 const getArticlePageDataForRoute = cache((slug: string) =>
-  withPageDataTimeout(() => getArticlePageData({ includeRelatedPosts: false, slug })),
+  withPageDataTimeout(() =>
+    getArticlePageData({
+      client: createWebCachedPublicApiClient(),
+      includeRelatedPosts: false,
+      slug,
+    }),
+  ),
 );
 
 export async function generateMetadata({
@@ -60,19 +69,11 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]'>) {
   const { slug } = await params;
-  const session = await getAuthenticatedSession();
+  const sessionPromise = getAuthenticatedSession().catch(() => null);
   let data: Awaited<ReturnType<typeof getArticlePageData>>;
 
   try {
-    data = session
-      ? await withPageDataTimeout(() =>
-          getArticlePageData({
-            client: createWebAuthenticatedApiClient(() => session.accessToken),
-            includeRelatedPosts: false,
-            slug,
-          }),
-        )
-      : await getArticlePageDataForRoute(slug);
+    data = await getArticlePageDataForRoute(slug);
   } catch {
     return (
       <PageError
@@ -100,27 +101,18 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
       />
       <ArticlePageContent
         articleActions={
-          <>
-            <ArticleReactions
-              initialCounts={data.post.reactionCounts}
-              initialReaction={data.post.viewer?.reaction ?? null}
-              isAuthenticated={data.post.viewer !== null}
-              postId={data.post.id}
-              slug={data.post.slug}
-            />
-            <BookmarkButton
-              key={`${data.post.id}-${data.post.viewer?.bookmarked ?? false}`}
-              initialBookmarked={data.post.viewer?.bookmarked ?? false}
-              isAuthenticated={data.post.viewer !== null}
-              postId={data.post.id}
-              slug={data.post.slug}
-            />
-          </>
+          <Suspense fallback={<ArticleActionsLoading />}>
+            <ArticleActions post={data.post} sessionPromise={sessionPromise} />
+          </Suspense>
         }
         data={data}
         engagement={
           <Suspense fallback={<ArticleSectionLoading label="Carregando comentários" />}>
-            <ArticleComments postId={data.post.id} session={session} slug={data.post.slug} />
+            <ArticleComments
+              postId={data.post.id}
+              sessionPromise={sessionPromise}
+              slug={data.post.slug}
+            />
           </Suspense>
         }
         relatedContent={
@@ -133,19 +125,65 @@ export default async function ArticlePage({ params }: PageProps<'/artigos/[slug]
   );
 }
 
+async function ArticleActions({
+  post,
+  sessionPromise,
+}: {
+  post: NonNullable<Awaited<ReturnType<typeof getArticlePageData>>>['post'];
+  sessionPromise: Promise<AuthenticatedSession | null>;
+}) {
+  const session = await sessionPromise;
+  let viewerPost = post;
+
+  if (session) {
+    try {
+      const authenticatedData = await withPageDataTimeout(() =>
+        getArticlePageData({
+          client: createWebAuthenticatedApiClient(() => session.accessToken),
+          includeRelatedPosts: false,
+          slug: post.slug,
+        }),
+      );
+
+      if (authenticatedData) {
+        viewerPost = authenticatedData.post;
+      }
+    } catch {
+      // Keep the public post state if personalization is temporarily unavailable.
+    }
+  }
+
+  return (
+    <>
+      <ArticleReactions
+        initialCounts={viewerPost.reactionCounts}
+        initialReaction={viewerPost.viewer?.reaction ?? null}
+        isAuthenticated={session !== null}
+        postId={viewerPost.id}
+        slug={viewerPost.slug}
+      />
+      <BookmarkButton
+        key={`${viewerPost.id}-${viewerPost.viewer?.bookmarked ?? false}`}
+        initialBookmarked={viewerPost.viewer?.bookmarked ?? false}
+        isAuthenticated={session !== null}
+        postId={viewerPost.id}
+        slug={viewerPost.slug}
+      />
+    </>
+  );
+}
+
 async function ArticleComments({
   postId,
-  session,
+  sessionPromise,
   slug,
 }: {
   postId: string;
-  session: AuthenticatedSession | null;
+  sessionPromise: Promise<AuthenticatedSession | null>;
   slug: string;
 }) {
-  const [comments, viewer] = await Promise.all([
-    getInitialComments(slug),
-    getCommentViewer(session),
-  ]);
+  const [comments, session] = await Promise.all([getInitialComments(slug), sessionPromise]);
+  const viewer = await getCommentViewer(session);
   return <CommentsSection initialData={comments} postId={postId} slug={slug} viewer={viewer} />;
 }
 
@@ -178,6 +216,16 @@ function ArticleSectionLoading({ label }: { label: string }) {
       <div className="bg-surface-raised h-6 w-48 rounded-full" />
       <div className="bg-surface-raised h-24 rounded-xl" />
       <span className="sr-only">{label}…</span>
+    </div>
+  );
+}
+
+function ArticleActionsLoading() {
+  return (
+    <div aria-busy="true" className="flex flex-wrap items-center gap-2" role="status">
+      <span className="bg-surface-raised h-9 w-24 animate-pulse rounded-full" />
+      <span className="bg-surface-raised h-9 w-20 animate-pulse rounded-full" />
+      <span className="sr-only">Carregando ações do artigo…</span>
     </div>
   );
 }
