@@ -197,8 +197,8 @@ async function RecentSection({
       />
       {posts.items.length > 0 ? (
         <div>
-          {posts.items.map((post) => (
-            <ArticleCard key={post.id} post={post} />
+          {posts.items.map((post, index) => (
+            <ArticleCard key={post.id} post={post} priority={index === 0} />
           ))}
         </div>
       ) : (

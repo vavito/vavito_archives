@@ -114,8 +114,8 @@ export function HomePageContent({ data }: Readonly<HomePageContentProps>) {
         />
         {data.recentPosts.length > 0 ? (
           <div>
-            {data.recentPosts.map((post) => (
-              <ArticleCard key={post.id} post={post} />
+            {data.recentPosts.map((post, index) => (
+              <ArticleCard key={post.id} post={post} priority={index === 0} />
             ))}
           </div>
         ) : (

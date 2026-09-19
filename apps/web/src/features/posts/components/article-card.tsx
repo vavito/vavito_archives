@@ -15,10 +15,15 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
 
 interface ArticleCardProps {
   compact?: boolean;
+  priority?: boolean;
   post: PostSummary;
 }
 
-export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps>) {
+export function ArticleCard({
+  compact = false,
+  post,
+  priority = false,
+}: Readonly<ArticleCardProps>) {
   return (
     <article
       className={cn(
@@ -41,6 +46,7 @@ export function ArticleCard({ compact = false, post }: Readonly<ArticleCardProps
             src={post.coverUrl}
             title={post.title}
             variant="preview"
+            priority={priority}
           />
         ) : null}
 

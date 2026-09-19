@@ -58,6 +58,7 @@ export function ArticleCoverImage({
           variant === 'hero' && 'rounded-2xl border border-border',
         )}
         fill
+        fetchPriority={priority ? 'high' : undefined}
         loadingLabel={`Carregando capa de ${title}`}
         preload={priority}
         quality={80}

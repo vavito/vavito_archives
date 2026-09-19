@@ -199,8 +199,8 @@ async function ArticlesListSection({
 
       {data.posts.length > 0 ? (
         <div>
-          {data.posts.map((post) => (
-            <ArticleCard key={post.id} post={post} />
+          {data.posts.map((post, index) => (
+            <ArticleCard key={post.id} post={post} priority={index === 0} />
           ))}
         </div>
       ) : (
