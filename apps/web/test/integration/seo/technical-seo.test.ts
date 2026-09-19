@@ -8,8 +8,23 @@ import robots from '@web/app/robots';
 import sitemap from '@web/app/sitemap';
 import manifest from '@web/app/manifest';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
+import { createWebsiteStructuredData, serializeStructuredData } from '@web/lib/seo/structured-data';
 
 describe('SEO técnico', () => {
+  it('identifica o site e os nomes alternativos para os buscadores', () => {
+    const structuredData = createWebsiteStructuredData();
+
+    expect(structuredData).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      alternateName: ['Vavito', 'vavitoarchives.com.br'],
+      inLanguage: 'pt-BR',
+      name: 'Vavito Archives',
+      url: 'https://vavitoarchives.com.br/',
+    });
+    expect(serializeStructuredData(structuredData)).toContain('"@type":"WebSite"');
+  });
+
   it('expõe a identidade visual e os ícones instaláveis no manifesto', () => {
     expect(manifest()).toEqual({
       background_color: '#18191b',

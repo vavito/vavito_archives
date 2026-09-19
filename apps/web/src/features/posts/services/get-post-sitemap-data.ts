@@ -2,7 +2,7 @@ import type { ApiClient } from '@vavito/api-client';
 
 import { createWebPublicApiClient } from '@web/lib/api/api-client';
 
-const SITEMAP_PAGE_SIZE = 100;
+const SITEMAP_PAGE_SIZE = 24;
 
 export interface PostSitemapEntry {
   publishedAt: string;

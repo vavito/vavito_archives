@@ -46,13 +46,13 @@ describe('getPostSitemapData', () => {
       .mockResolvedValueOnce({
         data: {
           items: [firstPost],
-          meta: { limit: 100, page: 1, total: 2, totalPages: 2 },
+          meta: { limit: 24, page: 1, total: 2, totalPages: 2 },
         },
       })
       .mockResolvedValueOnce({
         data: {
           items: [secondPost],
-          meta: { limit: 100, page: 2, total: 2, totalPages: 2 },
+          meta: { limit: 24, page: 2, total: 2, totalPages: 2 },
         },
       });
     const client = { GET: get } as unknown as ApiClient;
@@ -62,10 +62,10 @@ describe('getPostSitemapData', () => {
       { publishedAt: secondPost.publishedAt, slug: secondPost.slug },
     ]);
     expect(get).toHaveBeenNthCalledWith(1, '/api/v1/posts', {
-      params: { query: { limit: 100, page: 1, sort: 'recent' } },
+      params: { query: { limit: 24, page: 1, sort: 'recent' } },
     });
     expect(get).toHaveBeenNthCalledWith(2, '/api/v1/posts', {
-      params: { query: { limit: 100, page: 2, sort: 'recent' } },
+      params: { query: { limit: 24, page: 2, sort: 'recent' } },
     });
   });
 
