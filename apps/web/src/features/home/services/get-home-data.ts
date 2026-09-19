@@ -36,41 +36,70 @@ async function listPosts(
   return data;
 }
 
+export async function getHomeRecentPosts({
+  client = createWebPublicApiClient(),
+  selectedTag = null,
+}: Pick<GetHomeDataOptions, 'client' | 'selectedTag'> = {}): Promise<PaginatedPosts> {
+  const normalizedTag = selectedTag?.trim().toLowerCase() || undefined;
+
+  return listPosts(client, {
+    limit: HOME_RECENT_POSTS_LIMIT,
+    sort: 'recent',
+    ...(normalizedTag ? { tag: normalizedTag } : {}),
+  });
+}
+
+export async function getHomePopularPosts({
+  client = createWebPublicApiClient(),
+  selectedTag = null,
+}: Pick<GetHomeDataOptions, 'client' | 'selectedTag'> = {}): Promise<PaginatedPosts> {
+  const normalizedTag = selectedTag?.trim().toLowerCase() || undefined;
+
+  return listPosts(client, {
+    limit: HOME_POPULAR_POSTS_LIMIT,
+    sort: 'popular',
+    ...(normalizedTag ? { tag: normalizedTag } : {}),
+  });
+}
+
+export async function getHomeTags(client = createWebPublicApiClient()) {
+  const { data } = await client.GET('/api/v1/tags');
+
+  if (!data) {
+    throw new Error('Não foi possível carregar os tópicos da página inicial.');
+  }
+
+  return data;
+}
+
+export async function getHomePublishedPostsCount(client = createWebPublicApiClient()) {
+  const posts = await listPosts(client, { limit: 1, sort: 'recent' });
+
+  return posts.meta.total;
+}
+
 export async function getHomeData({
   client = createWebPublicApiClient(),
   selectedTag = null,
 }: GetHomeDataOptions = {}): Promise<HomeData> {
   const normalizedTag = selectedTag?.trim().toLowerCase() || null;
-  const tagFilter = normalizedTag ?? undefined;
-  const recentPostsPromise = listPosts(client, {
-    limit: HOME_RECENT_POSTS_LIMIT,
-    sort: 'recent',
-    ...(tagFilter ? { tag: tagFilter } : {}),
-  });
+  const recentPostsPromise = getHomeRecentPosts({ client, selectedTag: normalizedTag });
   const totalPostsPromise = normalizedTag
     ? listPosts(client, { limit: 1, sort: 'recent' })
     : recentPostsPromise;
 
   const [recentPosts, popularPosts, totalPosts, tagsResponse] = await Promise.all([
     recentPostsPromise,
-    listPosts(client, {
-      limit: HOME_POPULAR_POSTS_LIMIT,
-      sort: 'popular',
-      ...(tagFilter ? { tag: tagFilter } : {}),
-    }),
+    getHomePopularPosts({ client, selectedTag: normalizedTag }),
     totalPostsPromise,
-    client.GET('/api/v1/tags'),
+    getHomeTags(client),
   ]);
-
-  if (!tagsResponse.data) {
-    throw new Error('Não foi possível carregar os tópicos da página inicial.');
-  }
 
   return {
     popularPosts: popularPosts.items,
     publishedPostsCount: totalPosts.meta.total,
     recentPosts: recentPosts.items,
     selectedTag: normalizedTag,
-    tags: tagsResponse.data,
+    tags: tagsResponse,
   };
 }

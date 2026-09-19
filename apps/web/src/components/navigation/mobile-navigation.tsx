@@ -1,22 +1,14 @@
 'use client';
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  buttonVariants,
-  cn,
-} from '@vavito/ui';
-import { Bookmark, Home, LogIn, Newspaper, UserRound } from 'lucide-react';
+import { cn } from '@vavito/ui';
+import { Bookmark, Home, Newspaper, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, type MouseEvent } from 'react';
+import { lazy, Suspense, useState, type MouseEvent } from 'react';
 
 import { LoadingSpinner } from '@web/components/feedback/loading-spinner';
+
+const SavedAccessDialog = lazy(() => import('./saved-access-dialog'));
 
 const navigationItems = [
   { href: '/', icon: Home, label: 'Início' },
@@ -104,30 +96,11 @@ export function MobileNavigation() {
         </ul>
       </nav>
 
-      <Dialog open={isSavedAccessOpen} onOpenChange={setIsSavedAccessOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Entre para ver seus artigos salvos</DialogTitle>
-            <DialogDescription>
-              Você precisa acessar sua conta para ver os artigos que guardou para ler depois.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setIsSavedAccessOpen(false)} variant="ghost">
-              Agora não
-            </Button>
-            <Link
-              className={buttonVariants({ variant: 'primary' })}
-              href="/auth?next=/salvos"
-              onClick={() => setIsSavedAccessOpen(false)}
-              prefetch={false}
-            >
-              <LogIn aria-hidden="true" />
-              Ir para o login
-            </Link>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isSavedAccessOpen ? (
+        <Suspense fallback={null}>
+          <SavedAccessDialog onOpenChange={setIsSavedAccessOpen} />
+        </Suspense>
+      ) : null}
     </>
   );
 }

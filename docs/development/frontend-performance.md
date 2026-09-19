@@ -33,14 +33,32 @@ progressivo do site.
 
 ## Carregamento da página do artigo
 
-A rota do artigo e sua metadata consultam somente o detalhe necessário à leitura. Comentários,
-perfil do leitor e artigos relacionados carregam em Server Components separados por `Suspense`,
-com skeletons próprios. Essas consultas não bloqueiam a entrega de título, resumo, capa e conteúdo.
-Falhas nas recomendações apresentam feedback local e não impedem a leitura do artigo.
+A rota do artigo e sua metadata consultam somente o detalhe necessário à leitura. O detalhe público
+usa o cliente com cache do `fetch` do Next.js por 30 segundos; o estado personalizado do leitor
+(reação e artigo salvo) é resolvido em um Server Component separado, sem bloquear a resposta
+principal. Comentários, perfil do leitor e artigos relacionados carregam em Server Components
+separados por `Suspense`, com skeletons próprios. Essas consultas não bloqueiam a entrega de título,
+resumo, capa e conteúdo. Falhas nas recomendações apresentam feedback local e não impedem a leitura.
 
 A capa mantém `preload` e não espera hidratação para ficar visível. A redução do LCP deve ser
 confirmada após o deploy com medições reais; latência da API e download da imagem ainda participam
 do carregamento principal.
+
+## Carregamento da Home e da listagem
+
+Home e `/artigos` entregam primeiro o cabeçalho e a estrutura principal. Tópicos, cards, métricas e
+paginação são Server Components separados por `Suspense`, com skeletons que preservam o espaço
+visual e erros isolados por região. Assim, a latência do Render em uma consulta secundária não
+impede o navegador de pintar o título e os controles acima da dobra.
+
+Na Home, cada consulta também deve ser iniciada dentro do Server Component protegido pela sua
+própria fronteira de `Suspense`. Iniciar essas promessas no componente pai faz a resposta aguardar o
+conteúdo secundário antes de liberar o hero, mesmo quando os resultados são consumidos mais abaixo.
+
+As consultas públicas dessas duas rotas usam o cache do `fetch` do Next.js por 30 segundos, com a
+tag `public-content`. Ações administrativas que publicam, arquivam, excluem artigos ou alteram a
+visibilidade de tópicos invalidam essa tag e as rotas públicas. Dados autenticados, comentários e
+rascunhos continuam fora desse cache.
 
 ## Limites de componentes no cliente
 
@@ -54,6 +72,12 @@ SDK do Supabase usado para consultar a sessão mobile e encerrar uma sessão é 
 quando o usuário inicia a ação. Links globais para a autenticação desabilitam o prefetch automático,
 pois antecipar toda a tela de cadastro na Home aumenta o trabalho da thread principal sem ajudar a
 leitura do conteúdo atual.
+
+Na navegação mobile, o botão de busca permanece leve no HTML inicial; o diálogo, a consulta e a
+lista de resultados entram em um chunk sob demanda quando a busca é aberta. O diálogo de acesso aos
+artigos salvos segue a mesma regra e só carrega após uma tentativa de abrir a área protegida. Essas
+fronteiras não alteram o layout nem a interação no desktop e evitam que bibliotecas de diálogo e
+resultados concorram com o título principal no primeiro paint móvel.
 
 ## Auditoria automatizada
 

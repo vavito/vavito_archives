@@ -1,6 +1,4 @@
-import { PageError } from '@web/components/feedback/page-error';
-import { getHomeData, HomePageContent } from '@web/features/home';
-import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
+import { HomePageStream } from '@web/features/home';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
 export const metadata = createPublicPageMetadata({
@@ -18,18 +16,6 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: Readonly<HomePageProps>) {
   const parameters = await searchParams;
   const selectedTag = Array.isArray(parameters.tag) ? parameters.tag[0] : parameters.tag;
-  let data: Awaited<ReturnType<typeof getHomeData>>;
 
-  try {
-    data = await withPageDataTimeout(() => getHomeData({ selectedTag: selectedTag ?? null }));
-  } catch {
-    return (
-      <PageError
-        description="Não conseguimos buscar os conteúdos agora. Tente novamente em alguns instantes."
-        title="Não foi possível carregar os artigos."
-      />
-    );
-  }
-
-  return <HomePageContent data={data} />;
+  return <HomePageStream selectedTag={selectedTag?.trim().toLowerCase() || null} />;
 }

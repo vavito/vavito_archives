@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiClientError } from '@vavito/api-client';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { createWebAuthenticatedApiClient } from '@web/lib/api/api-client';
 
@@ -90,6 +90,7 @@ function friendlyTransitionError(
 }
 
 function revalidatePostPaths(id: string, slug: string | null): void {
+  revalidateTag('public-content', 'max');
   revalidatePath('/');
   revalidatePath('/artigos');
   revalidatePath('/admin');

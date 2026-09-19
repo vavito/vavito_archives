@@ -1,14 +1,24 @@
 import { isValidElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-const { getArticlePageData, getCommentsPage, getArticleRelatedPosts } = vi.hoisted(() => ({
-  getArticlePageData: vi.fn(),
-  getCommentsPage: vi.fn(() => new Promise(() => {})),
-  getArticleRelatedPosts: vi.fn(() => new Promise(() => {})),
+const { getArticlePageData, getAuthenticatedSession, getCommentsPage, getArticleRelatedPosts } =
+  vi.hoisted(() => ({
+    getArticlePageData: vi.fn(),
+    getAuthenticatedSession: vi.fn(),
+    getCommentsPage: vi.fn(() => new Promise(() => {})),
+    getArticleRelatedPosts: vi.fn(() => new Promise(() => {})),
+  }));
+
+const { createWebCachedPublicApiClient } = vi.hoisted(() => ({
+  createWebCachedPublicApiClient: vi.fn(() => ({ name: 'cached-public-client' })),
 }));
 
 vi.mock('@web/lib/auth/authenticated-session', () => ({
-  getAuthenticatedSession: vi.fn().mockResolvedValue(null),
+  getAuthenticatedSession,
+}));
+vi.mock('@web/lib/api/api-client', () => ({
+  createWebAuthenticatedApiClient: vi.fn(),
+  createWebCachedPublicApiClient,
 }));
 vi.mock('@web/features/posts', () => ({
   ArticlePageContent: () => null,
@@ -32,6 +42,7 @@ import ArticlePage from '@web/app/(public)/artigos/[slug]/page';
 
 describe('carregamento principal do artigo', () => {
   it('entrega a página sem aguardar consultas secundárias que não terminam', async () => {
+    getAuthenticatedSession.mockReturnValue(new Promise(() => {}));
     getArticlePageData.mockResolvedValue({
       post: {
         id: 'post-1',
@@ -49,6 +60,7 @@ describe('carregamento principal do artigo', () => {
 
     expect(isValidElement(result)).toBe(true);
     expect(getArticlePageData).toHaveBeenCalledWith({
+      client: { name: 'cached-public-client' },
       includeRelatedPosts: false,
       slug: 'artigo',
     });
