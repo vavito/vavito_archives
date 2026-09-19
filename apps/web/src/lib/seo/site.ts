@@ -4,6 +4,7 @@ export const SITE_DESCRIPTION =
 export const SITE_LANGUAGE = 'pt-BR';
 export const SITE_LOCALE = 'pt_BR';
 export const SITE_NAME = 'Vavito Archives';
+export const SITE_ALTERNATE_NAMES = ['Vavito', 'vavitoarchives.com.br'] as const;
 export const SITE_URL = new URL('https://vavitoarchives.com.br');
 
 export function absoluteSiteUrl(pathname = '/'): string {

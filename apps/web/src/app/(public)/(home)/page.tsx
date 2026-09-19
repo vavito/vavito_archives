@@ -1,5 +1,6 @@
 import { HomePageStream } from '@web/features/home';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
+import { createWebsiteStructuredData, serializeStructuredData } from '@web/lib/seo/structured-data';
 
 export const metadata = createPublicPageMetadata({
   absoluteTitle: true,
@@ -16,6 +17,15 @@ interface HomePageProps {
 export default async function HomePage({ searchParams }: Readonly<HomePageProps>) {
   const parameters = await searchParams;
   const selectedTag = Array.isArray(parameters.tag) ? parameters.tag[0] : parameters.tag;
+  const structuredData = createWebsiteStructuredData();
 
-  return <HomePageStream selectedTag={selectedTag?.trim().toLowerCase() || null} />;
+  return (
+    <>
+      <script
+        dangerouslySetInnerHTML={{ __html: serializeStructuredData(structuredData) }}
+        type="application/ld+json"
+      />
+      <HomePageStream selectedTag={selectedTag?.trim().toLowerCase() || null} />
+    </>
+  );
 }
