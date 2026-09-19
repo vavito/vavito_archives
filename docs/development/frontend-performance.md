@@ -51,6 +51,10 @@ paginação são Server Components separados por `Suspense`, com skeletons que p
 visual e erros isolados por região. Assim, a latência do Render em uma consulta secundária não
 impede o navegador de pintar o título e os controles acima da dobra.
 
+Na Home, cada consulta também deve ser iniciada dentro do Server Component protegido pela sua
+própria fronteira de `Suspense`. Iniciar essas promessas no componente pai faz a resposta aguardar o
+conteúdo secundário antes de liberar o hero, mesmo quando os resultados são consumidos mais abaixo.
+
 As consultas públicas dessas duas rotas usam o cache do `fetch` do Next.js por 30 segundos, com a
 tag `public-content`. Ações administrativas que publicam, arquivam, excluem artigos ou alteram a
 visibilidade de tópicos invalidam essa tag e as rotas públicas. Dados autenticados, comentários e
