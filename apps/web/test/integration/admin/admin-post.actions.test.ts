@@ -13,11 +13,15 @@ const mocks = vi.hoisted(() => ({
   discard: vi.fn(),
   requireAdminSession: vi.fn(),
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
   transition: vi.fn(),
 }));
 
 vi.mock('server-only', () => ({}));
-vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
+vi.mock('next/cache', () => ({
+  revalidatePath: mocks.revalidatePath,
+  revalidateTag: mocks.revalidateTag,
+}));
 vi.mock('@web/lib/api/api-client', () => ({
   createWebAuthenticatedApiClient: mocks.createClient,
 }));
@@ -58,6 +62,7 @@ describe('ações de transição de artigos', () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/artigos');
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/admin/posts');
     expect(mocks.revalidatePath).toHaveBeenCalledWith(`/artigos/${post.slug}`);
+    expect(mocks.revalidateTag).toHaveBeenCalledWith('public-content', 'max');
   });
 
   it('traduz os campos ausentes retornados pelo conflito de publicação', async () => {
