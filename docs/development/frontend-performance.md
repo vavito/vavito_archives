@@ -69,6 +69,12 @@ quando o usuário inicia a ação. Links globais para a autenticação desabilit
 pois antecipar toda a tela de cadastro na Home aumenta o trabalho da thread principal sem ajudar a
 leitura do conteúdo atual.
 
+Na navegação mobile, o botão de busca permanece leve no HTML inicial; o diálogo, a consulta e a
+lista de resultados entram em um chunk sob demanda quando a busca é aberta. O diálogo de acesso aos
+artigos salvos segue a mesma regra e só carrega após uma tentativa de abrir a área protegida. Essas
+fronteiras não alteram o layout nem a interação no desktop e evitam que bibliotecas de diálogo e
+resultados concorram com o título principal no primeiro paint móvel.
+
 ## Auditoria automatizada
 
 Execute na raiz:
