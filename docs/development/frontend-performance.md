@@ -33,10 +33,12 @@ progressivo do site.
 
 ## Carregamento da página do artigo
 
-A rota do artigo e sua metadata consultam somente o detalhe necessário à leitura. Comentários,
-perfil do leitor e artigos relacionados carregam em Server Components separados por `Suspense`,
-com skeletons próprios. Essas consultas não bloqueiam a entrega de título, resumo, capa e conteúdo.
-Falhas nas recomendações apresentam feedback local e não impedem a leitura do artigo.
+A rota do artigo e sua metadata consultam somente o detalhe necessário à leitura. O detalhe público
+usa o cliente com cache do `fetch` do Next.js por 30 segundos; o estado personalizado do leitor
+(reação e artigo salvo) é resolvido em um Server Component separado, sem bloquear a resposta
+principal. Comentários, perfil do leitor e artigos relacionados carregam em Server Components
+separados por `Suspense`, com skeletons próprios. Essas consultas não bloqueiam a entrega de título,
+resumo, capa e conteúdo. Falhas nas recomendações apresentam feedback local e não impedem a leitura.
 
 A capa mantém `preload` e não espera hidratação para ficar visível. A redução do LCP deve ser
 confirmada após o deploy com medições reais; latência da API e download da imagem ainda participam
