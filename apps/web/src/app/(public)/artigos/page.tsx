@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 
-import { PageError } from '@web/components/feedback/page-error';
-import { ArticlesPageContent, getArticlesData, normalizeArticlesSort } from '@web/features/posts';
-import { withPageDataTimeout } from '@web/lib/api/page-data-timeout';
+import { ArticlesPageStream, normalizeArticlesSort } from '@web/features/posts';
 import { createPublicPageMetadata } from '@web/lib/seo/metadata';
 
 const articlesDescription =
@@ -58,26 +56,14 @@ export async function generateMetadata({
 
 export default async function ArticlesPage({ searchParams }: Readonly<ArticlesPageProps>) {
   const parameters = await searchParams;
-  let data: Awaited<ReturnType<typeof getArticlesData>>;
 
-  try {
-    data = await withPageDataTimeout(() =>
-      getArticlesData({
-        filters: {
-          page: parsePage(firstParameter(parameters.page)),
-          sort: normalizeArticlesSort(firstParameter(parameters.sort)),
-          tag: firstParameter(parameters.tag) ?? null,
-        },
-      }),
-    );
-  } catch {
-    return (
-      <PageError
-        description="Não conseguimos buscar os artigos agora. Tente novamente em alguns instantes."
-        title="Não foi possível carregar os artigos."
-      />
-    );
-  }
-
-  return <ArticlesPageContent data={data} />;
+  return (
+    <ArticlesPageStream
+      filters={{
+        page: parsePage(firstParameter(parameters.page)),
+        sort: normalizeArticlesSort(firstParameter(parameters.sort)),
+        tag: firstParameter(parameters.tag) ?? null,
+      }}
+    />
+  );
 }
