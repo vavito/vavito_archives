@@ -3,6 +3,7 @@ import type { components } from '@vavito/api-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SearchOverlay } from '@web/features/posts/components/search-overlay';
+import { SearchLauncher } from '@web/features/posts/components/search-launcher';
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
@@ -141,5 +142,24 @@ describe('SearchOverlay', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(mocks.push).toHaveBeenCalledWith('/artigos/prisma-com-postgresql');
+  });
+});
+
+describe('SearchLauncher', () => {
+  beforeEach(() => {
+    mocks.push.mockReset();
+    mocks.searchPublishedPosts.mockReset();
+    mocks.searchPublishedPosts.mockResolvedValue([]);
+  });
+
+  it('carrega o diálogo de busca somente quando o launcher é acionado', async () => {
+    render(<SearchLauncher />);
+
+    expect(screen.queryByRole('dialog', { name: 'Buscar artigos' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar artigos' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Buscar artigos' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Buscar artigos' })).toHaveFocus();
   });
 });
